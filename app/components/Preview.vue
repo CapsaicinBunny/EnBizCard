@@ -56,7 +56,12 @@
           <div
             id="modal"
             ref="modal"
-            :style="`backgroundColor: ${colors.mainBg.color}; visibility: hidden; top: 2rem; opacity: 0;`"
+            :style="{
+              backgroundColor: colors.mainBg.color,
+              visibility: 'hidden',
+              top: '2rem',
+              opacity: 0,
+            }"
           >
             <a id="close" @click="closePublicKey()" class="closeColor">
               <div
