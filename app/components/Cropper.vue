@@ -1,7 +1,7 @@
 <template>
   <div
     id="notificationContainer"
-    class="flex justify-center fixed top-0 left-0 right-0 bottom-0 items-center z-30 bg-black bg-opacity-80"
+    class="flex justify-center fixed top-0 left-0 right-0 bottom-0 items-center z-30 bg-black/80"
   >
     <div
       class="flex flex-col items-center notification content bg-gray-800 text-gray-100 rounded relative z-50 max-w-sm mx-4 p-2"

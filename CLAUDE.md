@@ -10,11 +10,11 @@ Read [README.md](README.md) for the project's goals/features from a user perspec
 
 ## Tech stack
 
-- **Nuxt 4** with `ssr: false` (pure client-side SPA, statically generated) — see [nuxt.config.ts](nuxt.config.ts)
+- **Nuxt 4**, statically generated to `.output/public` — see [nuxt.config.ts](nuxt.config.ts). SSR is enabled so pages prerender to real HTML, but `/` is forced client-only (see *Rendering* below).
 - **Vue 3** single-file components, **Options API** throughout (no `<script setup>`, no TypeScript in components)
 - **Vite** as the bundler (Nuxt 4 default) — *not* webpack
 - **`useState`** for the only piece of global state, the selected theme — [app/composables/useTheme.js](app/composables/useTheme.js). There is no Vuex/Pinia store.
-- **Tailwind CSS v3** via `@nuxtjs/tailwindcss`, plus hand-written SCSS themes
+- **Tailwind CSS v4** via `@tailwindcss/vite`. There is no `tailwind.config.js` — v4 is configured CSS-first in [app/assets/css/tailwind.css](app/assets/css/tailwind.css) (`@theme`, `@source`). Tailwind styles **only the generator UI**; the exported card themes are hand-written SCSS with no Tailwind, so Tailwind changes cannot affect generated cards.
 - **JSZip** + **file-saver** to package the generated card for download
 - **`@vite-pwa/nuxt`** for the manifest and service worker
 - Card themes are pre-built minified CSS (`T1/T2/T3.min.css` in `app/assets/styles/`), imported as text with Vite's `?raw` and injected into the exported card
@@ -38,6 +38,14 @@ Nuxt 4 puts application code under `app/`, and static files served at the site r
 - [public/](public/) — PWA icons, fonts, and `qrcode.min.js` (loaded both as a global `<script>` by the generator and imported as `?raw` text to bundle into exports).
 
 `nuxt generate` outputs to `.output/public`.
+
+## Rendering
+
+`ssr: true` globally, with `routeRules: { '/': { ssr: false } }`:
+
+- **`/` (the generator) cannot be server-rendered.** `Preview.vue` renders a complete nested `<html>/<head>/<body>` document, and the browser's HTML parser discards tags like those when they appear inside a `<div>` — so server markup could never match the client render. It is emitted as an SPA shell.
+- **Everything else prerenders to real HTML.** Because `/` has no markup, the link crawler cannot discover other routes, so they're listed explicitly in `nitro.prerender.routes`. **Add new pages there** or they'll ship as empty shells.
+- pdf.js (~1.2 MB with its worker) is imported lazily in `Featured.vue` on first PDF attach. Keep it that way: importing it at module scope both bloats the initial bundle and breaks the server build, since it calls `new Worker(...)` at evaluation time.
 
 ## Commands
 
@@ -66,6 +74,6 @@ npm run generate
 - **Vue 3 forbids `<script>` and `<style>` tags in templates** (`ignoreSideEffectTags`). Preview.vue needs them for the exported document, so:
   - the `<style>` blocks are rendered via `<component :is="'style'">`, which bypasses the compile-time check;
   - the trailing-slash redirect `<script>` is *not* in the template at all — it's injected in `downloadPackage()`, which also stops it from executing inside the generator.
-- **`ssr: false` means a successful build proves almost nothing.** No component code runs during `nuxt generate`, so template and runtime errors only surface in a browser. Always load the dev server and check the console after changes.
+- **A successful build proves very little about the generator page.** `/` is `ssr: false`, so none of its component code runs during `nuxt generate` — template and runtime errors surface only in a browser. Always load the app and check the console after changing anything under `/`.
 - **Drag-and-drop uses `vue-draggable-plus`, not `vuedraggable`.** vuedraggable@4 is unmaintained and throws on Vue 3.3+ (its slot vnodes have a null `el`). The `target=".sortable-*"` prop is what lets each list keep its `<transition-group>` wrapper.
 - License is AGPLv3 ([LICENSE](LICENSE)) — keep that in mind when adding dependencies or reusing third-party code.

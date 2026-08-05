@@ -1,3 +1,5 @@
+import tailwindcss from '@tailwindcss/vite'
+
 const title = 'EnBizCard - An Open-Source Digital Business Card Generator'
 const description =
   'EnBizCard helps you create beautiful, responsive HTML-based digital business cards that can be hosted on your website.'
@@ -6,13 +8,38 @@ const themeColor = '#111827'
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
 
-  // Client-side only SPA, statically generated. There is no backend.
-  ssr: false,
+  // Prerender to real HTML where we can. There is still no backend — SSR here
+  // only means `nuxt generate` emits populated markup instead of empty shells.
+  ssr: true,
+
+  routeRules: {
+    // The generator itself must stay client-only: Preview.vue renders a whole
+    // nested <html>/<head>/<body> document, and the browser's HTML parser
+    // discards tags like those inside a <div>, so server markup could never
+    // match the client render. This route is emitted as an SPA shell.
+    '/': { ssr: false },
+  },
+
+  nitro: {
+    prerender: {
+      // '/' is an SPA shell, so the link crawler has no markup to walk and
+      // cannot discover the other routes on its own. List them explicitly.
+      routes: ['/hosting-guide'],
+      crawlLinks: true,
+    },
+  },
 
   devtools: { enabled: false },
   telemetry: false,
 
-  modules: ['@nuxtjs/tailwindcss', '@vite-pwa/nuxt'],
+  modules: ['@vite-pwa/nuxt'],
+
+  // Tailwind 4 ships as a Vite plugin; there is no Nuxt module and no
+  // tailwind.config.js — see app/assets/css/tailwind.css for the config.
+  css: ['~/assets/css/tailwind.css'],
+  vite: {
+    plugins: [tailwindcss()],
+  },
 
   app: {
     // Vue 2's `transition: 'page'` page option is replaced by app-level config.

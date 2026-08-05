@@ -1,3 +1,23 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+/* Tailwind 4 is configured here in CSS rather than in tailwind.config.js. */
+
+/* Template sources to scan for class names (this file lives in app/assets/css). */
+@source '../..';
+
+@theme {
+  /* Was `theme.extend.screens.xs` in tailwind.config.js. */
+  --breakpoint-xs: 360px;
+}
+
+@layer base {
+  /*
+   * Tailwind 4's Preflight sets `cursor: default` on buttons, where v3 left the
+   * browser default alone. Nearly every button in this UI is clickable and does
+   * not carry an explicit cursor-pointer class, so restore the v3 behaviour.
+   */
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}

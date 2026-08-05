@@ -255,9 +255,25 @@ import { parse } from 'id3-parser'
 // pdf.js used to be vendored under assets/scripts and pulled in with CommonJS
 // require(), which Vite cannot resolve. It now comes from npm, with the worker
 // bundled by Vite's ?worker import.
-import * as pdfjs from 'pdfjs-dist'
-import PdfjsWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?worker'
-pdfjs.GlobalWorkerOptions.workerPort = new PdfjsWorker()
+//
+// It is loaded on demand rather than at module scope: the library and its worker
+// are ~1.2 MB, but are only needed when someone attaches a PDF. This also keeps
+// module evaluation free of `new Worker(...)`, so importing this component is
+// safe on the server.
+let pdfjsPromise
+function loadPdfjs() {
+  if (!pdfjsPromise) {
+    pdfjsPromise = (async () => {
+      const pdfjs = await import('pdfjs-dist')
+      const { default: PdfjsWorker } = await import(
+        'pdfjs-dist/build/pdf.worker.min.mjs?worker'
+      )
+      pdfjs.GlobalWorkerOptions.workerPort = new PdfjsWorker()
+      return pdfjs
+    })()
+  }
+  return pdfjsPromise
+}
 import { VueDraggable } from 'vue-draggable-plus'
 
 import ProductCard from './ProductCard'
@@ -553,8 +569,9 @@ export default {
       let reader = new FileReader()
       let data, maxWidth, maxHeight
       maxWidth = maxHeight = 1296
-      reader.onload = (f) => {
+      reader.onload = async (f) => {
         data = this.dataURIToBinary(f.target.result)
+        const pdfjs = await loadPdfjs()
         let loadingTask = pdfjs.getDocument(data)
         loadingTask.promise.then((pdf) => {
           pdf.getPage(1).then((page) => {

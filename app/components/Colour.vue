@@ -3,7 +3,7 @@
     <div class="flex items-center">
       <div
         :style="{ backgroundColor: colors[name].color }"
-        class="w-12 h-12 rounded mr-3 relative cursor-pointer transition-colors duration-200 focus:outline-none focus:ring ring-gray-100"
+        class="w-12 h-12 rounded mr-3 relative cursor-pointer transition-colors duration-200 focus:outline-none focus:ring-3 ring-gray-100"
         tabindex="0"
         @click.self="colors[name].openPalette = !colors[name].openPalette"
         @keydown.space.enter.esc.prevent="
@@ -24,7 +24,7 @@
                 :style="{ backgroundColor: swatch }"
                 :title="swatch"
                 :aria-label="swatch"
-                class="w-8 h-8 rounded border focus:outline-none focus:ring ring-gray-100"
+                class="w-8 h-8 rounded border focus:outline-none focus:ring-3 ring-gray-100"
                 :class="
                   isCurrent(swatch) ? 'border-gray-100' : 'border-transparent'
                 "
@@ -46,7 +46,7 @@
                 type="text"
                 spellcheck="false"
                 maxlength="7"
-                class="ml-2 w-24 px-2 py-1 rounded bg-black text-gray-100 text-sm focus:outline-none focus:ring ring-gray-100"
+                class="ml-2 w-24 px-2 py-1 rounded bg-black text-gray-100 text-sm focus:outline-none focus:ring-3 ring-gray-100"
                 :aria-label="`${label} hex value`"
                 @input="onHexInput($event.target.value)"
               />
