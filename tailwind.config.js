@@ -1,11 +1,11 @@
-const colors = require('tailwindcss/colors')
-
-module.exports = {
+/** @type {import('tailwindcss').Config} */
+export default {
   content: [
-    './components/**/*.{vue,js}',
-    './layouts/**/*.vue',
-    './pages/**/*.vue',
-    './plugins/**/*.{js,ts}',
+    './app/components/**/*.{vue,js,ts}',
+    './app/layouts/**/*.vue',
+    './app/pages/**/*.vue',
+    './app/plugins/**/*.{js,ts}',
+    './app/app.vue',
     './nuxt.config.{js,ts}',
   ],
   theme: {
@@ -13,9 +13,6 @@ module.exports = {
       screens: {
         xs: '360px',
       },
-      backgroundColor: ['group-focus', 'checked'],
-      borderColor: ['checked'],
-      brightness: ['hover', 'focus'],
     },
   },
   plugins: [],
