@@ -250,8 +250,10 @@
 </template>
 
 <script>
-import { convertFileToBuffer } from 'id3-parser/lib/universal/helpers'
-import { parse } from 'id3-parser'
+// id3-parser 3 dropped the `universal/` entry points and made `parse` the
+// default export instead of a named one.
+import { convertFileToBuffer } from 'id3-parser/lib/util'
+import parse from 'id3-parser'
 // pdf.js used to be vendored under assets/scripts and pulled in with CommonJS
 // require(), which Vite cannot resolve. It now comes from npm, with the worker
 // bundled by Vite's ?worker import.

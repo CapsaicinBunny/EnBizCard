@@ -15,15 +15,15 @@
   },
   "engineStrict": true,
   "dependencies": {
-    "cropperjs": "^1.6.2",
+    "cropperjs": "^2.1.1",
     "file-saver": "^2.0.5",
-    "id3-parser": "^2.0.0",
+    "id3-parser": "^3.0.0",
     "jszip": "^3.10.1",
     "nuxt": "^4.5.2",
     "pdfjs-dist": "^6.2.108",
     "vue": "^3.5.13",
     "vue-draggable-plus": "^0.6.1",
-    "vue-router": "^4.5.1"
+    "vue-router": "^5.2.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
