@@ -548,7 +548,10 @@ export default {
       var rawLength = raw.length
       var array = new Uint8Array(new ArrayBuffer(rawLength))
 
-      for (i = 0; i < rawLength; i++) {
+      // `i` was undeclared here. Under Nuxt 2 that made it an implicit global;
+      // in an ES module (strict mode) it only avoided a ReferenceError because
+      // an unrelated classic script happened to leak a global `i`.
+      for (let i = 0; i < rawLength; i++) {
         array[i] = raw.charCodeAt(i)
       }
       return array
@@ -570,52 +573,58 @@ export default {
       let data, maxWidth, maxHeight
       maxWidth = maxHeight = 1296
       reader.onload = async (f) => {
-        data = this.dataURIToBinary(f.target.result)
-        const pdfjs = await loadPdfjs()
-        let loadingTask = pdfjs.getDocument(data)
-        loadingTask.promise.then((pdf) => {
-          pdf.getPage(1).then((page) => {
-            let canvas = document.createElement('canvas')
-            let ctx = canvas.getContext('2d')
-            let scale = 1
-            let viewport = page.getViewport({ scale })
-            let width = viewport.width
-            let height = viewport.height
+        // Flattened to await so a failure anywhere in the chain reaches the
+        // catch below. `onload` is async, so an unhandled rejection here would
+        // otherwise make the attachment fail silently with no feedback.
+        try {
+          data = this.dataURIToBinary(f.target.result)
+          const pdfjs = await loadPdfjs()
+          // pdf.js 2.x coerced a bare TypedArray into `{ data }`; from v4 on
+          // the argument must already be an options object.
+          const pdf = await pdfjs.getDocument({ data }).promise
+          const page = await pdf.getPage(1)
 
-            if (width > maxWidth) {
-              height *= maxWidth / width
-              width = maxWidth
-            }
-            if (height > maxHeight) {
-              width *= maxHeight / height
-              height = maxHeight
-            }
-            canvas.width = width
-            canvas.height = height
-            var renderContext = {
-              canvasContext: ctx,
-              viewport: viewport,
-            }
-            page.render(renderContext).promise.then((e) => {
-              let coverDataURI = canvas.toDataURL('image/jpeg', 0.8)
-              let cover = new Blob([this.dataURIToBinary(coverDataURI)], {
-                type: 'image/jpeg',
-              })
-              this.featured[this.index].content.push({
-                name: file.name,
-                cover,
-                coverDataURI,
-                coverExt: 'jpeg',
-                file,
-                filesize,
-                title,
-                type,
-                contentType: 'media',
-                ext: 'pdf',
-              })
-            })
+          let canvas = document.createElement('canvas')
+          let ctx = canvas.getContext('2d')
+          let scale = 1
+          let viewport = page.getViewport({ scale })
+          let width = viewport.width
+          let height = viewport.height
+
+          if (width > maxWidth) {
+            height *= maxWidth / width
+            width = maxWidth
+          }
+          if (height > maxHeight) {
+            width *= maxHeight / height
+            height = maxHeight
+          }
+          canvas.width = width
+          canvas.height = height
+
+          await page.render({ canvasContext: ctx, viewport }).promise
+
+          let coverDataURI = canvas.toDataURL('image/jpeg', 0.8)
+          let cover = new Blob([this.dataURIToBinary(coverDataURI)], {
+            type: 'image/jpeg',
           })
-        })
+          this.featured[this.index].content.push({
+            name: file.name,
+            cover,
+            coverDataURI,
+            coverExt: 'jpeg',
+            file,
+            filesize,
+            title,
+            type,
+            contentType: 'media',
+            ext: 'pdf',
+          })
+        } catch (err) {
+          this.showAlert(
+            `Could not read that PDF.\n\n${err && err.message ? err.message : err}`
+          )
+        }
       }
       reader.readAsDataURL(file)
     },
