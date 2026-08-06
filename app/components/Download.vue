@@ -50,12 +50,26 @@
   </div>
 </template>
 
-<script>
-import Check from '@/components/Check'
-export default {
-  props: ['downloadCheckList', 'downloadChecked', 'downloadPackage'],
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+import Check from '@/components/Check.vue'
+import type { DownloadCheckItem } from '~/types/card'
+
+export default defineComponent({
+  props: {
+    downloadCheckList: {
+      type: Array as PropType<DownloadCheckItem[]>,
+      required: true,
+    },
+    /** True once every checklist item is ticked. */
+    downloadChecked: { type: Boolean, default: false },
+    downloadPackage: {
+      type: Function as PropType<() => void>,
+      required: true,
+    },
+  },
   components: {
     Check,
   },
-}
+})
 </script>

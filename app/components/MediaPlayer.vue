@@ -72,46 +72,53 @@
   </div>
 </template>
 
-<script>
-export default {
-  props: ['media', 'type', 'colors', 'PreviewMode', 'togglePlay'],
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+import type { CardColours, MediaContent, MediaKind } from '~/types/card'
+
+export default defineComponent({
+  props: {
+    media: { type: Object as PropType<MediaContent>, required: true },
+    type: { type: String as PropType<MediaKind>, required: true },
+    colors: { type: Object as PropType<CardColours>, required: true },
+    PreviewMode: { type: Boolean, default: true },
+    togglePlay: {
+      type: Function as PropType<(el: HTMLMediaElement) => void>,
+      required: true,
+    },
+  },
   methods: {
-    getTitle(e) {
+    getTitle(e: string): string {
       return e.toLowerCase().split(' ').join('_')
     },
-    setProgress(e) {
-      let mediaSource = this.$refs.mediaSource
-      let time = mediaSource.duration * (e.target.value / 100)
-      mediaSource.currentTime = time
+    setProgress(e: Event): void {
+      const mediaSource = this.$refs.mediaSource as HTMLMediaElement
+      const input = e.target as HTMLInputElement
+      mediaSource.currentTime = mediaSource.duration * (Number(input.value) / 100)
     },
-    updateSeek() {
-      let mediaSource = this.$refs.mediaSource
-      let timenow = mediaSource.currentTime
-      let seekbar = this.$refs.seekbar
-      let bubble = this.$refs.bubble
-      let value = (100 / mediaSource.duration) * timenow
-      seekbar.value = value
+    updateSeek(): void {
+      const mediaSource = this.$refs.mediaSource as HTMLMediaElement
+      const seekbar = this.$refs.seekbar as HTMLInputElement
+      const bubble = this.$refs.bubble as HTMLOutputElement
+      const timenow = mediaSource.currentTime
+      const value = (100 / mediaSource.duration) * timenow
+      seekbar.value = String(value)
 
-      let m = Math.floor(timenow / 60)
-      let s = Math.floor(timenow % 60)
-      if (m.toString().length < 2) {
-        m = '0' + m
-      }
-      if (s.toString().length < 2) {
-        s = '0' + s
-      }
-      bubble.value = m + ':' + s
+      // These were previously assigned back onto the numbers from Math.floor(),
+      // which TypeScript rejects; separate strings keep the zero padding.
+      const m = String(Math.floor(timenow / 60)).padStart(2, '0')
+      const s = String(Math.floor(timenow % 60)).padStart(2, '0')
+      bubble.value = `${m}:${s}`
 
       if (value == 100) {
-        this.isPlaying = false
-        seekbar.value = 0
-        this.$refs.play.style.display = 'block'
-        this.$refs.pause.style.display = 'none'
+        seekbar.value = '0'
+        ;(this.$refs.play as HTMLElement).style.display = 'block'
+        ;(this.$refs.pause as HTMLElement).style.display = 'none'
       }
     },
   },
   mounted() {
-    this.$refs.pCtrl.style.display = 'flex'
+    ;(this.$refs.pCtrl as HTMLElement).style.display = 'flex'
   },
-}
+})
 </script>

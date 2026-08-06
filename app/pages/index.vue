@@ -1065,19 +1065,36 @@
   </div>
 </template>
 
-<script>
-import Modal from '@/components/Modal'
-import Attachment from '@/components/Attachment'
-import Action from '@/components/Action'
-import Featured from '@/components/Featured'
-import Colour from '@/components/Colour'
-import Preview from '@/components/Preview'
-import Download from '@/components/Download'
-import Help from '@/components/Help'
-import Footer from '@/components/Footer'
-import Cropper from '@/components/Cropper'
+<script lang="ts">
+import { defineComponent } from 'vue'
+import Modal from '@/components/Modal.vue'
+import Attachment from '@/components/Attachment.vue'
+import Action from '@/components/Action.vue'
+import Featured from '@/components/Featured.vue'
+import Colour from '@/components/Colour.vue'
+import Preview from '@/components/Preview.vue'
+import Download from '@/components/Download.vue'
+import Help from '@/components/Help.vue'
+import Footer from '@/components/Footer.vue'
+import Cropper from '@/components/Cropper.vue'
 
-import Vcard from '@/components/Vcard'
+import Vcard from '@/components/Vcard.vue'
+import type {
+  CardActions,
+  CardColours,
+  CardImage,
+  CardImages,
+  ColourSlot,
+  DownloadCheckItem,
+  FeaturedSection,
+  GenInfo,
+  ImageSlot,
+  MediaKind,
+  PrimaryAction,
+  ProductContent,
+  SecondaryAction,
+  VCardData,
+} from '~/types/card'
 import JSZip from 'jszip'
 // vuedraggable@4 is unmaintained and breaks on Vue 3.3+ (its slot vnodes have a
 // null `el`, so Sortable's context assignment throws). vue-draggable-plus is the
@@ -1093,7 +1110,7 @@ import Theme1 from '~/assets/styles/T1.min.css?raw'
 import Theme2 from '~/assets/styles/T2.min.css?raw'
 import Theme3 from '~/assets/styles/T3.min.css?raw'
 
-export default {
+export default defineComponent({
   components: {
     Cropper,
     Modal,
@@ -1130,7 +1147,7 @@ export default {
           label: 'I have removed all unused fields and sections',
           checked: false,
         },
-      ],
+      ] as DownloadCheckItem[],
       images: {
         logo: {
           url: null,
@@ -1153,7 +1170,7 @@ export default {
           mime: null,
           resized: null,
         },
-      },
+      } as CardImages,
       colors: {
         logoBg: {
           color: `#059669`,
@@ -1171,7 +1188,7 @@ export default {
           color: `#fff`,
           openPalette: false,
         },
-      },
+      } as CardColours,
       genInfo: {
         fname: null,
         lname: null,
@@ -1184,10 +1201,11 @@ export default {
         tracker: null,
         fontLink: null,
         fontCss: null,
-      },
-      primaryActions: [],
+      } as GenInfo,
+      // The subsets currently shown in the card, filled by addAction().
+      primaryActions: [] as PrimaryAction[],
       filterPrimary: '',
-      secondaryActions: [],
+      secondaryActions: [] as SecondaryAction[],
       filterSecondary: '',
       actions: {
         primaryActions: [
@@ -1753,20 +1771,21 @@ export default {
             label: 'Buy me a coffee username',
           },
         ],
-      },
+      } as CardActions,
       featured: [
         {
           title: 'Section title',
           content: [],
         },
-      ],
-      hostedURL: null,
+      ] as FeaturedSection[],
+      hostedURL: null as string | null,
       footerCredit: true,
       PreviewMode: true,
-      content: null,
+      /** Body of the alert modal; null hides it. */
+      content: null as string | null,
       inView: false,
       showPreview: false,
-      scrollPos: null,
+      scrollPos: null as number | null,
       opening: false,
     }
   },
@@ -2215,5 +2234,5 @@ export default {
   beforeUnmount() {
     window.removeEventListener('scroll', this.checkView)
   },
-}
+})
 </script>

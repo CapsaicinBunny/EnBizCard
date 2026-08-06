@@ -34,13 +34,21 @@
   </div>
 </template>
 
-<script>
-export default {
-  props: ['product', 'colors', 'PreviewMode'],
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+import type { CardColours, ProductContent } from '~/types/card'
+
+export default defineComponent({
+  props: {
+    product: { type: Object as PropType<ProductContent>, required: true },
+    colors: { type: Object as PropType<CardColours>, required: true },
+    /** False while downloadPackage() serialises the DOM for export. */
+    PreviewMode: { type: Boolean, default: true },
+  },
   methods: {
-    getTitle(e) {
+    getTitle(e: string): string {
       return e.toLowerCase().split(' ').join('_')
     },
   },
-}
+})
 </script>

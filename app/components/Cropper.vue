@@ -27,8 +27,10 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
 import Cropper from 'cropperjs'
+import type { CardImages, ImageSlot } from '~/types/card'
 
 // cropperjs 2 is a set of custom elements rather than the single widget v1 was,
 // so the v1 option object has no equivalent — the configuration lives in the
@@ -59,15 +61,27 @@ const buildTemplate = (aspectRatio) =>
   '</cropper-selection>' +
   '</cropper-canvas>'
 
-export default {
-  props: ['src', 'mime', 'content', 'resizeImage', 'type'],
+export default defineComponent({
+  props: {
+    src: { type: String, required: true },
+    mime: { type: String, required: true },
+    /** The editor's images map; the crop is written back into `content[type]`. */
+    content: { type: Object as PropType<CardImages>, required: true },
+    resizeImage: {
+      type: Function as PropType<(type: ImageSlot, mime: string) => void>,
+      required: true,
+    },
+    type: { type: String as PropType<ImageSlot>, required: true },
+  },
+  emits: ['closeCropper'],
   data() {
     return {
-      cropper: null,
+      cropper: null as Cropper | null,
     }
   },
   methods: {
-    async cropPhoto() {
+    async cropPhoto(): Promise<void> {
+      if (!this.cropper) return
       const selection = this.cropper.getCropperSelection()
       const image = this.cropper.getCropperImage()
       if (!selection || !image) return
@@ -86,6 +100,7 @@ export default {
       this.content[this.type].mime = this.mime
       canvas.toBlob(
         (blob) => {
+          if (!blob) return
           this.content[this.type].blob = new File([blob], 'photo', {
             type: this.mime,
           })
@@ -98,8 +113,8 @@ export default {
     },
   },
   mounted() {
-    this.cropper = new Cropper(this.$refs.image, {
-      container: this.$refs.container,
+    this.cropper = new Cropper(this.$refs.image as HTMLImageElement, {
+      container: this.$refs.container as HTMLElement,
       template: buildTemplate(this.type == 'photo' ? 1 : 3 / 2),
     })
   },
@@ -108,7 +123,7 @@ export default {
     // them, so it will not clean them up itself.
     if (this.cropper) this.cropper.destroy()
   },
-}
+})
 </script>
 
 <style lang="scss">

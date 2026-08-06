@@ -8,7 +8,7 @@
     "build": "nuxt build",
     "start": "nuxt preview",
     "generate": "nuxt generate",
-    "typecheck": "nuxt typecheck",
+    "typecheck": "nuxt prepare && tsc --noEmit",
     "postinstall": "nuxt prepare"
   },
   "engines": {
@@ -31,7 +31,6 @@
     "@vite-pwa/nuxt": "^1.1.1",
     "sass": "^1.83.4",
     "tailwindcss": "^4.3.3",
-    "typescript": "^7.0.2",
-    "vue-tsc": "^3.3.9"
+    "typescript": "^7.0.2"
   }
 }

@@ -40,11 +40,31 @@
   </div>
 </template>
 
-<script>
-export default {
-  props: ['name', 'item', 'index', 'type', 'buttonBg', 'removeAction'],
-  mounted() {
-    this.$refs.input.focus()
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+import type { CardAction } from '~/types/card'
+
+export default defineComponent({
+  props: {
+    name: { type: String, required: true },
+    item: { type: Object as PropType<CardAction>, required: true },
+    index: { type: Number, required: true },
+    /** Which list this row belongs to, so removeAction() targets the right one. */
+    type: {
+      type: String as PropType<'primaryActions' | 'secondaryActions'>,
+      required: true,
+    },
+    buttonBg: { type: String, required: true },
+    removeAction: {
+      type: Function as PropType<
+        (type: 'primaryActions' | 'secondaryActions', index: number) => void
+      >,
+      required: true,
+    },
   },
-}
+  mounted() {
+    // $refs is typed as unknown records, so the element needs narrowing.
+    ;(this.$refs.input as HTMLInputElement).focus()
+  },
+})
 </script>

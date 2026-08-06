@@ -71,46 +71,57 @@
   </div>
 </template>
 
-<script>
-export default {
-  props: [
-    'content',
-    'type',
-    'label',
-    'description',
-    'resizeImage',
-    'showAlert',
-  ],
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+import type { CardImages, ImageSlot } from '~/types/card'
+
+export default defineComponent({
+  props: {
+    content: { type: Object as PropType<CardImages>, required: true },
+    type: { type: String as PropType<ImageSlot>, required: true },
+    label: { type: String, required: true },
+    description: { type: String, required: true },
+    resizeImage: {
+      type: Function as PropType<(type: ImageSlot, mime: string) => void>,
+      required: true,
+    },
+    showAlert: {
+      type: Function as PropType<(message: string) => void>,
+      required: true,
+    },
+  },
   data() {
     return {
       dragOver: false,
       showCropper: false,
-      tempURL: null,
-      mime: null,
-      filetype: null,
+      tempURL: null as string | null,
+      mime: null as string | null,
+      filetype: null as ImageSlot | null,
     }
   },
   computed: {
-    imageAttached() {
+    imageAttached(): boolean {
       return this.content[this.type].url ? true : false
     },
   },
   methods: {
-    closeCropper() {
+    closeCropper(): void {
       this.showCropper = false
     },
-    attachFile(e, type, dropped) {
+    attachFile(e: Event, type: ImageSlot, dropped: boolean): void {
       dropped
-        ? (this.fileLoaded(e, type, true), (this.dragOver = false))
-        : this.$refs[`import${type}`].click()
+        ? (this.fileLoaded(e as DragEvent, type, true), (this.dragOver = false))
+        : (this.$refs[`import${type}`] as HTMLInputElement).click()
     },
-    fileLoaded(e, type, dropped) {
+    fileLoaded(e: Event, type: ImageSlot, dropped: boolean): void {
+      const dt = (e as DragEvent).dataTransfer
+      const input = e.target as HTMLInputElement
       if (
-        (dropped && e.dataTransfer.files.length) ||
-        (!dropped && e.target.files.length)
+        (dropped && dt && dt.files.length) ||
+        (!dropped && input.files && input.files.length)
       ) {
-        let file = dropped ? e.dataTransfer.files[0] : e.target.files[0]
-        let mime = file.type
+        const file = (dropped ? dt!.files[0] : input.files![0]) as File
+        const mime = file.type
         if (
           (type == 'logo' || type == 'cover') &&
           file.type.match(/image\/(svg\+xml|png|jpeg|gif|webp)/)
@@ -131,15 +142,17 @@ export default {
         }
       }
     },
-    imageLoaded(file, type, mime) {
-      let reader = new FileReader()
+    imageLoaded(file: File, type: ImageSlot, mime: string): void {
+      const reader = new FileReader()
       reader.onload = (f) => {
-        let dataURI = f.target.result
-        let ext = dataURI
+        // readAsDataURL always yields a string, but the FileReader result type
+        // covers ArrayBuffer too.
+        const dataURI = f.target!.result as string
+        const ext = dataURI
           .split(',')[0]
           .split(':')[1]
           .split('/')[1]
-          .match(/^\w+/g)[0]
+          .match(/^\w+/g)![0]
         if (type == 'logo' || mime.match(/svg|gif|webp/)) {
           this.content[type] = {
             url: dataURI,
@@ -160,5 +173,5 @@ export default {
       reader.readAsDataURL(file)
     },
   },
-}
+})
 </script>

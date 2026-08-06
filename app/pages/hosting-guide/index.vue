@@ -236,14 +236,15 @@
     <Footer />
   </div>
 </template>
-<script>
-import Footer from '@/components/Footer'
-import Help from '@/components/Help'
+<script lang="ts">
+import { defineComponent } from 'vue'
+import Footer from '@/components/Footer.vue'
+import Help from '@/components/Help.vue'
 
-export default {
+export default defineComponent({
   components: {
     Footer,
     Help,
   },
-}
+})
 </script>

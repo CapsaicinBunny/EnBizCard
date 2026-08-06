@@ -249,7 +249,15 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+import type {
+  FeaturedSection,
+  MediaContent,
+  MediaKind,
+  TextContent,
+} from '~/types/card'
+
 // id3-parser 3 dropped the `universal/` entry points and made `parse` the
 // default export instead of a named one. The package is still CommonJS, and
 // Vite's interop hands us the whole `module.exports` rather than unwrapping
@@ -259,6 +267,11 @@ import { convertFileToBuffer } from 'id3-parser/lib/util.js'
 import id3 from 'id3-parser'
 
 const parse = typeof id3 === 'function' ? id3 : id3.default
+
+/** `catch` binds `unknown`, so unwrap a message without assuming an Error. */
+function errorText(err: unknown): string {
+  return err instanceof Error ? err.message : String(err)
+}
 // pdf.js used to be vendored under assets/scripts and pulled in with CommonJS
 // require(), which Vite cannot resolve. It now comes from npm, with the worker
 // bundled by Vite's ?worker import.
@@ -267,8 +280,10 @@ const parse = typeof id3 === 'function' ? id3 : id3.default
 // are ~1.2 MB, but are only needed when someone attaches a PDF. This also keeps
 // module evaluation free of `new Worker(...)`, so importing this component is
 // safe on the server.
-let pdfjsPromise
-function loadPdfjs() {
+type Pdfjs = typeof import('pdfjs-dist')
+
+let pdfjsPromise: Promise<Pdfjs> | undefined
+function loadPdfjs(): Promise<Pdfjs> {
   if (!pdfjsPromise) {
     pdfjsPromise = (async () => {
       const pdfjs = await import('pdfjs-dist')
@@ -283,10 +298,31 @@ function loadPdfjs() {
 }
 import { VueDraggable } from 'vue-draggable-plus'
 
-import ProductCard from './ProductCard'
+import ProductCard from './ProductCard.vue'
 
-export default {
-  props: ['featured', 'mimetypes', 'index', 'resizeImage', 'showAlert'],
+export default defineComponent({
+  props: {
+    featured: { type: Array as PropType<FeaturedSection[]>, required: true },
+    /** `accept` list for the hidden file input. */
+    mimetypes: { type: String, required: true },
+    /** Position of this section within `featured`. */
+    index: { type: Number, required: true },
+    resizeImage: {
+      type: Function as PropType<
+        (
+          type: MediaKind | 'product',
+          mime: string,
+          index1?: number,
+          index2?: number
+        ) => void
+      >,
+      required: true,
+    },
+    showAlert: {
+      type: Function as PropType<(message: string) => void>,
+      required: true,
+    },
+  },
   data() {
     return {
       dragOver: false,
@@ -297,12 +333,12 @@ export default {
     VueDraggable,
   },
   computed: {
-    hasContent() {
+    hasContent(): number {
       return this.featured[this.index].content.length
     },
   },
   methods: {
-    mediaType(t) {
+    mediaType(t: string): MediaKind | undefined {
       switch (true) {
         case t == 'image/jpeg' || t == 'image/png':
           return 'image'
@@ -314,17 +350,22 @@ export default {
           return 'document'
       }
     },
-    attachMedia() {
-      this.$refs.import.click()
+    attachMedia(): void {
+      ;(this.$refs.import as HTMLInputElement).click()
     },
-    addLink() {
+    addLink(): void {
       this.featured[this.index].content.push('')
-      let links = this.featured[this.index].content.filter(
-        (e) => !e.contentType
+      // Bare strings are the link entries; everything else carries contentType.
+      const links = this.featured[this.index].content.filter(
+        (e) => typeof e === 'string'
       )
-      setTimeout(() => this.$refs.link[links.length - 1].focus(), 50)
+      setTimeout(
+        () =>
+          (this.$refs.link as HTMLInputElement[])[links.length - 1].focus(),
+        50
+      )
     },
-    addProduct() {
+    addProduct(): void {
       this.featured[this.index].content.push({
         image: null,
         title: null,
@@ -335,25 +376,29 @@ export default {
         contentType: 'product',
       })
     },
-    addText() {
-      this.featured[this.index].content.push({
-        contentType: 'text',
-        value: null,
-      })
-      let texts = this.featured[this.index].content.filter(
-        (e) => e.contentType == 'text'
+    addText(): void {
+      const entry: TextContent = { contentType: 'text', value: null }
+      this.featured[this.index].content.push(entry)
+      const texts = this.featured[this.index].content.filter(
+        (e) => typeof e !== 'string' && e.contentType == 'text'
       )
-      setTimeout(() => this.$refs.text[texts.length - 1].focus(), 50)
+      setTimeout(
+        () =>
+          (this.$refs.text as HTMLTextAreaElement[])[texts.length - 1].focus(),
+        50
+      )
     },
-    fileLoaded(e, dropped) {
+    fileLoaded(e: Event, dropped: boolean): void {
+      const dt = (e as DragEvent).dataTransfer
+      const input = e.target as HTMLInputElement
       if (
-        (dropped && e.dataTransfer.files.length) ||
-        (!dropped && e.target.files.length)
+        (dropped && dt && dt.files.length) ||
+        (!dropped && input.files && input.files.length)
       ) {
-        let file = dropped ? e.dataTransfer.files[0] : e.target.files[0]
+        const file = (dropped ? dt!.files[0] : input.files![0]) as File
         this.dragOver = false
-        let mimetype = file.type
-        let type = this.mediaType(mimetype)
+        const mimetype = file.type
+        const type = this.mediaType(mimetype)
         if (file) {
           switch (type) {
             case 'image':
@@ -377,24 +422,24 @@ export default {
         }
       } else this.dragOver = false
     },
-    getFileName(file) {
+    getFileName(file: File): string {
       return file.name.replace(/(?:\.([^.]+))?$/, '')
     },
-    removeItem(i) {
+    removeItem(i: number): void {
       this.featured[this.index].content.splice(i, 1)
     },
     // Images
-    imageLoaded(file, type, mime) {
-      let title = this.getFileName(file)
-      let reader = new FileReader()
+    imageLoaded(file: File, type: MediaKind, mime: string): void {
+      const title = this.getFileName(file)
+      const reader = new FileReader()
       reader.onload = (f) => {
-        let dataURI = f.target.result
-        let ext = dataURI
+        const dataURI = f.target!.result as string
+        const ext = dataURI
           .split(',')[0]
           .split(':')[1]
           .split('/')[1]
-          .match(/^\w+/g)[0]
-        this.featured[this.index].content.push({
+          .match(/^\w+/g)![0]
+        const entry: MediaContent = {
           name: file.name,
           title,
           dataURI,
@@ -403,7 +448,8 @@ export default {
           contentType: 'media',
           ext,
           mime,
-        })
+        }
+        this.featured[this.index].content.push(entry)
         this.resizeImage(
           type,
           mime,
@@ -415,7 +461,7 @@ export default {
     },
 
     // Music
-    async musicLoaded(file, type) {
+    async musicLoaded(file: File, type: MediaKind): Promise<void> {
       // A missing tag or missing cover art used to reject, so the old empty
       // catch here swallowed genuine failures too — which is how the
       // id3-parser 3 import break stayed invisible. extractTags() now returns
@@ -431,14 +477,13 @@ export default {
           )
         }
       } catch (err) {
-        this.showAlert(
-          `Could not read that MP3.\n\n${err && err.message ? err.message : err}`
-        )
+        this.showAlert(`Could not read that MP3.\n\n${errorText(err)}`)
       }
     },
-    async extractTags(file, type) {
+    /** Returns whether an embedded cover was found and needs resizing. */
+    async extractTags(file: File, type: MediaKind): Promise<boolean> {
       const tag = parse(await convertFileToBuffer(file))
-      const base = {
+      const base: MediaContent = {
         name: file.name,
         dataURI: URL.createObjectURL(file),
         type,
@@ -463,7 +508,8 @@ export default {
         })
         return false
       }
-      let cover = new Blob([new Uint8Array(tag.image.data)])
+      // IImage.data is optional in id3-parser's types even when `image` is set.
+      const cover = new Blob([new Uint8Array(tag.image.data ?? [])])
       this.featured[this.index].content.push({
         ...base,
         ...tags,
@@ -475,18 +521,19 @@ export default {
     },
 
     // Videos
-    videoLoaded(file, type) {
-      let title = this.getFileName(file)
-      let canvas = document.createElement('canvas')
-      let ctx = canvas.getContext('2d')
-      let video = document.createElement('video')
-      let videoFile, dataURI
-      let maxWidth, maxHeight
-      maxWidth = maxHeight = 80
-      let reader = new FileReader()
-      let uA = navigator.userAgent.match(/firefox|android/gi)
-      let vm = this
-      function videoProcessor() {
+    videoLoaded(file: File, type: MediaKind): void {
+      const title = this.getFileName(file)
+      const canvas = document.createElement('canvas')
+      const ctx = canvas.getContext('2d')!
+      const video = document.createElement('video')
+      let videoFile: Blob
+      let dataURI: string
+      const maxWidth = 80
+      const maxHeight = 80
+      const reader = new FileReader()
+      const uA = navigator.userAgent.match(/firefox|android/gi)
+      const vm = this
+      function videoProcessor(): void {
         let width = video.videoWidth
         let height = video.videoHeight
 
@@ -501,8 +548,8 @@ export default {
         canvas.width = width
         canvas.height = height
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-        let coverDataURI = canvas.toDataURL('image/jpeg', 0.8)
-        vm.featured[vm.index].content.push({
+        const coverDataURI = canvas.toDataURL('image/jpeg', 0.8)
+        const entry: MediaContent = {
           name: file.name,
           coverDataURI,
           coverExt: 'jpeg',
@@ -512,7 +559,8 @@ export default {
           type,
           contentType: 'media',
           ext: 'mp4',
-        })
+        }
+        vm.featured[vm.index].content.push(entry)
       }
       if (uA && uA.length == 2) {
         video.addEventListener('loadstart', videoProcessor)
@@ -521,7 +569,9 @@ export default {
       }
 
       reader.onload = (f) => {
-        videoFile = new Blob([f.target.result], { type: 'video/mp4' })
+        videoFile = new Blob([f.target!.result as ArrayBuffer], {
+          type: 'video/mp4',
+        })
         dataURI = URL.createObjectURL(videoFile)
         video.src = dataURI + '#t=0.2'
       }
@@ -529,13 +579,13 @@ export default {
     },
 
     // PDFs
-    dataURIToBinary(dataURI) {
-      var BASE64_MARKER = ';base64,'
-      var base64Index = dataURI.indexOf(BASE64_MARKER) + BASE64_MARKER.length
-      var base64 = dataURI.substring(base64Index)
-      var raw = window.atob(base64)
-      var rawLength = raw.length
-      var array = new Uint8Array(new ArrayBuffer(rawLength))
+    dataURIToBinary(dataURI: string): Uint8Array {
+      const BASE64_MARKER = ';base64,'
+      const base64Index = dataURI.indexOf(BASE64_MARKER) + BASE64_MARKER.length
+      const base64 = dataURI.substring(base64Index)
+      const raw = window.atob(base64)
+      const rawLength = raw.length
+      const array = new Uint8Array(new ArrayBuffer(rawLength))
 
       // `i` was undeclared here. Under Nuxt 2 that made it an implicit global;
       // in an ES module (strict mode) it only avoided a ReferenceError because
@@ -545,7 +595,7 @@ export default {
       }
       return array
     },
-    formatBytes(a, b = 2) {
+    formatBytes(a: number, b: number = 2): string {
       if (0 === a) return '0 Bytes'
       const c = 0 > b ? 0 : b,
         d = Math.floor(Math.log(a) / Math.log(1024))
@@ -555,28 +605,29 @@ export default {
         ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'][d]
       )
     },
-    documentLoaded(file, type) {
-      let filesize = this.formatBytes(file.size)
-      let title = this.getFileName(file)
-      let reader = new FileReader()
-      let data, maxWidth, maxHeight
-      maxWidth = maxHeight = 1296
+    documentLoaded(file: File, type: MediaKind): void {
+      const filesize = this.formatBytes(file.size)
+      const title = this.getFileName(file)
+      const reader = new FileReader()
+      let data: Uint8Array
+      const maxWidth = 1296
+      const maxHeight = 1296
       reader.onload = async (f) => {
         // Flattened to await so a failure anywhere in the chain reaches the
         // catch below. `onload` is async, so an unhandled rejection here would
         // otherwise make the attachment fail silently with no feedback.
         try {
-          data = this.dataURIToBinary(f.target.result)
+          data = this.dataURIToBinary(f.target!.result as string)
           const pdfjs = await loadPdfjs()
           // pdf.js 2.x coerced a bare TypedArray into `{ data }`; from v4 on
           // the argument must already be an options object.
           const pdf = await pdfjs.getDocument({ data }).promise
           const page = await pdf.getPage(1)
 
-          let canvas = document.createElement('canvas')
-          let ctx = canvas.getContext('2d')
-          let scale = 1
-          let viewport = page.getViewport({ scale })
+          const canvas = document.createElement('canvas')
+          const ctx = canvas.getContext('2d')!
+          const scale = 1
+          const viewport = page.getViewport({ scale })
           let width = viewport.width
           let height = viewport.height
 
@@ -593,11 +644,11 @@ export default {
 
           await page.render({ canvasContext: ctx, viewport }).promise
 
-          let coverDataURI = canvas.toDataURL('image/jpeg', 0.8)
-          let cover = new Blob([this.dataURIToBinary(coverDataURI)], {
+          const coverDataURI = canvas.toDataURL('image/jpeg', 0.8)
+          const cover = new Blob([this.dataURIToBinary(coverDataURI)], {
             type: 'image/jpeg',
           })
-          this.featured[this.index].content.push({
+          const entry: MediaContent = {
             name: file.name,
             cover,
             coverDataURI,
@@ -608,15 +659,14 @@ export default {
             type,
             contentType: 'media',
             ext: 'pdf',
-          })
+          }
+          this.featured[this.index].content.push(entry)
         } catch (err) {
-          this.showAlert(
-            `Could not read that PDF.\n\n${err && err.message ? err.message : err}`
-          )
+          this.showAlert(`Could not read that PDF.\n\n${errorText(err)}`)
         }
       }
       reader.readAsDataURL(file)
     },
   },
-}
+})
 </script>

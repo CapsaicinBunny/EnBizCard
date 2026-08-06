@@ -115,34 +115,67 @@
   </div>
 </template>
 
-<script>
-export default {
-  props: ['i', 'index', 'item', 'featured', 'showAlert', 'resizeImage'],
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+import type {
+  FeaturedSection,
+  ProductContent,
+  ProductImage,
+} from '~/types/card'
+
+export default defineComponent({
+  props: {
+    /** Position of this product within its section's content list. */
+    i: { type: Number, required: true },
+    /** Position of the owning section within `featured`. */
+    index: { type: Number, required: true },
+    item: { type: Object as PropType<ProductContent>, required: true },
+    featured: {
+      type: Array as PropType<FeaturedSection[]>,
+      required: true,
+    },
+    showAlert: {
+      type: Function as PropType<(message: string) => void>,
+      required: true,
+    },
+    resizeImage: {
+      type: Function as PropType<
+        (type: 'product', mime: string, index1: number, index2: number) => void
+      >,
+      required: true,
+    },
+  },
   data() {
     return {
       dragOver: false,
     }
   },
   methods: {
-    removeImage(i) {
-      this.featured[this.index].content[i].image = null
+    /** Narrow a content entry to a product; the list is a union. */
+    productAt(i: number): ProductContent {
+      return this.featured[this.index].content[i] as ProductContent
     },
-    removeItem(i) {
+    removeImage(i: number): void {
+      this.productAt(i).image = null
+    },
+    removeItem(i: number): void {
       this.featured[this.index].content.splice(i, 1)
     },
-    loadFile() {
-      this.$refs.import.click()
+    loadFile(): void {
+      ;(this.$refs.import as HTMLInputElement).click()
     },
-    getFileName(file) {
+    getFileName(file: File): string {
       return file.name.replace(/(?:\.([^.]+))?$/, '')
     },
-    fileLoaded(e, i, dropped) {
+    fileLoaded(e: Event, i: number, dropped: boolean): void {
+      const dt = (e as DragEvent).dataTransfer
+      const input = e.target as HTMLInputElement
       if (
-        (dropped && e.dataTransfer.files.length) ||
-        (!dropped && e.target.files.length)
+        (dropped && dt && dt.files.length) ||
+        (!dropped && input.files && input.files.length)
       ) {
-        let file = dropped ? e.dataTransfer.files[0] : e.target.files[0]
-        let mimetype = file.type
+        const file = (dropped ? dt!.files[0] : input.files![0]) as File
+        const mimetype = file.type
         this.dragOver = false
         if (file && mimetype.match(/image\/jpeg|image\/png/gi)) {
           this.imageLoaded(file, i, mimetype)
@@ -152,17 +185,17 @@ export default {
           )
       } else this.dragOver = false
     },
-    imageLoaded(file, i, mime) {
-      let title = this.getFileName(file)
-      let reader = new FileReader()
+    imageLoaded(file: File, i: number, mime: string): void {
+      const title = this.getFileName(file)
+      const reader = new FileReader()
       reader.onload = (f) => {
-        let dataURI = f.target.result
-        let ext = dataURI
+        const dataURI = f.target!.result as string
+        const ext = dataURI
           .split(',')[0]
           .split(':')[1]
           .split('/')[1]
-          .match(/^\w+/g)[0]
-        this.featured[this.index].content[i].image = {
+          .match(/^\w+/g)![0]
+        const image: ProductImage = {
           dataURI,
           file,
           type: 'image',
@@ -170,18 +203,19 @@ export default {
           mime,
           title,
         }
-        this.resizeImage(
-          'product',
-          mime,
-          this.index,
-          this.featured[this.index].content.length - 1
-        )
+        this.productAt(i).image = image
+        // Resize the product we just wrote to. This passed
+        // `content.length - 1` before, which only happened to be right when the
+        // product was the last item in its section — otherwise it resized a
+        // different entry, or threw on one with no `.image`.
+        this.resizeImage('product', mime, this.index, i)
       }
       reader.readAsDataURL(file)
     },
   },
   mounted() {
-    !this.$refs.input.value && this.$refs.input.focus()
+    const input = this.$refs.input as HTMLInputElement
+    !input.value && input.focus()
   },
-}
+})
 </script>

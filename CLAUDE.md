@@ -11,7 +11,9 @@ Read [README.md](README.md) for the project's goals/features from a user perspec
 ## Tech stack
 
 - **Nuxt 4**, statically generated to `.output/public` — see [nuxt.config.ts](nuxt.config.ts). SSR is enabled so pages prerender to real HTML, but `/` is forced client-only (see *Rendering* below).
-- **Vue 3** single-file components, **Options API** throughout (no `<script setup>`, no TypeScript in components)
+- **Vue 3** single-file components, **Options API** throughout (no `<script setup>`). Every SFC is `<script lang="ts">` + `defineComponent`, with the card model typed in [app/types/card.ts](app/types/card.ts).
+- **TypeScript 7** — the native (Go) compiler. It has no JS API, so **vue-tsc and Volar cannot read `.vue` files**: `npm run typecheck` (`tsc --noEmit`) checks only `.ts` files, and annotations inside SFCs are stripped by Vite without ever being verified. Put load-bearing types in `app/types/`, where they are actually checked. Revisit vue-tsc once it supports the native port.
+- `app/assets/scripts/main.js` and `media.js` stay **JavaScript on purpose** — they are copies of the scripts injected into exported cards, which run standalone with no build step.
 - **Vite** as the bundler (Nuxt 4 default) — *not* webpack
 - **`useState`** for the only piece of global state, the selected theme — [app/composables/useTheme.js](app/composables/useTheme.js). There is no Vuex/Pinia store.
 - **Tailwind CSS v4** via `@tailwindcss/vite`. There is no `tailwind.config.js` — v4 is configured CSS-first in [app/assets/css/tailwind.css](app/assets/css/tailwind.css) (`@theme`, `@source`). Tailwind styles **only the generator UI**; the exported card themes are hand-written SCSS with no Tailwind, so Tailwind changes cannot affect generated cards.

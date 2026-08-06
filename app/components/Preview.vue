@@ -365,41 +365,59 @@
   </div>
 </template>
 
-<script>
-import MediaPlayer from './MediaPlayer'
-import DocumentDownloader from './DocumentDownloader'
-import ProductShowcase from './ProductShowcase'
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+import MediaPlayer from './MediaPlayer.vue'
+import DocumentDownloader from './DocumentDownloader.vue'
+import ProductShowcase from './ProductShowcase.vue'
+import type {
+  CardColours,
+  CardImages,
+  ColourSlot,
+  FeaturedContent,
+  FeaturedSection,
+  GenInfo,
+  PrimaryAction,
+  SecondaryAction,
+} from '~/types/card'
 
-export default {
-  props: [
-    'username',
-    'genInfo',
-    'images',
-    'featured',
-    'colors',
-    'primaryActions',
-    'secondaryActions',
-    'PreviewMode',
-    'downloadVcard',
-    'downloadKey',
-    'footerCredit',
-    'showAlert',
-    'hasLightBG',
-    'pubKeyIsValid',
-  ],
+export default defineComponent({
+  props: {
+    username: { type: String, default: 'username' },
+    genInfo: { type: Object as PropType<GenInfo>, required: true },
+    images: { type: Object as PropType<CardImages>, required: true },
+    featured: { type: Array as PropType<FeaturedSection[]>, required: true },
+    colors: { type: Object as PropType<CardColours>, required: true },
+    primaryActions: {
+      type: Array as PropType<PrimaryAction[]>,
+      required: true,
+    },
+    secondaryActions: {
+      type: Array as PropType<SecondaryAction[]>,
+      required: true,
+    },
+    /** False only while downloadPackage() serialises this DOM for export. */
+    PreviewMode: { type: Boolean, default: true },
+    downloadVcard: { type: Function as PropType<() => void>, required: true },
+    downloadKey: { type: Function as PropType<() => void>, required: true },
+    footerCredit: { type: Boolean, default: true },
+    showAlert: {
+      type: Function as PropType<(message: string) => void>,
+      required: true,
+    },
+    hasLightBG: {
+      type: Function as PropType<(slot: ColourSlot) => boolean>,
+      required: true,
+    },
+    pubKeyIsValid: { type: Boolean, default: false },
+  },
   components: {
     MediaPlayer,
     DocumentDownloader,
     ProductShowcase,
   },
-  watch: {
-    getFeaturedMusic(oldv, newv) {
-      this.paused = this.getFeaturedMusic.map((e) => true)
-    },
-  },
   data() {
     return {
-      paused: [],
       hasInstagramEmbed: false,
     }
   },
@@ -408,18 +426,19 @@ export default {
     return { theme: useTheme() }
   },
   computed: {
-    getFullname() {
+    getFullname(): string | null {
       let fn = this.genInfo.fname
       let ln = this.genInfo.lname
       return (fn + ln).length ? `${fn ? fn : ''}${ln ? ' ' + ln : ''}` : null
     },
-    hasOnlyProfilePic() {
+    hasOnlyProfilePic(): boolean {
       return !(this.images.cover.url || this.images.logo.url)
     },
-    getFeaturedMusic() {
-      return this.featured.music
-    },
-    getCssHref() {
+    // A `getFeaturedMusic` computed and a `paused` array used to live here,
+    // along with a watcher between them. `featured` is a list of sections, so
+    // `featured.music` was always undefined: the watcher never fired and
+    // nothing read `paused`. Removed rather than typed.
+    getCssHref(): string | false | null {
       if (this.genInfo.fontLink) {
         let html = new DOMParser().parseFromString(
           this.genInfo.fontLink,
@@ -432,16 +451,16 @@ export default {
       }
       return false
     },
-    getFontFamily() {
-      let regex = /^font-family[^;]*/
-      let css = this.genInfo.fontCss.replace(/\s+/, '')
+    getFontFamily(): string | undefined {
+      const regex = /^font-family[^;]*/
+      const css = (this.genInfo.fontCss ?? '').replace(/\s+/, '')
       if (regex.test(css)) {
-        return css.match(/^font-family[^;]*/)[0]
+        return css.match(/^font-family[^;]*/)![0]
       }
     },
   },
   methods: {
-    getHref(e) {
+    getHref(e: PrimaryAction | SecondaryAction): string | null {
       let value = null
       if (e.name === 'Viber' && e.value)
         value = e.value.replace(/[\s\-()]/g, '').replace(/\+/, '%2B')
@@ -449,53 +468,58 @@ export default {
         ? e.href + (value || e.value) + (e.hrefEnd ? e.hrefEnd : '')
         : value || e.value
     },
-    getTitle(e) {
+    getTitle(e: string): string {
       return e.toLowerCase().split(' ').join('_')
     },
-    stripAttr(val) {
+    /** Pulls the embeddable src out of a pasted iframe or Instagram blockquote. */
+    stripAttr(val: FeaturedContent): string | null {
+      if (typeof val !== 'string') return null
       if (/<iframe(.*)\/iframe>/.test(val)) {
-        let iframe = val.match(/<iframe(.*)\/iframe>/)[0]
-        return iframe.match(/src="?([^"\s]+)"/)[1]
+        const iframe = val.match(/<iframe(.*)\/iframe>/)![0]
+        return iframe.match(/src="?([^"\s]+)"/)![1]
       } else if (/\/\/www\.instagram\.com\/embed\.js/.test(val)) {
         return `${
-          val.match(/data-instgrm-permalink="(.*?)\/\?/)[1]
+          val.match(/data-instgrm-permalink="(.*?)\/\?/)![1]
         }/embed/captioned`
       }
       return null
     },
-    toggleContainer(e) {
+    toggleContainer(e: HTMLElement): void {
       '2rem' == e.style.top
         ? ((e.style.visibility = 'visible'),
           (e.style.top = '0px'),
-          (e.style.opacity = 1))
+          (e.style.opacity = '1'))
         : ((e.style.top = '2rem'),
-          (e.style.opacity = 0),
+          (e.style.opacity = '0'),
           setTimeout(() => {
             e.style.visibility = 'hidden'
           }, 200))
     },
-    showKey() {
-      let modal = this.$refs.modal
-      let copyView = this.$refs.copyView
-      let qrView = this.$refs.qrView
+    showKey(): void {
+      const modal = this.$refs.modal as HTMLElement
+      const copyView = this.$refs.copyView as HTMLElement
+      const qrView = this.$refs.qrView as HTMLElement
       this.toggleContainer(modal)
       copyView.style.display = qrView.style.display = 'none'
     },
-    closePublicKey() {
-      let modal = this.$refs.modal
-      this.toggleContainer(modal)
+    closePublicKey(): void {
+      this.toggleContainer(this.$refs.modal as HTMLElement)
     },
-    sharingAlert() {
+    sharingAlert(): void {
       this.showAlert(
         'You are able to share your business card after completing the hosting process.\n\nCheck out the <a class="underline font-extrabold text-emerald-600 hover:text-emerald-500 transition-colors duration-200" href="/demo" target="_blank">demo</a> to test the functionality.'
       )
     },
-    togglePlay(ref) {
-      let mediaPlayers = this.$refs.mediaPlayer
+    /** Plays `ref` and pauses every other player, keeping the icons in sync. */
+    togglePlay(ref: HTMLMediaElement): void {
+      // Child MediaPlayer instances; only their $refs are touched here.
+      const mediaPlayers = (this.$refs.mediaPlayer ?? []) as {
+        $refs: Record<string, HTMLElement>
+      }[]
       mediaPlayers.forEach((e) => {
-        let mediaSource = e.$refs.mediaSource
-        let play = e.$refs.play
-        let pause = e.$refs.pause
+        const mediaSource = e.$refs.mediaSource as HTMLMediaElement
+        const play = e.$refs.play
+        const pause = e.$refs.pause
         if (ref != mediaSource) {
           mediaSource.pause()
           play.style.display = 'block'
@@ -519,7 +543,7 @@ export default {
       this.hasInstagramEmbed = true
     }, 5000)
   },
-}
+})
 </script>
 
 <style lang="scss">

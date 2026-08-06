@@ -59,12 +59,15 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+import type { CardColours, ColourSlot } from '~/types/card'
+
 // Previously built on @caohenghu/vue-colorpicker + vue-clickaway2, both of
 // which are Vue 2 only. This is a self-contained equivalent: the original UI
 // hid the picker's alpha channel, history and most of its swatches via CSS
 // anyway, so a swatch grid plus a native colour input matches what was shown.
-const SWATCHES = [
+const SWATCHES: string[] = [
   '#000000',
   '#ffffff',
   '#111827',
@@ -82,8 +85,12 @@ const SWATCHES = [
   '#78350f',
 ]
 
-export default {
-  props: ['name', 'label', 'colors'],
+export default defineComponent({
+  props: {
+    name: { type: String as PropType<ColourSlot>, required: true },
+    label: { type: String, required: true },
+    colors: { type: Object as PropType<CardColours>, required: true },
+  },
   data() {
     return { swatches: SWATCHES }
   },
@@ -98,29 +105,29 @@ export default {
     )
   },
   methods: {
-    isCurrent(swatch) {
+    isCurrent(swatch: string): boolean {
       const current = this.colors[this.name].color || ''
       return swatch.toLowerCase() === current.toLowerCase()
     },
-    setColour(hex) {
+    setColour(hex: string): void {
       this.colors[this.name].color = hex
     },
-    onHexInput(value) {
+    onHexInput(value: string): void {
       // Only commit complete, valid hex values so partial typing isn't clobbered.
       const hex = value.startsWith('#') ? value : `#${value}`
       if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(hex)) this.setColour(hex)
     },
-    closeColourPalette() {
+    closeColourPalette(): void {
       this.colors[this.name].openPalette = false
     },
-    onDocumentPointerDown(event) {
+    onDocumentPointerDown(event: PointerEvent): void {
       if (!this.colors[this.name].openPalette) return
       // The swatch itself toggles the palette; ignore clicks it already handles.
-      if (this.$el.contains(event.target)) return
+      if (this.$el.contains(event.target as Node)) return
       this.closeColourPalette()
     },
   },
-}
+})
 </script>
 
 <style lang="scss">

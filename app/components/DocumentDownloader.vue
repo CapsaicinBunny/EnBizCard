@@ -38,20 +38,28 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
 import { saveAs } from 'file-saver'
-export default {
-  props: ['media', 'type', 'colors', 'PreviewMode'],
+import type { CardColours, MediaContent, MediaKind } from '~/types/card'
+
+export default defineComponent({
+  props: {
+    media: { type: Object as PropType<MediaContent>, required: true },
+    type: { type: String as PropType<MediaKind>, required: true },
+    colors: { type: Object as PropType<CardColours>, required: true },
+    PreviewMode: { type: Boolean, default: true },
+  },
   methods: {
-    getTitle(e) {
+    getTitle(e: string): string {
       return e.toLowerCase().split(' ').join('_')
     },
-    downloadDocument() {
+    downloadDocument(): void {
       saveAs(
         window.URL.createObjectURL(this.media.file),
         `${this.media.title}.pdf`
       )
     },
   },
-}
+})
 </script>

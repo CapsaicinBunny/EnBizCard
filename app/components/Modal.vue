@@ -16,8 +16,17 @@
   </div>
 </template>
 
-<script>
-export default {
-  props: ['content', 'clearContent'],
-}
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+
+export default defineComponent({
+  props: {
+    /** Alert body, rendered with v-html so it may contain markup. */
+    content: { type: String, default: '' },
+    clearContent: {
+      type: Function as PropType<() => void>,
+      required: true,
+    },
+  },
+})
 </script>

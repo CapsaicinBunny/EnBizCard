@@ -22,25 +22,30 @@ END:VCARD</pre
   >
 </template>
 
-<script>
-export default {
-  props: ['vCard'],
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+import type { VCardData } from '~/types/card'
+
+export default defineComponent({
+  props: {
+    vCard: { type: Object as PropType<VCardData>, required: true },
+  },
   computed: {
-    getURLs() {
+    getURLs(): string {
       return this.vCard.urls
         .map((e) => `URL;TYPE=${e.title}:${e.url}`)
         .join('\n')
     },
-    getSplitName() {
+    getSplitName(): string {
       let fn = this.vCard.fn
       let ln = this.vCard.ln
       return `${ln ? ln : ''};${fn ? fn : ''};;;`
     },
-    getFullname() {
+    getFullname(): string | null {
       let fn = this.vCard.fn
       let ln = this.vCard.ln
       return (fn + ln).length ? `${fn ? fn : ''}${ln ? ' ' + ln : ''}` : null
     },
   },
-}
+})
 </script>

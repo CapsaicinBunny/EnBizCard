@@ -24,8 +24,20 @@
   </div>
 </template>
 
-<script>
-export default {
-  props: ['downloadCheckList', 'item', 'index'],
-}
+<script lang="ts">
+import { defineComponent, type PropType } from 'vue'
+import type { DownloadCheckItem } from '~/types/card'
+
+export default defineComponent({
+  props: {
+    // The list is passed alongside the item because the checkbox writes back
+    // through `downloadCheckList[index].checked` rather than emitting.
+    downloadCheckList: {
+      type: Array as PropType<DownloadCheckItem[]>,
+      required: true,
+    },
+    item: { type: Object as PropType<DownloadCheckItem>, required: true },
+    index: { type: Number, required: true },
+  },
+})
 </script>

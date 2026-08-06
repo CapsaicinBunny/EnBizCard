@@ -8,16 +8,16 @@ const modules = import.meta.glob('../assets/icons/*.svg', {
   eager: true,
   query: '?raw',
   import: 'default',
-})
+}) as Record<string, string>
 
-const icons = Object.fromEntries(
+const icons: Record<string, string> = Object.fromEntries(
   Object.entries(modules).map(([path, source]) => [
     path.slice(path.lastIndexOf('/') + 1, -'.svg'.length),
     source,
   ])
 )
 
-function randomStr(len) {
+function randomStr(len: number): string {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
   let out = ''
   for (let i = 0; i < len; i++)
@@ -32,7 +32,7 @@ function randomStr(len) {
  * same icon can be inlined more than once on a page without the <defs> ids
  * colliding (only instagram.svg currently relies on this).
  */
-export function getIcon(name, gradient = false) {
+export function getIcon(name: string, gradient: boolean = false): string {
   const svg = icons[name]
   if (!svg) {
     if (import.meta.dev) console.warn(`[icons] unknown icon: "${name}"`)
@@ -49,4 +49,4 @@ export function getIcon(name, gradient = false) {
   return out
 }
 
-export const iconNames = Object.keys(icons)
+export const iconNames: string[] = Object.keys(icons)
