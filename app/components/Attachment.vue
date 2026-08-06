@@ -132,7 +132,6 @@ export default {
       }
     },
     imageLoaded(file, type, mime) {
-      console.log(type, mime)
       let reader = new FileReader()
       reader.onload = (f) => {
         let dataURI = f.target.result

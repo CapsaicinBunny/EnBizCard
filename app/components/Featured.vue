@@ -251,9 +251,14 @@
 
 <script>
 // id3-parser 3 dropped the `universal/` entry points and made `parse` the
-// default export instead of a named one.
-import { convertFileToBuffer } from 'id3-parser/lib/util'
-import parse from 'id3-parser'
+// default export instead of a named one. The package is still CommonJS, and
+// Vite's interop hands us the whole `module.exports` rather than unwrapping
+// `exports.default` — so a plain default import is the object, not the
+// function. Reach through it, but tolerate a bundler that does unwrap.
+import { convertFileToBuffer } from 'id3-parser/lib/util.js'
+import id3 from 'id3-parser'
+
+const parse = typeof id3 === 'function' ? id3 : id3.default
 // pdf.js used to be vendored under assets/scripts and pulled in with CommonJS
 // require(), which Vite cannot resolve. It now comes from npm, with the worker
 // bundled by Vite's ?worker import.
@@ -410,81 +415,63 @@ export default {
     },
 
     // Music
-    musicLoaded(file, type) {
-      this.extractTags(file, type)
-        .then((f) => {
+    async musicLoaded(file, type) {
+      // A missing tag or missing cover art used to reject, so the old empty
+      // catch here swallowed genuine failures too — which is how the
+      // id3-parser 3 import break stayed invisible. extractTags() now returns
+      // whether there is a cover to resize, and only throws on real errors.
+      try {
+        const hasCover = await this.extractTags(file, type)
+        if (hasCover) {
           this.resizeImage(
             type,
             'image/jpeg',
             this.index,
             this.featured[this.index].content.length - 1
           )
-        })
-        .catch((err) => {})
+        }
+      } catch (err) {
+        this.showAlert(
+          `Could not read that MP3.\n\n${err && err.message ? err.message : err}`
+        )
+      }
     },
     async extractTags(file, type) {
-      return new Promise((resolve, reject) => {
-        convertFileToBuffer(file)
-          .then(parse)
-          .then((tag) => {
-            if (tag) {
-              if (tag.image) {
-                let cover = new Blob([new Uint8Array(tag.image.data)])
-                let coverDataURI = URL.createObjectURL(cover)
-                this.featured[this.index].content.push({
-                  name: file.name,
-                  cover,
-                  coverDataURI,
-                  coverExt: 'jpeg',
-                  title: tag.title,
-                  artist: tag.artist,
-                  album: tag.album,
-                  dataURI: URL.createObjectURL(file),
-                  type,
-                  contentType: 'media',
-                  file,
-                  ext: 'mp3',
-                })
-                let loadTags = setInterval(() => {
-                  if (
-                    this.featured[this.index].content[
-                      this.featured[this.index].content.length - 1
-                    ].file
-                  ) {
-                    clearInterval(loadTags)
-                    resolve(true)
-                  }
-                }, 500)
-              } else {
-                this.featured[this.index].content.push({
-                  name: file.name,
-                  title: tag.title,
-                  artist: tag.artist,
-                  album: tag.album,
-                  dataURI: URL.createObjectURL(file),
-                  type,
-                  contentType: 'media',
-                  file,
-                  ext: 'mp3',
-                  info: 'No Thumb',
-                })
-                reject()
-              }
-            } else {
-              this.featured[this.index].content.push({
-                name: file.name,
-                title: this.getFileName(file),
-                dataURI: URL.createObjectURL(file),
-                type,
-                contentType: 'media',
-                file,
-                ext: 'mp3',
-                info: 'No ID3 Tag',
-              })
-              reject()
-            }
-          })
+      const tag = parse(await convertFileToBuffer(file))
+      const base = {
+        name: file.name,
+        dataURI: URL.createObjectURL(file),
+        type,
+        contentType: 'media',
+        file,
+        ext: 'mp3',
+      }
+      if (!tag) {
+        this.featured[this.index].content.push({
+          ...base,
+          title: this.getFileName(file),
+          info: 'No ID3 Tag',
+        })
+        return false
+      }
+      const tags = { title: tag.title, artist: tag.artist, album: tag.album }
+      if (!tag.image) {
+        this.featured[this.index].content.push({
+          ...base,
+          ...tags,
+          info: 'No Thumb',
+        })
+        return false
+      }
+      let cover = new Blob([new Uint8Array(tag.image.data)])
+      this.featured[this.index].content.push({
+        ...base,
+        ...tags,
+        cover,
+        coverDataURI: URL.createObjectURL(cover),
+        coverExt: 'jpeg',
       })
+      return true
     },
 
     // Videos

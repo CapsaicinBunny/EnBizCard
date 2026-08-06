@@ -1796,7 +1796,7 @@ export default {
         : 'username'
     },
     orderedPrimaryActions() {
-      return this.actions.primaryActions.sort((a, b) =>
+      return [...this.actions.primaryActions].sort((a, b) =>
         a.order > b.order ? 1 : a.order < b.order ? -1 : 0
       )
     },
@@ -1806,7 +1806,7 @@ export default {
       )
     },
     orderedSecondaryActions() {
-      return this.actions.secondaryActions.sort((a, b) =>
+      return [...this.actions.secondaryActions].sort((a, b) =>
         a.name.localeCompare(b.name)
       )
     },
@@ -2087,7 +2087,7 @@ export default {
 
           // Inject tracking scripts
           let tracker = this.getTrackingCode()
-          while (tracker.firstChild) el.head.appendChild(tracker.firstChild)
+          while (tracker?.firstChild) el.head.appendChild(tracker.firstChild)
 
           // Create blobs
           let html = new Blob(
@@ -2211,6 +2211,9 @@ export default {
     // window.onbeforeunload = function () {
     //   return 'Your work will be lost.'
     // }
+  },
+  beforeUnmount() {
+    window.removeEventListener('scroll', this.checkView)
   },
 }
 </script>
