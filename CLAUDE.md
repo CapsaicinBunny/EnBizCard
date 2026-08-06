@@ -13,7 +13,7 @@ Read [README.md](README.md) for the project's goals/features from a user perspec
 - **Nuxt 4**, statically generated to `.output/public` — see [nuxt.config.ts](nuxt.config.ts). SSR is enabled so pages prerender to real HTML, but `/` is forced client-only (see *Rendering* below).
 - **Vue 3** single-file components, **Options API** throughout (no `<script setup>`). Every SFC is `<script lang="ts">` + `defineComponent`, with the card model typed in [app/types/card.ts](app/types/card.ts).
 - **TypeScript 7** — the native (Go) compiler. It has no JS API, so **vue-tsc and Volar cannot read `.vue` files**: `npm run typecheck` (`tsc --noEmit`) checks only `.ts` files, and annotations inside SFCs are stripped by Vite without ever being verified. Put load-bearing types in `app/types/`, where they are actually checked. Revisit vue-tsc once it supports the native port.
-- `app/assets/scripts/main.js` and `media.js` stay **JavaScript on purpose** — they are copies of the scripts injected into exported cards, which run standalone with no build step.
+- `app/assets/scripts/main.ts` and `media.ts` are the scripts that run *inside exported cards*. They are authored in TypeScript but compiled to standalone JS at build time by the `?minified` Vite plugin (see *Export scripts* below).
 - **Vite** as the bundler (Nuxt 4 default) — *not* webpack
 - **`useState`** for the only piece of global state, the selected theme — [app/composables/useTheme.js](app/composables/useTheme.js). There is no Vuex/Pinia store.
 - **Tailwind CSS v4** via `@tailwindcss/vite`. There is no `tailwind.config.js` — v4 is configured CSS-first in [app/assets/css/tailwind.css](app/assets/css/tailwind.css) (`@theme`, `@source`). Tailwind styles **only the generator UI**; the exported card themes are hand-written SCSS with no Tailwind, so Tailwind changes cannot affect generated cards.
@@ -36,7 +36,7 @@ Nuxt 4 puts application code under `app/`, and static files served at the site r
 - [app/utils/icons.js](app/utils/icons.js) — loads every `app/assets/icons/*.svg` as raw text via `import.meta.glob`, with gradient-id randomisation so an icon can appear twice without its `<defs>` ids colliding.
 - [app/plugins/icons.js](app/plugins/icons.js) — exposes `$icon(name)` and `$getSVG(item)` as Vue `globalProperties` so all ~40 `v-html` icon call sites work without per-component wiring.
 - [app/assets/styles/](app/assets/styles/) — theme SCSS sources plus the minified CSS shipped with generated cards.
-- [app/assets/scripts/](app/assets/scripts/) — `main.js` / `media.js` are *readable copies* of the scripts that `downloadPackage()` injects into exports as minified strings. Nothing imports them; keep them in sync by hand if you change the inlined versions.
+- [app/assets/scripts/](app/assets/scripts/) — `main.ts` (modal / share / QR) and `media.ts` (audio-video controls) are the runtime for *generated* cards. `downloadPackage()` imports them with `?minified` and injects the compiled result; they are the single source of truth, not copies.
 - [public/](public/) — PWA icons, fonts, and `qrcode.min.js` (loaded both as a global `<script>` by the generator and imported as `?raw` text to bundle into exports).
 
 `nuxt generate` outputs to `.output/public`.
@@ -48,6 +48,19 @@ Nuxt 4 puts application code under `app/`, and static files served at the site r
 - **`/` (the generator) cannot be server-rendered.** `Preview.vue` renders a complete nested `<html>/<head>/<body>` document, and the browser's HTML parser discards tags like those when they appear inside a `<div>` — so server markup could never match the client render. It is emitted as an SPA shell.
 - **Everything else prerenders to real HTML.** Because `/` has no markup, the link crawler cannot discover other routes, so they're listed explicitly in `nitro.prerender.routes`. **Add new pages there** or they'll ship as empty shells.
 - pdf.js (~1.2 MB with its worker) is imported lazily in `Featured.vue` on first PDF attach. Keep it that way: importing it at module scope both bloats the initial bundle and breaks the server build, since it calls `new Worker(...)` at evaluation time.
+
+## Export scripts
+
+The scripts that run inside a *generated* card live in `app/assets/scripts/`. They are ordinary TypeScript, but they ship as inline `<script>` text in someone else's static hosting, so they get no bundler, no imports and no polyfills at runtime.
+
+The bridge is a small Vite plugin, `enbizcard:minified-scripts`, defined in [nuxt.config.ts](nuxt.config.ts). `import src from '~/assets/scripts/main.ts?minified'` gives you that file **compiled and minified, as a string**. `?raw` cannot be used here — it returns the untransformed source, so type annotations would reach the browser and fail to parse.
+
+Consequences worth knowing:
+
+- **Keep them plain global scripts.** An `import` or `export` makes esbuild emit an ES module, which a classic `<script>` tag cannot run. That is why `main.ts` declares the `QRCode` global with `declare class` instead of importing anything.
+- They are strictly type-checked, because `app/**/*` is in the tsconfig `include`. `document.getElementById(...)!` is deliberate: the `!` marks elements Preview.vue always renders, while `keyView` / `showKey` are genuinely optional and null-checked.
+- `MediaPlayer.vue` implements the same controls as `media.ts` for the live preview. They are separate implementations against the same markup — change one, look at the other.
+- `?minified` is declared for TypeScript in [app/types/minified.d.ts](app/types/minified.d.ts).
 
 ## Commands
 

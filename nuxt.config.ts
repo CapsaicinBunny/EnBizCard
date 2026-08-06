@@ -1,4 +1,51 @@
+import { readFile } from 'node:fs/promises'
+import { dirname, resolve } from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
+import { transform } from 'esbuild'
+import type { Plugin } from 'vite'
+
+/**
+ * Resolves `import src from './foo.ts?minified'` to the *compiled, minified*
+ * source of that file as a string.
+ *
+ * `?raw` cannot do this: it hands back the untransformed file, so a `.ts`
+ * source would reach the exported card with its type annotations intact and
+ * fail to parse. The scripts injected into generated cards have to be plain
+ * runnable JS, but we still want to author them in checked TypeScript — this
+ * plugin is the bridge.
+ */
+const SUFFIX = '?minified'
+
+export const minifiedScripts = (): Plugin => {
+  let root = ''
+  return {
+    name: 'enbizcard:minified-scripts',
+    configResolved(config) {
+      root = config.root
+    },
+    resolveId(id, importer) {
+      if (!id.endsWith(SUFFIX)) return null
+      const rel = id.slice(0, -SUFFIX.length)
+      // Honour the project's `~/` and `@/` aliases, which both point at app/.
+      const aliased = /^[~@]\//.test(rel)
+      const base = aliased ? resolve(root, 'app') : dirname(importer ?? root)
+      return resolve(base, aliased ? rel.slice(2) : rel) + SUFFIX
+    },
+    async load(id) {
+      if (!id.endsWith(SUFFIX)) return null
+      const file = id.slice(0, -SUFFIX.length)
+      this.addWatchFile(file)
+      const { code } = await transform(await readFile(file, 'utf8'), {
+        loader: 'ts',
+        minify: true,
+        // Exported cards are static files on someone else's hosting; they get
+        // no transpilation beyond this, so keep the target conservative.
+        target: 'es2020',
+      })
+      return `export default ${JSON.stringify(code.trim())}`
+    },
+  }
+}
 
 const title = 'EnBizCard - An Open-Source Digital Business Card Generator'
 const description =
@@ -38,7 +85,7 @@ export default defineNuxtConfig({
   // tailwind.config.js — see app/assets/css/tailwind.css for the config.
   css: ['~/assets/css/tailwind.css'],
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss(), minifiedScripts()],
   },
 
   app: {
