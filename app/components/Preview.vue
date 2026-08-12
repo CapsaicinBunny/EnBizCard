@@ -658,6 +658,7 @@ export default defineComponent({
   }
   #logo {
     max-height: 6rem;
+    max-width: 100%;
     pointer-events: none;
     user-select: none;
     grid-column: 1;
@@ -1021,6 +1022,7 @@ export default defineComponent({
   }
   #logo {
     max-height: 6rem;
+    max-width: 100%;
     pointer-events: none;
     user-select: none;
     grid-column: 1;
@@ -1384,6 +1386,7 @@ export default defineComponent({
   }
   #logo {
     max-height: 6rem;
+    max-width: 100%;
     pointer-events: none;
     user-select: none;
     grid-column: 1;
