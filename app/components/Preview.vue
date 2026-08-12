@@ -41,14 +41,37 @@
           <!-- `<component :is="'style'">` renders a real <style> element while
                sidestepping Vue 3's ban on <style> tags in templates. -->
           <component :is="'style'">
-            #body{ font-family: sans-serif; } input[type='range']::-moz-range-track { background: none; } input[type='range']::-moz-range-thumb { -moz-appearance: none; width: 1.5rem; height: 1.5rem; border-radius: {{theme === 1? '100%': '0.25rem'}}; border: none; background: {{colors.buttonBg.color}}; z-index: 3; cursor: pointer; } input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; width: 1.5rem; height: 1.5rem; border-radius: {{theme === 1? '100%': '0.25rem'}}; border: none; background: {{colors.buttonBg.color}}; z-index: 3; cursor: pointer; } .closeColor{ {{hasLightBG('mainBg') ? 'filter:invert(1) ':''}} } .topAction { {{ hasLightBG('logoBg') ? 'filter:invert(1) ':''}}} .iconColor{ color:#eee; {{hasLightBG('buttonBg') ? 'filter:invert(1)' : null}} } .cardColor{ {{hasLightBG('cardBg') && 'color:#222 !important'}} } .textColor{ {{hasLightBG('mainBg') ? 'color:#222 !important' : 'color:#eee !important'}} } .seekbarColor{  {{`background:${colors.buttonBg.color}80 !important`}} }
+            #body{ font-family: sans-serif; }
+            input[type='range']::-moz-range-track { background: none; }
+            input[type='range']::-moz-range-thumb { -moz-appearance: none;
+            width: 1.5rem; height: 1.5rem; border-radius:
+            {{ theme === 1 ? '100%' : '0.25rem' }}; border: none; background:
+            {{ colors.buttonBg.color }}; z-index: 3; cursor: pointer; }
+            input[type='range']::-webkit-slider-thumb { -webkit-appearance:
+            none; width: 1.5rem; height: 1.5rem; border-radius:
+            {{ theme === 1 ? '100%' : '0.25rem' }}; border: none; background:
+            {{ colors.buttonBg.color }}; z-index: 3; cursor: pointer; }
+            .closeColor{ {{ hasLightBG('mainBg') ? 'filter:invert(1) ' : '' }} }
+            .topAction { {{ hasLightBG('logoBg') ? 'filter:invert(1) ' : '' }}}
+            .iconColor{ color:#eee;
+            {{ hasLightBG('buttonBg') ? 'filter:invert(1)' : null }} }
+            .cardColor{ {{ hasLightBG('cardBg') && 'color:#222 !important' }} }
+            .textColor{
+            {{
+              hasLightBG('mainBg')
+                ? 'color:#222 !important'
+                : 'color:#eee !important'
+            }}
+            } .seekbarColor{
+            {{ `background:${colors.buttonBg.color}80 !important` }} }
           </component>
           <component :is="'style'" v-if="theme == 3">
-            #info{ border-left: 0.25rem dashed {{colors.buttonBg.color}} } .section{border-left: 0.25rem solid {{colors.buttonBg.color}}}
+            #info{ border-left: 0.25rem dashed {{ colors.buttonBg.color }} }
+            .section{border-left: 0.25rem solid {{ colors.buttonBg.color }}}
           </component>
           <component :is="'style'" v-if="getCssHref">
             #body{
-            {{genInfo.fontCss && getFontFamily}}
+            {{ genInfo.fontCss && getFontFamily }}
             }
           </component>
         </head>
@@ -64,10 +87,7 @@
             }"
           >
             <a id="close" @click="closePublicKey()" class="closeColor">
-              <div
-                class="icon"
-                v-html="$icon('close')"
-              ></div>
+              <div class="icon" v-html="$icon('close')"></div>
             </a>
             <div id="keyView">
               <p class="textColor">
@@ -85,10 +105,7 @@
                 }"
                 tabindex="-1"
               >
-                <div
-                  class="icon iconColor"
-                  v-html="$icon('download')"
-                ></div>
+                <div class="icon iconColor" v-html="$icon('download')"></div>
                 <span class="iconColor">Download Key</span>
               </a>
             </div>
@@ -102,10 +119,7 @@
                   backgroundColor: `${colors.buttonBg.color}`,
                 }"
               >
-                <div
-                  class="icon iconColor"
-                  v-html="$icon('copy')"
-                ></div>
+                <div class="icon iconColor" v-html="$icon('copy')"></div>
                 <span class="iconColor">Copy URL</span>
               </button>
             </div>
@@ -122,26 +136,17 @@
             >
               <div>
                 <a id="share" @click.prevent.capture="sharingAlert()">
-                  <div
-                    class="icon topAction"
-                    v-html="$icon('share')"
-                  ></div>
+                  <div class="icon topAction" v-html="$icon('share')"></div>
                 </a>
                 <a id="showQR" @click.prevent.capture="sharingAlert()"
-                  ><div
-                    class="icon topAction"
-                    v-html="$icon('qrcode')"
-                  ></div>
+                  ><div class="icon topAction" v-html="$icon('qrcode')"></div>
                 </a>
               </div>
               <a
                 v-if="pubKeyIsValid"
                 id="showKey"
                 @click.prevent.capture="showKey()"
-                ><div
-                  class="icon topAction"
-                  v-html="$icon('key')"
-                ></div>
+                ><div class="icon topAction" v-html="$icon('key')"></div>
               </a>
             </div>
             <div class="headerImgC">
@@ -214,10 +219,7 @@
               @click.prevent="downloadVcard"
               aria-label="Save Contact"
             >
-              <div
-                class="icon iconColor"
-                v-html="$icon('add-user')"
-              ></div>
+              <div class="icon iconColor" v-html="$icon('add-user')"></div>
               <p class="iconColor">Save Contact</p>
             </a>
             <div class="actions">
@@ -236,12 +238,7 @@
                     }"
                     :aria-label="item.name"
                   >
-                    <div
-                      class="icon iconColor"
-                      v-html="
-                        $icon(item.icon)
-                      "
-                    ></div>
+                    <div class="icon iconColor" v-html="$icon(item.icon)"></div>
                   </a>
                   <p class="textColor">
                     {{
@@ -442,10 +439,10 @@ export default defineComponent({
       if (this.genInfo.fontLink) {
         let html = new DOMParser().parseFromString(
           this.genInfo.fontLink,
-          'text/html'
+          'text/html',
         )
         let link = Array.from(html.getElementsByTagName('link')).filter(
-          (e) => e.getAttribute('rel') == 'stylesheet'
+          (e) => e.getAttribute('rel') == 'stylesheet',
         )
         return link.length && link[0].getAttribute('href')
       }
@@ -507,7 +504,7 @@ export default defineComponent({
     },
     sharingAlert(): void {
       this.showAlert(
-        'You are able to share your business card after completing the hosting process.\n\nCheck out the <a class="underline font-extrabold text-emerald-600 hover:text-emerald-500 transition-colors duration-200" href="/demo" target="_blank">demo</a> to test the functionality.'
+        'You are able to share your business card after completing the hosting process.\n\nCheck out the <a class="underline font-extrabold text-emerald-600 hover:text-emerald-500 transition-colors duration-200" href="/demo" target="_blank">demo</a> to test the functionality.',
       )
     },
     /** Plays `ref` and pauses every other player, keeping the icons in sync. */
@@ -592,7 +589,9 @@ export default defineComponent({
     z-index: 1;
     width: 100%;
     bottom: 0;
-    transition: top 0.2s ease-out, opacity 0.1s ease-out;
+    transition:
+      top 0.2s ease-out,
+      opacity 0.1s ease-out;
     transform: translateZ(0);
   }
   #close {
@@ -957,7 +956,9 @@ export default defineComponent({
     z-index: 1;
     width: 100%;
     bottom: 0;
-    transition: top 0.2s ease-out, opacity 0.1s ease-out;
+    transition:
+      top 0.2s ease-out,
+      opacity 0.1s ease-out;
     transform: translateZ(0);
   }
   #close {
@@ -1321,7 +1322,9 @@ export default defineComponent({
     z-index: 1;
     width: 100%;
     bottom: 0;
-    transition: top 0.2s ease-out, opacity 0.1s ease-out;
+    transition:
+      top 0.2s ease-out,
+      opacity 0.1s ease-out;
     transform: translateZ(0);
   }
   #close {

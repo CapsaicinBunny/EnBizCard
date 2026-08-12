@@ -235,6 +235,7 @@ import Footer from '@/components/Footer.vue'
 
 export default defineComponent({
   components: {
-    Footer,  },
+    Footer,
+  },
 })
 </script>

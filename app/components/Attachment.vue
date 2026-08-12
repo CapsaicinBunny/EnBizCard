@@ -21,8 +21,8 @@
           type == 'logo'
             ? 'Brand logo'
             : type == 'photo'
-            ? 'Card holder\'s photo'
-            : 'Cover image'
+              ? 'Card holder\'s photo'
+              : 'Cover image'
         }`"
       />
       <button
@@ -47,10 +47,7 @@
           @change="fileLoaded($event, type, false)"
           @click="$event.target.files = null"
         />
-        <div
-          class="w-6 h-6 pointer-events-none"
-          v-html="$icon('add')"
-        ></div>
+        <div class="w-6 h-6 pointer-events-none" v-html="$icon('add')"></div>
       </button>
       <p v-if="!imageAttached" class="ml-3 leading-none">
         {{ label
@@ -63,10 +60,7 @@
         :aria-label="`Remove ${type}`"
         :title="`Remove ${type}`"
       >
-        <div
-          class="w-6 h-6"
-          v-html="$icon('x')"
-        ></div>
+        <div class="w-6 h-6" v-html="$icon('x')"></div>
       </button>
     </div>
   </div>
@@ -133,11 +127,11 @@ export default defineComponent({
         } else {
           if (type == 'logo' || type == 'cover') {
             this.showAlert(
-              'Unsupported file format.\nOnly jpeg, png, webp, gif and svg file can be attached.'
+              'Unsupported file format.\nOnly jpeg, png, webp, gif and svg file can be attached.',
             )
           } else {
             this.showAlert(
-              'Unsupported file format.\nOnly jpeg, png, webp and gif file can be attached.'
+              'Unsupported file format.\nOnly jpeg, png, webp and gif file can be attached.',
             )
           }
         }
@@ -172,7 +166,9 @@ export default defineComponent({
         }
       }
       reader.onerror = () => {
-        this.showAlert(`Could not read ${file.name}. The file may be unreadable.`)
+        this.showAlert(
+          `Could not read ${file.name}. The file may be unreadable.`,
+        )
       }
       reader.readAsDataURL(file)
     },

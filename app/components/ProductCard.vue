@@ -4,10 +4,7 @@
       class="p-1 shrink-0 focus:outline-none drag cursor-move"
       tabindex="-1"
     >
-      <div
-        class="w-6 h-6"
-        v-html="$icon('drag')"
-      ></div>
+      <div class="w-6 h-6" v-html="$icon('drag')"></div>
     </button>
     <div class="flex flex-col items-center bg-gray-700 rounded p-2">
       <div class="flex items-center w-full">
@@ -107,10 +104,7 @@
       aria-label="Remove product"
       title="Remove product"
     >
-      <div
-        class="w-6 h-6"
-        v-html="$icon('x')"
-      ></div>
+      <div class="w-6 h-6" v-html="$icon('x')"></div>
     </button>
   </div>
 </template>
@@ -180,7 +174,7 @@ export default defineComponent({
           this.imageLoaded(file, i, mimetype)
         } else
           this.showAlert(
-            'Unsupported file format.\nOnly jpeg and png files can be attached.'
+            'Unsupported file format.\nOnly jpeg and png files can be attached.',
           )
       } else this.dragOver = false
     },
@@ -210,7 +204,9 @@ export default defineComponent({
         this.resizeImage('product', mime, this.index, i)
       }
       reader.onerror = () => {
-        this.showAlert(`Could not read ${file.name}. The file may be unreadable.`)
+        this.showAlert(
+          `Could not read ${file.name}. The file may be unreadable.`,
+        )
       }
       reader.readAsDataURL(file)
     },

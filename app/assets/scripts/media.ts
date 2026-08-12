@@ -46,7 +46,9 @@ pC.forEach((ctrl, i) => {
   //    src attribute, and a failing child fires 'error' on *itself* — the
   //    media element's own error stays null and no event reaches a listener
   //    here. This is the case that actually fires in practice.
-  source.querySelectorAll('source').forEach((s) => s.addEventListener('error', fail))
+  source
+    .querySelectorAll('source')
+    .forEach((s) => s.addEventListener('error', fail))
   // 2. Belt and braces for a media element loaded via src.
   source.addEventListener('error', fail)
   // 3. Media loads in parallel with parsing, so resource selection can already

@@ -1,0 +1,5 @@
+# The repository already stores LF. Check LF out too, so the working tree
+# matches .editorconfig and `npm run format:check` is usable on Windows —
+# oxfmt writes LF, and with core.autocrlf=true git would hand it CRLF back and
+# report every file as unformatted forever.
+* text=auto eol=lf

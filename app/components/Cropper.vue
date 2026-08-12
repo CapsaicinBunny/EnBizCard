@@ -128,7 +128,7 @@ export default defineComponent({
             this.content[this.type].url = null
             this.content[this.type].mime = null
             this.showAlert(
-              'That image was too large to process. Try a smaller one.'
+              'That image was too large to process. Try a smaller one.',
             )
             this.$emit('closeCropper')
             return
@@ -140,7 +140,7 @@ export default defineComponent({
           this.$emit('closeCropper')
         },
         this.mime,
-        0.8
+        0.8,
       )
     },
   },

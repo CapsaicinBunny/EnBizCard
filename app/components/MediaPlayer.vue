@@ -94,7 +94,8 @@ export default defineComponent({
     setProgress(e: Event): void {
       const mediaSource = this.$refs.mediaSource as HTMLMediaElement
       const input = e.target as HTMLInputElement
-      mediaSource.currentTime = mediaSource.duration * (Number(input.value) / 100)
+      mediaSource.currentTime =
+        mediaSource.duration * (Number(input.value) / 100)
     },
     updateSeek(): void {
       const mediaSource = this.$refs.mediaSource as HTMLMediaElement

@@ -145,7 +145,9 @@ curl.addEventListener('click', async () => {
   } catch {
     // Fall back to selecting the URL so it can be copied manually.
     const range = document.createRange()
-    range.selectNodeContents(curl.querySelectorAll<HTMLElement>('.iconColor')[0]!)
+    range.selectNodeContents(
+      curl.querySelectorAll<HTMLElement>('.iconColor')[0]!,
+    )
     const sel = window.getSelection()
     sel?.removeAllRanges()
     sel?.addRange(range)

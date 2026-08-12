@@ -28,10 +28,7 @@
           download
           target="_blank"
         >
-          <div
-            class="icon iconColor"
-            v-html="$icon('download')"
-          ></div>
+          <div class="icon iconColor" v-html="$icon('download')"></div>
         </a>
       </div>
     </div>
@@ -57,7 +54,7 @@ export default defineComponent({
     downloadDocument(): void {
       saveAs(
         window.URL.createObjectURL(this.media.file),
-        `${this.media.title}.pdf`
+        `${this.media.title}.pdf`,
       )
     },
   },
