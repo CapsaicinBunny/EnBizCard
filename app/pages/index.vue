@@ -1706,7 +1706,10 @@ export default defineComponent({
             icon: 'appstore',
             placeholder: 'https://apps.apple.com/in/app/appname/id',
             value: null,
-            color: 'linear-gradient(#5fc9f8, #147efb)',
+            // The darker stop of the gradient this used to carry. Every other
+            // chip is a flat colour, and the lighter stop drops white-on-blue
+            // contrast below the 3:1 that non-text graphics need.
+            color: '#147efb',
             label: 'App Store developer/app URL',
           },
           {

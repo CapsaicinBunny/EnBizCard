@@ -82,7 +82,11 @@ export interface PrimaryAction extends ActionBase {
 
 /** Social rows. Sorted by name, and rendered as coloured chips. */
 export interface SecondaryAction extends ActionBase {
-  /** Hex, or a `linear-gradient(...)` for App Store. */
+  /**
+   * The chip's background. A flat hex for every action — it is assigned to
+   * `background`, so a gradient still parses, but App Store was the only one
+   * that used that and it now matches the rest.
+   */
   color: string
   /** Set when `color` is pale enough to need dark foreground text. */
   light?: Flag
