@@ -32,9 +32,14 @@ const qr = document.getElementById('qr')!
 const s = document.getElementById('share')!
 const sqr = document.getElementById('showQR')!
 
-// Rendered only when the card carries a public key, so genuinely optional.
-const ki = document.getElementById('keyView')
+// `showKey` is the one genuinely optional element: Preview.vue renders it
+// under `v-if="pubKeyIsValid"`, so a card with no public key has no button.
 const sk = document.getElementById('showKey')
+// `keyView` is the panel that button reveals. It is always in the DOM, but it
+// defaults to `display: flex` in the theme CSS, so every path that opens the
+// modal has to hide it explicitly — hence the dN(ki) calls below. Kept
+// null-checked so it stays correct if it ever gains a v-if of its own.
+const ki = document.getElementById('keyView')
 
 /** Toggle the modal in or out of view. */
 function tC(e: HTMLElement) {

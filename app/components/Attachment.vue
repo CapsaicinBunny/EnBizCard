@@ -9,6 +9,7 @@
         :mime="mime"
         :type="filetype"
         :resizeImage="resizeImage"
+        :showAlert="showAlert"
       />
     </transition>
     <div class="flex flex-wrap items-center">
@@ -73,7 +74,7 @@
 
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue'
-import type { CardImages, ImageSlot } from '~/types/card'
+import type { CardImages, ImageSlot, ResizeImage } from '~/types/card'
 
 export default defineComponent({
   props: {
@@ -82,7 +83,7 @@ export default defineComponent({
     label: { type: String, required: true },
     description: { type: String, required: true },
     resizeImage: {
-      type: Function as PropType<(type: ImageSlot, mime: string) => void>,
+      type: Function as PropType<ResizeImage>,
       required: true,
     },
     showAlert: {

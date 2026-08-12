@@ -1,4 +1,4 @@
-<p align="center"><a href="https://enbizcard.vercel.app/"><img src="assets/images/GitHub.png" width="100%"></a></p>
+<p align="center"><a href="https://enbizcard.vercel.app/"><img src="app/assets/images/GitHub.png" width="100%"></a></p>
 
 <h1 align="center">An Open-Source Digital Business Card Generator</h1>
 <!-- <h3 align="center">Your Website Can Host Your Digital Business Cards for FREE!</h3> -->
@@ -102,4 +102,4 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ## Support me
 
-<a href="https://www.vishnuraghav.com/donate/"><img alt="Donate to Vishnu Raghav" src="assets/images/donate.svg" width="207"></a>
+<a href="https://www.vishnuraghav.com/donate/"><img alt="Donate to Vishnu Raghav" src="app/assets/images/donate.svg" width="207"></a>

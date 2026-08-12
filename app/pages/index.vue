@@ -1093,6 +1093,7 @@ import type {
   PrimaryAction,
   ProductContent,
   SecondaryAction,
+  ResizeTarget,
   VCardData,
 } from '~/types/card'
 import { errorText } from '~/utils/errors'
@@ -1989,7 +1990,12 @@ export default defineComponent({
         `${this.getFullname}'s public key.asc`
       )
     },
-    async resizeImage(type, mime, index1, index2) {
+    async resizeImage(
+      type: ResizeTarget,
+      mime: string,
+      index1?: number,
+      index2?: number
+    ) {
       let vm = this
       let reader = new FileReader()
       let file
@@ -2179,9 +2185,19 @@ export default defineComponent({
       zip.folder(username).file('qrcode.min.js', qrScript)
       zip.file('Hosting-Guide.html', guide)
 
-      // Image attachments
+      // Image attachments. `resized` is produced asynchronously by
+      // resizeImage()'s canvas.toBlob, so it can still be null here if the
+      // user cropped and hit Download immediately, or if the resize failed.
+      // JSZip writes falsy data as a 0-byte entry without complaining, which
+      // ships a card with a broken image the user only discovers after
+      // uploading it — so refuse instead. downloadPackage() shows the message.
       for (const key in this.images) {
         if (this.images[key].url) {
+          if (!this.images[key].resized) {
+            throw new Error(
+              `The ${key} image is still being processed. Wait a moment and try again.`
+            )
+          }
           zip
             .folder(username)
             .file(

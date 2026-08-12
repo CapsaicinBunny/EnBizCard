@@ -100,6 +100,31 @@ export interface CardActions {
 export type MediaKind = 'image' | 'music' | 'video' | 'document'
 
 /**
+ * What `resizeImage()` in index.vue can be pointed at.
+ *
+ * Either an editor slot — resized in place from `images[slot].blob`, with no
+ * indices — or a featured entry addressed by `index1`/`index2`: `'image'` and
+ * `'music'` from Featured.vue, `'product'` from ProductCard.vue.
+ *
+ * `'video'` and `'document'` are `MediaKind` values but are deliberately NOT
+ * here: those paths build their own covers, and resizeImage() has no branch
+ * for them — passing one leaves `file` undefined and throws in FileReader.
+ */
+export type ResizeTarget = ImageSlot | 'image' | 'music' | 'product'
+
+/**
+ * resizeImage()'s signature, shared so the four components that receive it as
+ * a prop cannot each guess a different one. `index1`/`index2` are the featured
+ * section and content indices, omitted for the ImageSlot targets.
+ */
+export type ResizeImage = (
+  target: ResizeTarget,
+  mime: string,
+  index1?: number,
+  index2?: number
+) => void
+
+/**
  * An attached file. `cover` is the poster frame: ID3 art for music, a pdf.js
  * render for documents, a captured frame for video. When it could not be
  * produced, `info` explains why and `cover` is absent.

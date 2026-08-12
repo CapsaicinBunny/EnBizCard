@@ -121,6 +121,7 @@ import type {
   FeaturedSection,
   ProductContent,
   ProductImage,
+  ResizeImage,
 } from '~/types/card'
 
 export default defineComponent({
@@ -139,9 +140,7 @@ export default defineComponent({
       required: true,
     },
     resizeImage: {
-      type: Function as PropType<
-        (type: 'product', mime: string, index1: number, index2: number) => void
-      >,
+      type: Function as PropType<ResizeImage>,
       required: true,
     },
   },

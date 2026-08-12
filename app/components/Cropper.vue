@@ -30,7 +30,8 @@
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue'
 import Cropper from 'cropperjs'
-import type { CardImages, ImageSlot } from '~/types/card'
+import type { CardImages, ImageSlot, ResizeImage } from '~/types/card'
+import { errorText } from '~/utils/errors'
 
 // cropperjs 2 is a set of custom elements rather than the single widget v1 was,
 // so the v1 option object has no equivalent — the configuration lives in the
@@ -68,10 +69,14 @@ export default defineComponent({
     /** The editor's images map; the crop is written back into `content[type]`. */
     content: { type: Object as PropType<CardImages>, required: true },
     resizeImage: {
-      type: Function as PropType<(type: ImageSlot, mime: string) => void>,
+      type: Function as PropType<ResizeImage>,
       required: true,
     },
     type: { type: String as PropType<ImageSlot>, required: true },
+    showAlert: {
+      type: Function as PropType<(message: string) => void>,
+      required: true,
+    },
   },
   emits: ['closeCropper'],
   data() {
@@ -81,10 +86,17 @@ export default defineComponent({
   },
   methods: {
     async cropPhoto(): Promise<void> {
-      if (!this.cropper) return
-      const selection = this.cropper.getCropperSelection()
-      const image = this.cropper.getCropperImage()
-      if (!selection || !image) return
+      // cropperjs 2's accessors are nullable where v1's getCroppedCanvas() was
+      // not. Returning silently here would leave the Crop button dead with no
+      // explanation, so say so — this only happens if the custom elements
+      // never upgraded, which is a real failure, not a no-op.
+      const selection = this.cropper?.getCropperSelection()
+      const image = this.cropper?.getCropperImage()
+      if (!selection || !image) {
+        this.showAlert('The cropper failed to load. Try reattaching the image.')
+        this.$emit('closeCropper')
+        return
+      }
 
       // $toCanvas() defaults to the selection's on-screen size, where v1's
       // getCroppedCanvas() returned source resolution. Undo the image's display
@@ -92,15 +104,35 @@ export default defineComponent({
       // from — the modal is only ~350px wide, but covers go up to 960px.
       const [a, b] = image.$getTransform()
       const scale = Math.hypot(a, b) || 1
-      const canvas = await selection.$toCanvas({
-        width: Math.round(selection.width / scale),
-      })
+      let canvas: HTMLCanvasElement
+      try {
+        canvas = await selection.$toCanvas({
+          width: Math.round(selection.width / scale),
+        })
+      } catch (err) {
+        this.showAlert(`Could not crop that image.\n\n${errorText(err)}`)
+        this.$emit('closeCropper')
+        return
+      }
 
       this.content[this.type].url = canvas.toDataURL(this.mime)
       this.content[this.type].mime = this.mime
       canvas.toBlob(
         (blob) => {
-          if (!blob) return
+          // toBlob yields null for a canvas the browser cannot encode, which
+          // is exactly the oversized-photo case this component exists for.
+          // url/mime are already written above, so bailing silently would show
+          // the image as attached while `resized` stayed null — and the export
+          // would then ship a 0-byte file.
+          if (!blob) {
+            this.content[this.type].url = null
+            this.content[this.type].mime = null
+            this.showAlert(
+              'That image was too large to process. Try a smaller one.'
+            )
+            this.$emit('closeCropper')
+            return
+          }
           this.content[this.type].blob = new File([blob], 'photo', {
             type: this.mime,
           })

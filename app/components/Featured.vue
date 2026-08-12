@@ -255,6 +255,7 @@ import type {
   FeaturedSection,
   MediaContent,
   MediaKind,
+  ResizeImage,
   TextContent,
 } from '~/types/card'
 
@@ -304,14 +305,7 @@ export default defineComponent({
     /** Position of this section within `featured`. */
     index: { type: Number, required: true },
     resizeImage: {
-      type: Function as PropType<
-        (
-          type: MediaKind | 'product',
-          mime: string,
-          index1?: number,
-          index2?: number
-        ) => void
-      >,
+      type: Function as PropType<ResizeImage>,
       required: true,
     },
     showAlert: {

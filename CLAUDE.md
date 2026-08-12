@@ -15,7 +15,7 @@ Read [README.md](README.md) for the project's goals/features from a user perspec
 - **TypeScript 7** — the native (Go) compiler. It has no JS API, so **vue-tsc and Volar cannot read `.vue` files**: `npm run typecheck` (`tsc --noEmit`) checks only `.ts` files, and annotations inside SFCs are stripped by Vite without ever being verified. Put load-bearing types in `app/types/`, where they are actually checked. Revisit vue-tsc once it supports the native port.
 - `app/assets/scripts/main.ts` and `media.ts` are the scripts that run *inside exported cards*. They are authored in TypeScript but compiled to standalone JS at build time by the `?minified` Vite plugin (see *Export scripts* below).
 - **Vite** as the bundler (Nuxt 4 default) — *not* webpack
-- **`useState`** for the only piece of global state, the selected theme — [app/composables/useTheme.js](app/composables/useTheme.js). There is no Vuex/Pinia store.
+- **`useState`** for the only piece of global state, the selected theme — [app/composables/useTheme.ts](app/composables/useTheme.ts). There is no Vuex/Pinia store.
 - **Tailwind CSS v4** via `@tailwindcss/vite`. There is no `tailwind.config.js` — v4 is configured CSS-first in [app/assets/css/tailwind.css](app/assets/css/tailwind.css) (`@theme`, `@source`). Tailwind styles **only the generator UI**; the exported card themes are hand-written SCSS with no Tailwind, so Tailwind changes cannot affect generated cards.
 - **JSZip** + **file-saver** to package the generated card for download
 - **`@vite-pwa/nuxt`** for the manifest and service worker
@@ -33,8 +33,8 @@ Nuxt 4 puts application code under `app/`, and static files served at the site r
 - [app/pages/hosting-guide/index.vue](app/pages/hosting-guide/index.vue) — static help page.
 - [app/components/Preview.vue](app/components/Preview.vue) — renders the live card preview (~1600 lines). **Its rendered DOM is serialized to produce the exported card**, so it deliberately renders a full `<html><head><body>` document.
 - [app/components/](app/components/) — the editor's smaller pieces: `Action.vue`, `Attachment.vue`, `Colour.vue`, `Cropper.vue`, `Featured.vue`, `ProductCard.vue`/`ProductShowcase.vue`, `Vcard.vue`, `Download.vue`, `Modal.vue`, `Help.vue`, `Footer.vue`, `Check.vue`, `MediaPlayer.vue`, `DocumentDownloader.vue`.
-- [app/utils/icons.js](app/utils/icons.js) — loads every `app/assets/icons/*.svg` as raw text via `import.meta.glob`, with gradient-id randomisation so an icon can appear twice without its `<defs>` ids colliding.
-- [app/plugins/icons.js](app/plugins/icons.js) — exposes `$icon(name)` and `$getSVG(item)` as Vue `globalProperties` so all ~40 `v-html` icon call sites work without per-component wiring.
+- [app/utils/icons.ts](app/utils/icons.ts) — loads every `app/assets/icons/*.svg` as raw text via `import.meta.glob`, with gradient-id randomisation so an icon can appear twice without its `<defs>` ids colliding.
+- [app/plugins/icons.ts](app/plugins/icons.ts) — exposes `$icon(name)` and `$getSVG(item)` as Vue `globalProperties` so all ~40 `v-html` icon call sites work without per-component wiring.
 - [app/assets/styles/](app/assets/styles/) — theme SCSS sources plus the minified CSS shipped with generated cards.
 - [app/assets/scripts/](app/assets/scripts/) — `main.ts` (modal / share / QR) and `media.ts` (audio-video controls) are the runtime for *generated* cards. `downloadPackage()` imports them with `?minified` and injects the compiled result; they are the single source of truth, not copies.
 - [public/](public/) — PWA icons, fonts, and `qrcode.min.js` (loaded both as a global `<script>` by the generator and imported as `?raw` text to bundle into exports).
@@ -58,7 +58,7 @@ The bridge is a small Vite plugin, `enbizcard:minified-scripts`, defined in [nux
 Consequences worth knowing:
 
 - **Keep them plain global scripts.** An `import` or `export` makes esbuild emit an ES module, which a classic `<script>` tag cannot run. That is why `main.ts` declares the `QRCode` global with `declare class` instead of importing anything.
-- They are strictly type-checked, because `app/**/*` is in the tsconfig `include`. `document.getElementById(...)!` is deliberate: the `!` marks elements Preview.vue always renders, while `keyView` / `showKey` are genuinely optional and null-checked.
+- They are strictly type-checked, because `app/**/*` is in the tsconfig `include`. `document.getElementById(...)!` is deliberate: the `!` marks elements Preview.vue always renders. Only `showKey` is genuinely conditional (`v-if="pubKeyIsValid"`); `keyView` is always present but null-checked anyway.
 - `MediaPlayer.vue` implements the same controls as `media.ts` for the live preview. They are separate implementations against the same markup — change one, look at the other.
 - `?minified` is declared for TypeScript in [app/types/minified.d.ts](app/types/minified.d.ts).
 
@@ -72,7 +72,15 @@ npm run dev
 npm run generate
 ```
 
-`dev` serves on port 2221; `generate` produces the static site in `.output/public`. `npm run build` + `npm run start` (preview) also exist. There is no test suite. `.eslintrc` is a leftover from the Nuxt 2 setup and is inert — ESLint is not installed and there is no lint script.
+```bash
+npm run typecheck
+```
+
+`dev` serves on port 2221; `generate` produces the static site in `.output/public`. `npm run build` + `npm run start` (preview) also exist.
+
+`typecheck` runs `nuxt prepare && tsc --noEmit` — the `nuxt prepare` matters, because [tsconfig.json](tsconfig.json) only extends the generated `.nuxt/tsconfig.json`, so a bare `tsc --noEmit` fails on a clean checkout. Remember it only covers `.ts` files (see *Tech stack*).
+
+There is no test suite. `.eslintrc`/`.eslintignore` are leftovers from the Nuxt 2 setup and are inert — ESLint is not installed and there is no lint script.
 
 ## Conventions
 
