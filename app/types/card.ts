@@ -77,10 +77,15 @@ interface ActionBase {
 /**
  * Repeatable contact rows carry a type the user picks per row — a phone is
  * Mobile/Office/Home, an email is Work/Personal. `label` is what the editor
- * and the card show; `vcard` is the RFC 2426 token the .vcf needs.
+ * and the card show; `vcard` is the RFC 6350 TYPE parameter value.
  *
- * Two labels may share a token ('Office' and 'Work' are both WORK); that is
- * why this is a per-group list rather than one flat label->token map.
+ * vCard 4.0 splits what 3.0 called CELL across two axes: what the number *is*
+ * (voice, text, cell, fax…) and whose it is (work, home). So a mobile carries
+ * `voice,cell` rather than 3.0's single CELL token, and the serialiser quotes
+ * any value containing a comma.
+ *
+ * Two labels may share a value ('Office' and 'Work' both carry work); that is
+ * why this is a per-group list rather than one flat label->value map.
  */
 export type ContactTypeGroup = 'phone' | 'email'
 
@@ -91,13 +96,13 @@ export interface ContactType {
 
 export const CONTACT_TYPES: Record<ContactTypeGroup, readonly ContactType[]> = {
   phone: [
-    { label: 'Mobile', vcard: 'CELL' },
-    { label: 'Office', vcard: 'WORK' },
-    { label: 'Home', vcard: 'HOME' },
+    { label: 'Mobile', vcard: 'voice,cell' },
+    { label: 'Office', vcard: 'voice,work' },
+    { label: 'Home', vcard: 'voice,home' },
   ],
   email: [
-    { label: 'Work', vcard: 'WORK' },
-    { label: 'Personal', vcard: 'HOME' },
+    { label: 'Work', vcard: 'work' },
+    { label: 'Personal', vcard: 'home' },
   ],
 }
 
@@ -293,8 +298,8 @@ export interface VCardUrl {
 }
 
 /**
- * One TEL or EMAIL line. `type` is already the vCard token, not the editor's
- * label, so Vcard.vue can interpolate it without another lookup.
+ * One TEL or EMAIL line. `type` is already the RFC 6350 TYPE parameter value,
+ * not the editor's label, so buildVCard() needs no further lookup.
  */
 export interface VCardTyped {
   type: string
@@ -308,6 +313,8 @@ export interface VCardData {
   title: string | null
   org: string | null
   addr: string | null
+  /** Carried as `X-PRONOUNS`; RFC 6350 registers no property for these. */
+  pronouns: string | null
   /**
    * One entry per filled Phone / Email row, in the order the card lists them.
    * Phones were three fixed `cell`/`work`/`home` slots and email a single
@@ -323,6 +330,21 @@ export interface VCardData {
   /** base64 of the PGP key, only set when it passes validation. */
   key: string | null
   note: string | null
+  /**
+   * `data:` URIs for the profile photo and business logo, so the saved contact
+   * carries its own artwork instead of a link that dies when the site moves.
+   *
+   * Resolved at download time rather than in the `vCard` computed: turning a
+   * Blob into base64 is asynchronous, and holding the encoded copy in reactive
+   * state would re-run every dependent computed on each keystroke.
+   */
+  photo: string | null
+  logo: string | null
+  /**
+   * A `urn:uuid:` URI, generated once per session. RFC 6350 6.7.6 wants a URI,
+   * and a stable one means re-importing an updated card revises the existing
+   * contact instead of creating a duplicate.
+   */
   uid: string
 }
 

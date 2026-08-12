@@ -744,7 +744,6 @@
         </div>
       </div>
     </div>
-    <Vcard ref="vCard" :vCard="vCard" />
     <SiteFooter />
   </div>
 </template>
@@ -761,7 +760,6 @@ import Download from '@/components/Download.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import Cropper from '@/components/Cropper.vue'
 
-import Vcard from '@/components/Vcard.vue'
 import type {
   CardActions,
   CardColours,
@@ -784,6 +782,7 @@ import type {
   VCardData,
 } from '~/types/card'
 import { vcardTypeFor } from '~/types/card'
+import { buildVCard } from '~/utils/vcard'
 import { errorText } from '~/utils/errors'
 import JSZip from 'jszip'
 // vuedraggable@4 is unmaintained and breaks on Vue 3.3+ (its slot vnodes have a
@@ -804,6 +803,46 @@ import Theme3 from '~/assets/styles/T3.min.css?raw'
 // TypeScript: the export needs runnable JS, not the annotated source.
 import modalScript from '~/assets/scripts/main.ts?minified'
 import mediaScript from '~/assets/scripts/media.ts?minified'
+
+/**
+ * A `urn:uuid:` for the vCard's UID.
+ *
+ * `crypto.randomUUID` needs a secure context, which self-hosting does not
+ * guarantee — the Docker guide points people at a plain-HTTP port, and over a
+ * LAN IP rather than localhost the method is simply absent. Calling it
+ * unguarded would throw inside data() and leave the whole editor blank, so
+ * fall back to random bytes shaped as a v4 UUID.
+ */
+function randomHex(length: number): string {
+  return Array.from({ length }, () =>
+    Math.floor(Math.random() * 16).toString(16),
+  ).join('')
+}
+
+function cardUuid(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID)
+    return `urn:uuid:${crypto.randomUUID()}`
+  // Version nibble 4, variant nibble 8-b, per RFC 4122.
+  const variant = '89ab'[Math.floor(Math.random() * 4)]
+  return `urn:uuid:${randomHex(8)}-${randomHex(4)}-4${randomHex(3)}-${variant}${randomHex(3)}-${randomHex(12)}`
+}
+
+/**
+ * Blob to `data:` URI, for embedding the photo and logo in the .vcf.
+ *
+ * Resolves to null rather than rejecting on a read error: a picture that will
+ * not encode should not sink the whole download, since the rest of the contact
+ * is still worth saving.
+ */
+function blobToDataURI(blob: Blob | null): Promise<string | null> {
+  if (!blob) return Promise.resolve(null)
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = () => resolve(null)
+    reader.readAsDataURL(blob)
+  })
+}
 
 const PRIMARY_ACTION_CATEGORIES: ReadonlyArray<{
   id: PrimaryActionCategory
@@ -1013,7 +1052,6 @@ export default defineComponent({
     Preview,
     Download,
     SiteFooter,
-    Vcard,
     VueDraggable,
   },
 
@@ -1097,6 +1135,10 @@ export default defineComponent({
       primaryActions: [] as PrimaryAction[],
       filterPrimary: '',
       primaryCategory: 'contact' as PrimaryActionCategory,
+      // Generated once, not per recompute: the UID identifies the contact, so
+      // a value that changed on every keystroke made each re-import land as a
+      // new entry in the reader's address book rather than updating the old.
+      cardUid: cardUuid(),
       secondaryActions: [] as SecondaryAction[],
       filterSecondary: '',
       secondaryCategory: 'popular' as ProfilePickerCategory,
@@ -1972,13 +2014,13 @@ export default defineComponent({
         ? this.genInfo.desc.replaceAll(/[\r\n]+/gm, '')
         : null
       let key = this.pubKeyIsValid ? window.btoa(this.genInfo.key) : null
-      let randomNumber = Math.floor(100000000 + Math.random() * 900000)
       return {
         fn: this.genInfo.fname,
         ln: this.genInfo.lname,
         title: this.genInfo.title,
         org: this.genInfo.biz,
         addr: this.genInfo.addr,
+        pronouns: this.genInfo.pronouns,
         phones,
         emails,
         sms: getNumber('SMS'),
@@ -1987,13 +2029,31 @@ export default defineComponent({
         urls,
         key,
         note,
-        uid: `EnBizCard-${randomNumber}`,
+        // Filled in by vCardText(), which can await the base64 encoding.
+        photo: null,
+        logo: null,
+        uid: this.cardUid,
       }
     },
   },
   methods: {
     changeTheme(value) {
       this.theme = value
+    },
+    /**
+     * The .vcf text, with the photo and logo encoded.
+     *
+     * Async because FileReader is. Both callers (the Save-Contact download and
+     * the zip) await this rather than reading a rendered `<pre>` back out of
+     * the DOM, which was the old approach and could not preserve CRLF, folded
+     * continuation lines, or leading whitespace.
+     */
+    async vCardText(): Promise<string> {
+      const [photo, logo] = await Promise.all([
+        blobToDataURI(this.images.photo.resized ?? this.images.photo.blob),
+        blobToDataURI(this.images.logo.resized ?? this.images.logo.blob),
+      ])
+      return buildVCard({ ...this.vCard, photo, logo })
     },
     selectFontPreset(id: string) {
       this.fontPreset = id
@@ -2092,9 +2152,11 @@ export default defineComponent({
         this.actions[type].unshift(this[type][index])
       this[type].splice(index, 1)
     },
-    downloadVcard() {
-      let blob = new Blob([this.$refs.vCard.$refs.vCard.innerText], {
-        type: 'text/plain',
+    async downloadVcard() {
+      // text/vcard, not text/plain: it is what tells a phone to hand the file
+      // to the address book instead of opening it in a text viewer.
+      let blob = new Blob([await this.vCardText()], {
+        type: 'text/vcard;charset=utf-8',
       })
       saveAs(window.URL.createObjectURL(blob), `${this.username}.vcf`)
     },
@@ -2202,15 +2264,29 @@ export default defineComponent({
       }
       return false
     },
-    downloadPackage() {
+    async downloadPackage() {
       if (!this.downloadChecked) {
         this.showAlert('Please confirm every item in the checklist first.')
+        return
+      }
+      // Built before PreviewMode drops, deliberately. buildPackage() must stay
+      // synchronous: it runs inside a PreviewMode=false window whose `finally`
+      // restores the editor, and an await in there would let that run at the
+      // first suspension point — serialising the DOM with the editor's own
+      // media paths instead of the export's relative ones.
+      let vCardText: string
+      try {
+        vCardText = await this.vCardText()
+      } catch (err) {
+        this.showAlert(
+          `Could not build your contact file.\n\n${errorText(err)}`,
+        )
         return
       }
       this.PreviewMode = false
       setTimeout(() => {
         try {
-          this.buildPackage()
+          this.buildPackage(vCardText)
         } catch (err) {
           this.showAlert(
             `Could not build your card package.\n\n${errorText(err)}`,
@@ -2226,8 +2302,11 @@ export default defineComponent({
     /**
      * Serialises the live preview into the downloadable zip. Throws on
      * failure; downloadPackage() is what reports it and restores the editor.
+     *
+     * Must stay synchronous — see the note in downloadPackage(). The .vcf text
+     * arrives already built for that reason.
      */
-    buildPackage() {
+    buildPackage(vCardText: string) {
       let el = new DOMParser().parseFromString(
         this.$refs.html.$refs.html.outerHTML,
         'text/html',
@@ -2289,8 +2368,8 @@ export default defineComponent({
       let css = new Blob([theme], {
         type: 'text/css',
       })
-      let vCard = new Blob([this.$refs.vCard.$refs.vCard.innerText], {
-        type: 'text/plain',
+      let vCard = new Blob([vCardText], {
+        type: 'text/vcard;charset=utf-8',
       })
       let guide = new Blob(
         [
