@@ -102,6 +102,27 @@ export type SecondaryActionCategory =
   | 'apps'
   | 'shops'
 
+/**
+ * A one-click font choice in the editor.
+ *
+ * `link` and `css` are copied verbatim into `genInfo.fontLink` / `fontCss`, so
+ * each must be exactly what a user would otherwise paste by hand: a
+ * `<link rel="stylesheet">` tag, and a `font-family` declaration. Preview.vue
+ * re-parses both (`getCssHref`, `getFontFamily`) rather than trusting them, so
+ * a preset goes down the same path as typed input.
+ *
+ * The `default` preset carries empty strings, which clear both fields and let
+ * the card fall back to its own `sans-serif`.
+ */
+export interface FontPreset {
+  id: string
+  name: string
+  /** Short note on the typeface's character, e.g. 'Geometric sans'. */
+  note: string
+  link: string
+  css: string
+}
+
 export type CardAction = PrimaryAction | SecondaryAction
 
 export interface CardActions {

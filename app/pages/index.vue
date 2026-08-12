@@ -546,7 +546,50 @@
         </div>
         <div id="step-9" class="mt-16">
           <h2 class="font-extrabold text-2xl">Fonts</h2>
-          <div class="stepC mt-6">
+          <p class="mt-2 text-gray-400">
+            Pick a font for your card, or choose Custom to paste an embed code
+            from any font service.
+          </p>
+          <div
+            class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2"
+            aria-label="Card fonts"
+          >
+            <button
+              v-for="preset in fontPresets"
+              :key="preset.id"
+              type="button"
+              :aria-pressed="fontPreset === preset.id"
+              :title="`${preset.name} — ${preset.note}`"
+              @click="selectFontPreset(preset.id)"
+              class="px-3 py-2 text-left rounded border transition-colors duration-200 focus:outline-none focus:ring-3 ring-gray-100"
+              :class="
+                fontPreset === preset.id
+                  ? 'bg-emerald-600 border-emerald-500 text-white'
+                  : 'bg-gray-800 border-gray-700 hover:bg-gray-700'
+              "
+            >
+              <span class="block font-extrabold truncate">{{
+                preset.name
+              }}</span>
+              <span
+                class="block text-xs truncate"
+                :class="
+                  fontPreset === preset.id
+                    ? 'text-emerald-100'
+                    : 'text-gray-500'
+                "
+                >{{ preset.note }}</span
+              >
+            </button>
+          </div>
+          <p
+            v-if="fontPreset !== 'default' && fontPreset !== 'custom'"
+            class="mt-4 text-sm text-gray-500"
+          >
+            Loaded from Google Fonts. Your card stays self-hosted, but readers'
+            browsers will fetch the font file from Google when they open it.
+          </p>
+          <div v-show="fontPreset === 'custom'" class="stepC mt-6">
             <label for="font-link" class="ml-4">Web font embed code</label>
             <textarea
               id="font-link"
@@ -557,7 +600,7 @@
               :placeholder="`<link href=&quot;https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap&quot; rel=&quot;stylesheet&quot;>`"
             ></textarea>
           </div>
-          <div class="stepC mt-6">
+          <div v-show="fontPreset === 'custom'" class="stepC mt-6">
             <label for="font-css" class="ml-4">Web font CSS rule</label>
             <input
               spellcheck="false"
@@ -568,7 +611,10 @@
               :placeholder="`font-family: 'Poppins', sans-serif;`"
             />
           </div>
-          <p class="mt-6 border p-4 rounded border-gray-700 text-gray-400">
+          <p
+            v-if="fontPreset === 'custom'"
+            class="mt-6 border p-4 rounded border-gray-700 text-gray-400"
+          >
             Supports services such as Google Fonts, Adobe Typekit, etc. Make
             sure to get the embed code for both regular and bold font variants
             from the same font family.
@@ -695,6 +741,7 @@ import type {
   ColourSlot,
   DownloadCheckItem,
   FeaturedSection,
+  FontPreset,
   GenInfo,
   ImageSlot,
   MediaKind,
@@ -742,6 +789,83 @@ const SECONDARY_ACTION_CATEGORIES: ReadonlyArray<{
   { id: 'community', label: 'Communities' },
   { id: 'apps', label: 'Apps & reviews' },
   { id: 'shops', label: 'Shops' },
+]
+
+/**
+ * Google Fonts embed tag for a family, at the regular and bold weights the
+ * card actually uses. Both must come from one request: two separate <link>s
+ * would not survive `getCssHref`, which reads only the first stylesheet it
+ * finds in `fontLink`.
+ */
+function googleFontLink(family: string): string {
+  const name = family.replaceAll(' ', '+')
+  return `<link href="https://fonts.googleapis.com/css2?family=${name}:wght@400;700&display=swap" rel="stylesheet">`
+}
+
+const FONT_PRESETS: readonly FontPreset[] = [
+  {
+    id: 'default',
+    name: 'Default',
+    note: 'The reader’s own sans',
+    link: '',
+    css: '',
+  },
+  {
+    id: 'poppins',
+    name: 'Poppins',
+    note: 'Geometric sans',
+    link: googleFontLink('Poppins'),
+    css: "font-family: 'Poppins', sans-serif;",
+  },
+  {
+    id: 'inter',
+    name: 'Inter',
+    note: 'Neutral UI sans',
+    link: googleFontLink('Inter'),
+    css: "font-family: 'Inter', sans-serif;",
+  },
+  {
+    id: 'dm-sans',
+    name: 'DM Sans',
+    note: 'Soft low-contrast sans',
+    link: googleFontLink('DM Sans'),
+    css: "font-family: 'DM Sans', sans-serif;",
+  },
+  {
+    id: 'montserrat',
+    name: 'Montserrat',
+    note: 'Wide display sans',
+    link: googleFontLink('Montserrat'),
+    css: "font-family: 'Montserrat', sans-serif;",
+  },
+  {
+    id: 'space-grotesk',
+    name: 'Space Grotesk',
+    note: 'Technical sans',
+    link: googleFontLink('Space Grotesk'),
+    css: "font-family: 'Space Grotesk', sans-serif;",
+  },
+  {
+    id: 'playfair-display',
+    name: 'Playfair Display',
+    note: 'High-contrast serif',
+    link: googleFontLink('Playfair Display'),
+    css: "font-family: 'Playfair Display', serif;",
+  },
+  {
+    id: 'lora',
+    name: 'Lora',
+    note: 'Readable text serif',
+    link: googleFontLink('Lora'),
+    css: "font-family: 'Lora', serif;",
+  },
+  {
+    id: 'custom',
+    name: 'Custom',
+    note: 'Paste your own embed',
+    link: '',
+    css: '',
+  },
 ]
 
 const POPULAR_SECONDARY_ACTIONS: readonly string[] = [
@@ -916,6 +1040,10 @@ export default defineComponent({
       secondaryActions: [] as SecondaryAction[],
       filterSecondary: '',
       secondaryCategory: 'popular' as ProfilePickerCategory,
+      // Which font card is lit. Only ever set by selectFontPreset(), which
+      // also writes genInfo.fontLink/fontCss — the two fields stay the single
+      // source of truth for what the card actually renders.
+      fontPreset: 'default',
       actions: {
         primaryActions: [
           {
@@ -1704,6 +1832,9 @@ export default defineComponent({
     secondaryActionCategories() {
       return SECONDARY_ACTION_CATEGORIES
     },
+    fontPresets() {
+      return FONT_PRESETS
+    },
     secondaryResultsLabel() {
       if (this.filterSecondary) return `Results for “${this.filterSecondary}”`
       return (
@@ -1791,6 +1922,19 @@ export default defineComponent({
   methods: {
     changeTheme(value) {
       this.theme = value
+    },
+    selectFontPreset(id: string) {
+      this.fontPreset = id
+      // 'custom' only reveals the two fields; it deliberately leaves whatever
+      // is in them alone, so switching to it after picking a preset gives the
+      // user that preset's markup to edit rather than a blank box.
+      if (id === 'custom') return
+      const preset = FONT_PRESETS.find((p) => p.id === id)
+      if (!preset) return
+      // Empty string means "no web font" — store null, which is what an
+      // untouched card carries and what Preview.vue's checks expect.
+      this.genInfo.fontLink = preset.link || null
+      this.genInfo.fontCss = preset.css || null
     },
     togglePreview() {
       this.opening = true
