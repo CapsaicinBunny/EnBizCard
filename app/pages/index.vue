@@ -802,7 +802,15 @@ const SECONDARY_ACTION_GROUPS: Record<
     'Monero',
   ],
   community: ['Discord', 'Reddit', 'Siilo'],
-  apps: ['App Store', 'Play Store', 'Yelp', 'Houzz', 'Thumbtack', 'Nextdoor'],
+  apps: [
+    'App Store',
+    'Play Store',
+    'Yelp',
+    'Houzz',
+    'Thumbtack',
+    'Nextdoor',
+    'HomeAdvisor',
+  ],
   shops: ['Etsy', 'eBay'],
 }
 
@@ -1423,6 +1431,14 @@ export default defineComponent({
             value: null,
             color: '#8ed500',
             label: 'Nextdoor page URL',
+          },
+          {
+            name: 'HomeAdvisor',
+            icon: 'homeadvisor',
+            placeholder: 'https://homeadvisor.com/rated.Business.123456',
+            value: null,
+            color: '#f68315',
+            label: 'HomeAdvisor profile URL',
           },
           {
             name: 'Etsy',
