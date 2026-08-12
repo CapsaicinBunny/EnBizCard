@@ -1,0 +1,29 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["oxc", "typescript", "unicorn", "vue", "promise"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "env": {
+    "browser": true,
+    "es2024": true
+  },
+  "rules": {
+    // FileReader, Image and HTMLMediaElement are driven through `onload` /
+    // `onerror` all over the attach paths. That is the idiomatic API for a
+    // one-shot load, and each handler is deliberately the only one.
+    "unicorn/prefer-add-event-listener": "off",
+
+    // Pre-existing style inherited from the Nuxt 2 codebase. Demoted to
+    // warnings so this tooling change stays a tooling change; fixing them is
+    // a follow-up, not something to bury in the same commit.
+    "eslint/no-unused-expressions": "warn",
+    "typescript/no-this-alias": "warn",
+    "vue/no-reserved-component-names": "warn",
+    "vue/return-in-computed-property": "warn"
+  },
+  // Vendored/minified assets and the pre-built demo card are shipped verbatim.
+  "ignorePatterns": ["public/**", "app/assets/styles/**"]
+}

@@ -76,15 +76,30 @@ npm run generate
 npm run typecheck
 ```
 
+```bash
+npm run lint
+```
+
+```bash
+npm run format
+```
+
 `dev` serves on port 2221; `generate` produces the static site in `.output/public`. `npm run build` + `npm run start` (preview) also exist.
 
 `typecheck` runs `nuxt prepare && tsc --noEmit` — the `nuxt prepare` matters, because [tsconfig.json](tsconfig.json) only extends the generated `.nuxt/tsconfig.json`, so a bare `tsc --noEmit` fails on a clean checkout. Remember it only covers `.ts` files (see *Tech stack*).
 
-There is no test suite. `.eslintrc`/`.eslintignore` are leftovers from the Nuxt 2 setup and are inert — ESLint is not installed and there is no lint script.
+There is no test suite.
+
+`lint` runs **oxlint** ([.oxlintrc.json](.oxlintrc.json)); `format` runs **oxfmt** ([.oxfmtrc.json](.oxfmtrc.json)). Both are Rust binaries from [oxc](https://oxc.rs/) and replace the ESLint/Prettier config the Nuxt 2 setup left behind — neither of which was ever actually installed. `lint:fix` and `format:check` also exist; `format:check` is the CI-safe one, because **plain `oxfmt` rewrites files in place** (`--write` is its default).
+
+Two things about them are easy to get wrong:
+
+- **oxfmt is not JS-only.** It formats Markdown, CSS, SCSS and whole `.vue` files, templates included. Left unconfigured it un-minifies `app/assets/styles/T*.min.css` and `public/qrcode.min.js` — files that are shipped verbatim into exported cards. The `ignorePatterns` in [.oxfmtrc.json](.oxfmtrc.json) are load-bearing, not tidiness.
+- **A few `correctness` rules are demoted to warnings** in [.oxlintrc.json](.oxlintrc.json), with the reason written next to each. They flag real pre-existing Nuxt 2 style (comma-operator expression statements, `const vm = this`, the component literally named `Footer`). Fixing them is a separate change, not something to fold into an unrelated commit.
 
 ## Conventions
 
-- **Formatting**: Prettier with `"semi": false, "singleQuote": true` ([.prettierrc](.prettierrc)); 2-space indent, LF, final newline ([.editorconfig](.editorconfig)).
+- **Formatting**: oxfmt with `"semi": false, "singleQuote": true` ([.oxfmtrc.json](.oxfmtrc.json)) — the same style the old `.prettierrc` asked for; 2-space indent, LF, final newline ([.editorconfig](.editorconfig)).
 - **Line endings**: working-tree files are CRLF on Windows. Beware of JS regexes like `/^\s*.../m` when scripting edits — in multiline mode `^` also matches between `\r` and `\n`, so `\s*` can eat the preceding newline and leave a lone `\r`.
 - **Imports**: `~/` and `@/` resolve to `app/`; `~~/` and `@@/` resolve to the repo root (e.g. `~~/public/qrcode.min.js?raw`).
 - Components in `app/components/` are auto-imported, but the existing files still import explicitly — follow whatever the file you're editing already does.
