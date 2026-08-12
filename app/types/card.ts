@@ -100,6 +100,7 @@ export type SecondaryActionCategory =
   | 'support'
   | 'community'
   | 'apps'
+  | 'shops'
 
 export type CardAction = PrimaryAction | SecondaryAction
 

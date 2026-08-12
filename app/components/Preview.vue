@@ -240,11 +240,11 @@
                   >
                     <div class="icon iconColor" v-html="$icon(item.icon)"></div>
                   </a>
-                  <p class="textColor">
-                    {{
-                      item.name.substr(0, 1).toUpperCase() + item.name.slice(1)
-                    }}
-                  </p>
+                  <!-- Printed verbatim. The names in the action table are
+                       already cased the way each service spells itself, so the
+                       capitalise-first-letter this used to do was a no-op for
+                       all of them but one — and wrong for that one (imo). -->
+                  <p class="textColor">{{ item.name }}</p>
                 </div>
               </div>
             </div>

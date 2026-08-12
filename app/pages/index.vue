@@ -290,21 +290,14 @@
                 :key="index"
                 @click="addAction('primaryActions', action.name)"
                 class="p-3 flex items-center shrink-0 rounded hover:bg-gray-600 focus:bg-gray-600 transition-colors duration-200 focus:outline-none bg-gray-700"
-                :title="
-                  action.name.substr(0, 1).toUpperCase() + action.name.slice(1)
-                "
+                :title="action.name"
                 :aria-label="action.name"
               >
                 <div
                   class="w-6 h-6 mr-3 shrink-0"
                   v-html="$icon(action.icon)"
                 ></div>
-                <p class="whitespace-nowrap">
-                  {{
-                    action.name.substr(0, 1).toUpperCase() +
-                    action.name.slice(1)
-                  }}
-                </p>
+                <p class="whitespace-nowrap">{{ action.name }}</p>
               </button>
             </div>
           </div>
@@ -401,9 +394,7 @@
                 @click="addAction('secondaryActions', action.name)"
                 class="profile-card min-w-0 p-3 flex items-center rounded hover:brightness-125 focus:brightness-125 transition-all duration-200 focus:outline-none focus:ring-3 ring-white"
                 :style="{ background: action.color }"
-                :title="
-                  action.name.substr(0, 1).toUpperCase() + action.name.slice(1)
-                "
+                :title="action.name"
                 :aria-label="`Add ${action.name}`"
               >
                 <div
@@ -411,10 +402,7 @@
                   v-html="$icon(action.icon)"
                 ></div>
                 <p class="truncate" :class="{ 'text-gray-900': action.light }">
-                  {{
-                    action.name.substr(0, 1).toUpperCase() +
-                    action.name.slice(1)
-                  }}
+                  {{ action.name }}
                 </p>
               </button>
             </div>
@@ -753,6 +741,7 @@ const SECONDARY_ACTION_CATEGORIES: ReadonlyArray<{
   { id: 'support', label: 'Support & payments' },
   { id: 'community', label: 'Communities' },
   { id: 'apps', label: 'Apps & reviews' },
+  { id: 'shops', label: 'Shops' },
 ]
 
 const POPULAR_SECONDARY_ACTIONS: readonly string[] = [
@@ -809,9 +798,12 @@ const SECONDARY_ACTION_GROUPS: Record<
     'Ko-fi',
     'Buy me a coffee',
     'Open Collective',
+    'Bitcoin',
+    'Monero',
   ],
   community: ['Discord', 'Reddit', 'Siilo'],
-  apps: ['App Store', 'Play Store', 'Yelp'],
+  apps: ['App Store', 'Play Store', 'Yelp', 'Houzz', 'Thumbtack', 'Nextdoor'],
+  shops: ['Etsy', 'eBay'],
 }
 
 export default defineComponent({
@@ -1099,6 +1091,15 @@ export default defineComponent({
             order: 18,
             isURL: 1,
           },
+          {
+            name: 'imo',
+            icon: 'imo',
+            placeholder: 'https://imo.im/...',
+            value: null,
+            label: 'imo invite link',
+            order: 19,
+            isURL: 1,
+          },
           // {
           //   name: 'IRC',
           //   icon: 'irc',
@@ -1106,7 +1107,7 @@ export default defineComponent({
           //   placeholder: 'IRC ID',
           //   value: null,
           //   label: 'IRC ID',
-          //   order: 19,
+          //   order: 20,
           //   isURL: 1,
           // },
         ],
@@ -1397,6 +1398,50 @@ export default defineComponent({
             light: 1,
             label: 'Yelp pagename',
           },
+          // Full profile URLs rather than an href prefix: none of these three
+          // expose a stable username-based path the way yelp.com/<name> does.
+          {
+            name: 'Houzz',
+            icon: 'houzz',
+            placeholder: 'https://houzz.com/pro/username',
+            value: null,
+            color: '#4dbc15',
+            label: 'Houzz profile URL',
+          },
+          {
+            name: 'Thumbtack',
+            icon: 'thumbtack',
+            placeholder: 'https://thumbtack.com/.../service/123456',
+            value: null,
+            color: '#009fd9',
+            label: 'Thumbtack profile URL',
+          },
+          {
+            name: 'Nextdoor',
+            icon: 'nextdoor',
+            placeholder: 'https://nextdoor.com/pages/business-name',
+            value: null,
+            color: '#8ed500',
+            label: 'Nextdoor page URL',
+          },
+          {
+            name: 'Etsy',
+            icon: 'etsy',
+            href: 'https://etsy.com/shop/',
+            placeholder: 'shopname',
+            value: null,
+            color: '#f16521',
+            label: 'Etsy shop name',
+          },
+          {
+            name: 'eBay',
+            icon: 'ebay',
+            href: 'https://ebay.com/usr/',
+            placeholder: 'username',
+            value: null,
+            color: '#e53238',
+            label: 'eBay username',
+          },
           {
             name: 'PayPal',
             icon: 'paypal',
@@ -1498,6 +1543,27 @@ export default defineComponent({
             value: null,
             color: '#13c3ff',
             label: 'Ko-fi username',
+          },
+          // BIP-21 / OpenAlias URI schemes rather than a block-explorer link:
+          // they hand the address straight to whichever wallet the visitor has
+          // registered, and degrade to nothing when they have none.
+          {
+            name: 'Bitcoin',
+            icon: 'bitcoin',
+            href: 'bitcoin:',
+            placeholder: 'bc1...',
+            value: null,
+            color: '#f7931a',
+            label: 'Bitcoin address',
+          },
+          {
+            name: 'Monero',
+            icon: 'monero',
+            href: 'monero:',
+            placeholder: '4...',
+            value: null,
+            color: '#ff6600',
+            label: 'Monero address',
           },
         ],
       } as CardActions,
