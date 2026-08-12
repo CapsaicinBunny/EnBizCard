@@ -7,11 +7,9 @@ FN:{{ getFullname }}
 ORG:{{ vCard.org }}
 ADR;TYPE=WORK:{{ vCard.addr }}
 TITLE:{{ vCard.title }}
-TEL;TYPE=CELL:{{ vCard.cell }}
-TEL;TYPE=WORK:{{ vCard.work }}
-TEL;TYPE=HOME:{{ vCard.home }}
+{{ getPhones }}
 TEL;TYPE=MSG:{{ vCard.sms }}
-EMAIL;TYPE=WORK:{{ vCard.email }}
+{{ getEmails }}
 URL;TYPE=Digital Business Card:{{ vCard.hostedURL }}
 URL:{{ vCard.website }}
 {{ getURLs }}
@@ -30,6 +28,21 @@ export default defineComponent({
     vCard: { type: Object as PropType<VCardData>, required: true },
   },
   computed: {
+    /**
+     * One line per filled phone / email. Built as joined strings rather than
+     * a v-for so the surrounding <pre> keeps exactly one newline per entry —
+     * a v-for would leave the template's own indentation in the .vcf.
+     */
+    getPhones(): string {
+      return this.vCard.phones
+        .map((e) => `TEL;TYPE=${e.type}:${e.value}`)
+        .join('\n')
+    },
+    getEmails(): string {
+      return this.vCard.emails
+        .map((e) => `EMAIL;TYPE=${e.type}:${e.value}`)
+        .join('\n')
+    },
     getURLs(): string {
       return this.vCard.urls
         .map((e) => `URL;TYPE=${e.title}:${e.url}`)

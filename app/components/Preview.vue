@@ -243,8 +243,11 @@
                   <!-- Printed verbatim. The names in the action table are
                        already cased the way each service spells itself, so the
                        capitalise-first-letter this used to do was a no-op for
-                       all of them but one — and wrong for that one (imo). -->
-                  <p class="textColor">{{ item.name }}</p>
+                       all of them but one — and wrong for that one (imo).
+                       Repeatable rows show their type instead, so a card with
+                       two numbers reads "Mobile" and "Office" rather than
+                       "Phone" twice. -->
+                  <p class="textColor">{{ item.contactType || item.name }}</p>
                 </div>
               </div>
             </div>

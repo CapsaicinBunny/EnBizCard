@@ -19,6 +19,25 @@
         v-html="$getSVG(item)"
       ></div>
     </div>
+    <!-- Repeatable contact rows only. The type used to be baked into the
+         action's name (Mobile/Office/Home were three separate actions), and
+         now rides on the row so one entry can be added once per number or
+         address. -->
+    <select
+      v-if="item.typeGroup"
+      class="px-2 h-12 shrink-0 bg-black border-y border-transparent text-sm focus:outline-none focus:border-gray-600 hover:border-gray-600 transition-colors duration-200"
+      :aria-label="'Type for ' + item.label"
+      title="Contact type"
+      v-model="type[index].contactType"
+    >
+      <option
+        v-for="option in contactTypes"
+        :key="option.label"
+        :value="option.label"
+      >
+        {{ option.label }}
+      </option>
+    </select>
     <!-- // TODO show title content when input is focused. -->
     <div class="w-full">
       <input
@@ -44,7 +63,8 @@
 
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue'
-import type { CardAction } from '~/types/card'
+import type { CardAction, ContactType } from '~/types/card'
+import { CONTACT_TYPES } from '~/types/card'
 
 export default defineComponent({
   props: {
@@ -64,6 +84,12 @@ export default defineComponent({
         (type: 'primaryActions' | 'secondaryActions', index: number) => void
       >,
       required: true,
+    },
+  },
+  computed: {
+    contactTypes(): readonly ContactType[] {
+      const group = (this.item as { typeGroup?: 'phone' | 'email' }).typeGroup
+      return group ? CONTACT_TYPES[group] : []
     },
   },
   mounted() {

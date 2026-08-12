@@ -275,6 +275,35 @@
                 filteredAction('filteredPrimaryActions', 'primaryActions')
               "
             />
+            <div
+              v-if="!filterPrimary"
+              class="mt-3 flex flex-wrap gap-2"
+              aria-label="Action categories"
+            >
+              <button
+                v-for="category in primaryActionCategories"
+                :key="category.id"
+                type="button"
+                :aria-pressed="primaryCategory === category.id"
+                @click="primaryCategory = category.id"
+                class="px-3 py-2 rounded-full shrink-0 text-sm font-extrabold border transition-colors duration-200 focus:outline-none focus:ring-3 ring-gray-100"
+                :class="
+                  primaryCategory === category.id
+                    ? 'bg-emerald-600 border-emerald-500 text-white'
+                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
+                "
+              >
+                {{ category.label }}
+              </button>
+            </div>
+            <div class="mt-2 mb-3 flex items-baseline justify-between gap-3">
+              <p class="text-sm font-extrabold text-gray-300">
+                {{ primaryResultsLabel }}
+              </p>
+              <p class="text-xs text-gray-500">
+                {{ filteredPrimaryActions.length }} available
+              </p>
+            </div>
             <p class="p-3" v-if="filteredPrimaryActions.length < 1">
               Can't find an action? Please
               <a
@@ -742,7 +771,9 @@ import type {
   DownloadCheckItem,
   FeaturedSection,
   FontPreset,
+  ContactTypeGroup,
   GenInfo,
+  PrimaryActionCategory,
   ImageSlot,
   MediaKind,
   PrimaryAction,
@@ -752,6 +783,7 @@ import type {
   ResizeTarget,
   VCardData,
 } from '~/types/card'
+import { vcardTypeFor } from '~/types/card'
 import { errorText } from '~/utils/errors'
 import JSZip from 'jszip'
 // vuedraggable@4 is unmaintained and breaks on Vue 3.3+ (its slot vnodes have a
@@ -772,6 +804,33 @@ import Theme3 from '~/assets/styles/T3.min.css?raw'
 // TypeScript: the export needs runnable JS, not the annotated source.
 import modalScript from '~/assets/scripts/main.ts?minified'
 import mediaScript from '~/assets/scripts/media.ts?minified'
+
+const PRIMARY_ACTION_CATEGORIES: ReadonlyArray<{
+  id: PrimaryActionCategory
+  label: string
+}> = [
+  { id: 'contact', label: 'Phone & email' },
+  { id: 'messaging', label: 'Messaging' },
+  { id: 'web', label: 'Web & places' },
+]
+
+const PRIMARY_ACTION_GROUPS: Record<PrimaryActionCategory, readonly string[]> =
+  {
+    contact: ['Phone', 'SMS', 'Email'],
+    messaging: [
+      'WhatsApp',
+      'Telegram',
+      'Signal',
+      'Messenger',
+      'Line',
+      'Viber',
+      'WeChat',
+      'Matrix',
+      'XMPP',
+      'imo',
+    ],
+    web: ['Website', 'Store', 'Location', 'Calendar'],
+  }
 
 type ProfilePickerCategory = 'popular' | SecondaryActionCategory
 
@@ -1037,6 +1096,7 @@ export default defineComponent({
       // The subsets currently shown in the card, filled by addAction().
       primaryActions: [] as PrimaryAction[],
       filterPrimary: '',
+      primaryCategory: 'contact' as PrimaryActionCategory,
       secondaryActions: [] as SecondaryAction[],
       filterSecondary: '',
       secondaryCategory: 'popular' as ProfilePickerCategory,
@@ -1046,35 +1106,21 @@ export default defineComponent({
       fontPreset: 'default',
       actions: {
         primaryActions: [
+          // One Phone entry, added as many times as the card needs. Each row
+          // picks its own type, which used to be encoded in three separate
+          // actions named Mobile, Office and Home.
           {
-            name: 'Mobile',
+            name: 'Phone',
             icon: 'call',
             href: 'tel:',
             placeholder: '+XX XXXXX XXXXX',
             value: null,
-            label: 'Mobile number',
+            label: 'Phone number',
             order: 0,
             isURL: 0,
-          },
-          {
-            name: 'Office',
-            icon: 'call',
-            href: 'tel:',
-            placeholder: '+XX XXXXX XXXXX',
-            value: null,
-            label: 'Office number',
-            order: 1,
-            isURL: 0,
-          },
-          {
-            name: 'Home',
-            icon: 'call',
-            href: 'tel:',
-            placeholder: '+XX XXXXX XXXXX',
-            value: null,
-            label: 'Home number',
-            order: 2,
-            isURL: 0,
+            repeatable: 1,
+            typeGroup: 'phone',
+            contactType: 'Mobile',
           },
           {
             name: 'SMS',
@@ -1083,7 +1129,7 @@ export default defineComponent({
             placeholder: '+XX XXXXX XXXXX',
             value: null,
             label: 'SMS mobile number',
-            order: 3,
+            order: 1,
             isURL: 0,
           },
           {
@@ -1093,7 +1139,10 @@ export default defineComponent({
             placeholder: 'info@example.com',
             value: null,
             label: 'Email address',
-            order: 4,
+            order: 2,
+            repeatable: 1,
+            typeGroup: 'email',
+            contactType: 'Work',
           },
           {
             name: 'Website',
@@ -1101,7 +1150,7 @@ export default defineComponent({
             placeholder: 'https://example.com',
             value: null,
             label: 'Website URL',
-            order: 5,
+            order: 3,
             isURL: 1,
           },
           {
@@ -1110,7 +1159,7 @@ export default defineComponent({
             placeholder: 'https://example.com/storeID',
             value: null,
             label: 'Online Store URL',
-            order: 6,
+            order: 4,
             isURL: 1,
           },
           {
@@ -1119,7 +1168,7 @@ export default defineComponent({
             placeholder: 'https://osm.org/go/location',
             value: null,
             label: 'Map location URL',
-            order: 7,
+            order: 5,
             isURL: 1,
           },
 
@@ -1130,7 +1179,7 @@ export default defineComponent({
             placeholder: '+XXXXXXXXXXXX',
             value: null,
             label: 'Signal number with country code (no spaces)',
-            order: 8,
+            order: 9,
             isURL: 1,
           },
           {
@@ -1140,7 +1189,7 @@ export default defineComponent({
             placeholder: 'username',
             value: null,
             label: 'Telegram username',
-            order: 9,
+            order: 8,
             isURL: 1,
           },
           {
@@ -1150,7 +1199,7 @@ export default defineComponent({
             placeholder: '@username:matrix.org',
             value: null,
             label: 'Matrix userID',
-            order: 10,
+            order: 14,
             isURL: 1,
           },
           {
@@ -1159,7 +1208,7 @@ export default defineComponent({
             placeholder: 'https://wa.me/profileID',
             value: null,
             label: 'WhatsApp profile URL',
-            order: 11,
+            order: 7,
             isURL: 1,
           },
           {
@@ -1169,18 +1218,7 @@ export default defineComponent({
             placeholder: 'username',
             value: null,
             label: 'Messenger username',
-            order: 12,
-            isURL: 1,
-          },
-          {
-            name: 'Skype',
-            icon: 'skype',
-            href: 'skype:',
-            hrefEnd: '?chat',
-            placeholder: 'username',
-            value: null,
-            label: 'Skype username',
-            order: 13,
+            order: 10,
             isURL: 1,
           },
           {
@@ -1190,7 +1228,7 @@ export default defineComponent({
             placeholder: 'LINE ID',
             value: null,
             label: 'Line profile ID',
-            order: 14,
+            order: 11,
             isURL: 1,
           },
           {
@@ -1200,7 +1238,7 @@ export default defineComponent({
             placeholder: 'XX XXXXX XXXXX',
             value: null,
             label: 'Viber mobile number',
-            order: 15,
+            order: 12,
             isURL: 1,
           },
           {
@@ -1210,7 +1248,7 @@ export default defineComponent({
             placeholder: 'WeChat ID',
             value: null,
             label: 'WeChat profile ID',
-            order: 16,
+            order: 13,
             isURL: 1,
           },
           {
@@ -1219,7 +1257,7 @@ export default defineComponent({
             placeholder: 'https://example.com/calendarID',
             value: null,
             label: 'Calendar URL',
-            order: 17,
+            order: 6,
             isURL: 1,
           },
           {
@@ -1229,7 +1267,7 @@ export default defineComponent({
             placeholder: 'XMPP ID',
             value: null,
             label: 'XMPP ID',
-            order: 18,
+            order: 15,
             isURL: 1,
           },
           {
@@ -1238,7 +1276,7 @@ export default defineComponent({
             placeholder: 'https://imo.im/...',
             value: null,
             label: 'imo invite link',
-            order: 19,
+            order: 16,
             isURL: 1,
           },
           // {
@@ -1248,7 +1286,7 @@ export default defineComponent({
           //   placeholder: 'IRC ID',
           //   value: null,
           //   label: 'IRC ID',
-          //   order: 20,
+          //   order: 17,
           //   isURL: 1,
           // },
         ],
@@ -1822,9 +1860,29 @@ export default defineComponent({
         a.order > b.order ? 1 : a.order < b.order ? -1 : 0,
       )
     },
+    primaryActionCategories() {
+      return PRIMARY_ACTION_CATEGORIES
+    },
+    primaryResultsLabel() {
+      if (this.filterPrimary) return `Results for “${this.filterPrimary}”`
+      return (
+        PRIMARY_ACTION_CATEGORIES.find(
+          (category) => category.id === this.primaryCategory,
+        )?.label ?? 'Actions'
+      )
+    },
     filteredPrimaryActions() {
-      return this.orderedPrimaryActions.filter((e) =>
-        e.name.toLowerCase().includes(this.filterPrimary.toLowerCase()),
+      // A search looks across every category, the same way the profile picker
+      // does — otherwise typing a name that sits in another tab finds nothing.
+      const query = this.filterPrimary.trim().toLowerCase()
+      if (query)
+        return this.orderedPrimaryActions.filter((action) =>
+          action.name.toLowerCase().includes(query),
+        )
+
+      const names = PRIMARY_ACTION_GROUPS[this.primaryCategory]
+      return this.orderedPrimaryActions.filter((action) =>
+        names.includes(action.name),
       )
     },
     orderedSecondaryActions() {
@@ -1876,7 +1934,20 @@ export default defineComponent({
         let no = findValue(type)
         return no ? no.replaceAll(/\s/g, '') : null
       }
-      let email = findValue('Email')
+      // Every filled Phone / Email row becomes its own line, carrying the type
+      // that row picked. Rows left blank emit nothing, where the old fixed
+      // slots always wrote `TEL;TYPE=CELL:` and `EMAIL;TYPE=WORK:` even empty.
+      const typedRows = (group: ContactTypeGroup, strip: boolean) =>
+        this.primaryActions
+          .filter((e) => e.typeGroup === group && e.value)
+          .map((e) => ({
+            type: vcardTypeFor(group, e.contactType),
+            value: strip
+              ? (e.value as string).replaceAll(/\s/g, '')
+              : (e.value as string),
+          }))
+      const phones = typedRows('phone', true)
+      const emails = typedRows('email', false)
       let website = findValue('Website')
       let actions = [
         ...this.primaryActions,
@@ -1908,11 +1979,9 @@ export default defineComponent({
         title: this.genInfo.title,
         org: this.genInfo.biz,
         addr: this.genInfo.addr,
-        cell: getNumber('Mobile'),
-        work: getNumber('Office'),
-        home: getNumber('Home'),
+        phones,
+        emails,
         sms: getNumber('SMS'),
-        email,
         hostedURL: this.hostedURL,
         website,
         urls,
@@ -2004,12 +2073,23 @@ export default defineComponent({
     },
     addAction(type, name) {
       let index = this.actions[type].findIndex((e) => e.name === name)
-      this[type].push(this.actions[type][index])
-      this.actions[type].splice(index, 1)
+      const template = this.actions[type][index]
+      if (template.repeatable) {
+        // Stays in the pool so it can be picked again, and each row gets its
+        // own object — pushing the template itself would make every phone
+        // share one `value` and one `contactType`.
+        this[type].push({ ...template })
+      } else {
+        this[type].push(template)
+        this.actions[type].splice(index, 1)
+      }
       this.clearFilterActions()
     },
     removeAction(type, index) {
-      this.actions[type].unshift(this[type][index])
+      // A repeatable action never left the pool, so returning it would add a
+      // second copy to the picker.
+      if (!this[type][index].repeatable)
+        this.actions[type].unshift(this[type][index])
       this[type].splice(index, 1)
     },
     downloadVcard() {

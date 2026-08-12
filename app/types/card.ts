@@ -67,18 +67,73 @@ interface ActionBase {
   icon: string
   /** Scheme or URL prefix prepended to `value` when building the link. */
   href?: string
-  /** Appended after `value` — only Skype uses this (`?chat`). */
+  /** Appended after `value` — only Tumblr uses this (`.tumblr.com/`). */
   hrefEnd?: string
   placeholder: string
   value: string | null
   label: string
 }
 
+/**
+ * Repeatable contact rows carry a type the user picks per row — a phone is
+ * Mobile/Office/Home, an email is Work/Personal. `label` is what the editor
+ * and the card show; `vcard` is the RFC 2426 token the .vcf needs.
+ *
+ * Two labels may share a token ('Office' and 'Work' are both WORK); that is
+ * why this is a per-group list rather than one flat label->token map.
+ */
+export type ContactTypeGroup = 'phone' | 'email'
+
+export interface ContactType {
+  label: string
+  vcard: string
+}
+
+export const CONTACT_TYPES: Record<ContactTypeGroup, readonly ContactType[]> = {
+  phone: [
+    { label: 'Mobile', vcard: 'CELL' },
+    { label: 'Office', vcard: 'WORK' },
+    { label: 'Home', vcard: 'HOME' },
+  ],
+  email: [
+    { label: 'Work', vcard: 'WORK' },
+    { label: 'Personal', vcard: 'HOME' },
+  ],
+}
+
+/** The vCard token for a label, or the group's first entry as a fallback. */
+export function vcardTypeFor(
+  group: ContactTypeGroup,
+  label: string | undefined,
+): string {
+  const types = CONTACT_TYPES[group]
+  return types.find((t) => t.label === label)?.vcard ?? types[0]!.vcard
+}
+
 /** Contact rows: phone, email, website. Sorted by `order`. */
 export interface PrimaryAction extends ActionBase {
   order: number
   isURL?: Flag
+  /**
+   * Set on actions that may be added more than once. `addAction()` clones the
+   * template instead of moving it, and `removeAction()` drops the clone rather
+   * than returning it to the pool — otherwise the picker would grow a
+   * duplicate entry every time a row was deleted.
+   */
+  repeatable?: Flag
+  /**
+   * Set on rows that offer a type dropdown, and the reason they are
+   * repeatable: one entry per number or address, each choosing its own type.
+   * Phone replaced three fixed Mobile/Office/Home actions whose *names* used
+   * to carry the type; Email followed for the same reason.
+   */
+  typeGroup?: ContactTypeGroup
+  /** The currently selected `ContactType.label` within `typeGroup`. */
+  contactType?: string
 }
+
+/** Browsing groups used by the primary action picker in the editor. */
+export type PrimaryActionCategory = 'contact' | 'messaging' | 'web'
 
 /** Social rows. Sorted by name, and rendered as coloured chips. */
 export interface SecondaryAction extends ActionBase {
@@ -237,6 +292,15 @@ export interface VCardUrl {
   url: string
 }
 
+/**
+ * One TEL or EMAIL line. `type` is already the vCard token, not the editor's
+ * label, so Vcard.vue can interpolate it without another lookup.
+ */
+export interface VCardTyped {
+  type: string
+  value: string
+}
+
 /** Flattened contact data, assembled by index.vue's `vCard` computed. */
 export interface VCardData {
   fn: string | null
@@ -244,11 +308,15 @@ export interface VCardData {
   title: string | null
   org: string | null
   addr: string | null
-  cell: string | null
-  work: string | null
-  home: string | null
+  /**
+   * One entry per filled Phone / Email row, in the order the card lists them.
+   * Phones were three fixed `cell`/`work`/`home` slots and email a single
+   * string, all of which emitted an empty `TEL;TYPE=…:` / `EMAIL;TYPE=WORK:`
+   * line whenever the user had not filled them in.
+   */
+  phones: VCardTyped[]
+  emails: VCardTyped[]
   sms: string | null
-  email: string | null
   hostedURL: string | null
   website: string | null
   urls: VCardUrl[]
