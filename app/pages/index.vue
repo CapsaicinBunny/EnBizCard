@@ -805,11 +805,16 @@ const SECONDARY_ACTION_GROUPS: Record<
   apps: [
     'App Store',
     'Play Store',
-    'Yelp',
-    'Houzz',
-    'Thumbtack',
-    'Nextdoor',
+    'Angi',
+    'Bark',
+    'BuildZoom',
     'HomeAdvisor',
+    'Houzz',
+    'Networx',
+    'Nextdoor',
+    'Porch',
+    'Thumbtack',
+    'Yelp',
   ],
   shops: ['Amazon', 'Etsy', 'eBay'],
 }
@@ -1406,8 +1411,33 @@ export default defineComponent({
             light: 1,
             label: 'Yelp pagename',
           },
-          // Full profile URLs rather than an href prefix: none of these three
-          // expose a stable username-based path the way yelp.com/<name> does.
+          // Full profile URLs rather than href prefixes: these services do not
+          // expose one stable username-based path for every kind of listing.
+          {
+            name: 'Angi',
+            icon: 'angi',
+            placeholder: 'https://angi.com/companylist/us/...',
+            value: null,
+            color: '#fff',
+            light: 1,
+            label: 'Angi business profile URL',
+          },
+          {
+            name: 'Bark',
+            icon: 'bark',
+            placeholder: 'https://bark.com/en/us/company/...',
+            value: null,
+            color: '#121737',
+            label: 'Bark professional profile URL',
+          },
+          {
+            name: 'BuildZoom',
+            icon: 'buildzoom',
+            placeholder: 'https://buildzoom.com/contractor/...',
+            value: null,
+            color: '#03a2dd',
+            label: 'BuildZoom contractor profile URL',
+          },
           {
             name: 'Houzz',
             icon: 'houzz',
@@ -1425,12 +1455,31 @@ export default defineComponent({
             label: 'Thumbtack profile URL',
           },
           {
+            name: 'Networx',
+            icon: 'networx',
+            placeholder: 'https://networx.com/c....',
+            value: null,
+            // The Networx navy reads as near-black at chip size; its own
+            // chevrons are this blue, and it matches Thumbtack's chip.
+            color: '#009fd9',
+            label: 'Networx contractor profile URL',
+          },
+          {
             name: 'Nextdoor',
             icon: 'nextdoor',
             placeholder: 'https://nextdoor.com/pages/business-name',
             value: null,
-            color: '#8ed500',
+            color: '#fff',
+            light: 1,
             label: 'Nextdoor page URL',
+          },
+          {
+            name: 'Porch',
+            icon: 'porch',
+            placeholder: 'https://porch.com/...',
+            value: null,
+            color: '#17313b',
+            label: 'Porch professional profile URL',
           },
           {
             name: 'HomeAdvisor',
@@ -1449,14 +1498,13 @@ export default defineComponent({
             color: '#f16521',
             label: 'Etsy shop name',
           },
-          // Navy rather than the orange of the smile: the icon is flattened to
-          // a single white silhouette, and white-on-orange loses the mark.
           {
             name: 'Amazon',
             icon: 'amazon',
             placeholder: 'https://amazon.com/shop/username',
             value: null,
-            color: '#232f3e',
+            color: '#fff',
+            light: 1,
             label: 'Amazon shop or wish list URL',
           },
           {

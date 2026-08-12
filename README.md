@@ -76,8 +76,9 @@ cp env.example .env
 
 ## Icon credits
 
-The brand icons in `app/assets/icons/` come from three sources. They are
-inlined into generated cards, so these terms travel with anything you export.
+The brand icons in `app/assets/icons/` come from the sources below, plus
+brand artwork supplied by contributors. They are inlined into generated cards,
+so these terms travel with anything you export.
 
 | Source                                    | Licence   | Attribution                  |
 | ----------------------------------------- | --------- | ---------------------------- |
