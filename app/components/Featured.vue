@@ -293,14 +293,17 @@ export default defineComponent({
   methods: {
     mediaType(t: string): MediaKind | undefined {
       switch (true) {
-        case t == 'image/jpeg' || t == 'image/png':
+        case t === 'image/jpeg' || t === 'image/png':
           return 'image'
-        case t == 'audio/mpeg':
+        case t === 'audio/mpeg':
           return 'music'
-        case t == 'video/mp4' || t == 'video/webm':
+        case t === 'video/mp4' || t === 'video/webm':
           return 'video'
-        case t == 'application/pdf':
+        case t === 'application/pdf':
           return 'document'
+        // Anything else is an unsupported mimetype; callers alert on undefined.
+        default:
+          return undefined
       }
     },
     attachMedia(): void {
@@ -332,7 +335,7 @@ export default defineComponent({
       const entry: TextContent = { contentType: 'text', value: null }
       this.featured[this.index].content.push(entry)
       const texts = this.featured[this.index].content.filter(
-        (e) => typeof e !== 'string' && e.contentType == 'text',
+        (e) => typeof e !== 'string' && e.contentType === 'text',
       )
       setTimeout(
         () =>
@@ -344,8 +347,8 @@ export default defineComponent({
       const dt = (e as DragEvent).dataTransfer
       const input = e.target as HTMLInputElement
       if (
-        (dropped && dt && dt.files.length) ||
-        (!dropped && input.files && input.files.length)
+        (dropped && dt && dt.files.length > 0) ||
+        (!dropped && input.files && input.files.length > 0)
       ) {
         const file = (dropped ? dt!.files[0] : input.files![0]) as File
         this.dragOver = false
@@ -525,7 +528,7 @@ export default defineComponent({
         }
         this.featured[this.index].content.push(entry)
       }
-      if (uA && uA.length == 2) {
+      if (uA && uA.length === 2) {
         video.addEventListener('loadstart', videoProcessor)
       } else {
         video.addEventListener('seeked', videoProcessor)
@@ -560,7 +563,7 @@ export default defineComponent({
     dataURIToBinary(dataURI: string): Uint8Array {
       const BASE64_MARKER = ';base64,'
       const base64Index = dataURI.indexOf(BASE64_MARKER) + BASE64_MARKER.length
-      const base64 = dataURI.substring(base64Index)
+      const base64 = dataURI.slice(base64Index)
       const raw = window.atob(base64)
       const rawLength = raw.length
       const array = new Uint8Array(new ArrayBuffer(rawLength))
@@ -575,10 +578,10 @@ export default defineComponent({
     },
     formatBytes(a: number, b: number = 2): string {
       if (0 === a) return '0 Bytes'
-      const c = 0 > b ? 0 : b,
+      const c = Math.max(0, b),
         d = Math.floor(Math.log(a) / Math.log(1024))
       return (
-        parseFloat((a / Math.pow(1024, d)).toFixed(c)) +
+        Number((a / Math.pow(1024, d)).toFixed(c)) +
         ' ' +
         ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'][d]
       )

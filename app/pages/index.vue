@@ -1386,25 +1386,28 @@ export default defineComponent({
     getFullname() {
       let fn = this.genInfo.fname
       let ln = this.genInfo.lname
-      return (fn + ln).length ? `${fn ? fn : ''}${ln ? ' ' + ln : ''}` : null
+      return (fn + ln).length > 0
+        ? `${fn ? fn : ''}${ln ? ' ' + ln : ''}`
+        : null
     },
     pubKeyIsValid() {
       if (this.genInfo.key) {
-        if (!this.genInfo.key.match(/^(-----BEGIN PGP PUBLIC KEY BLOCK-----)/))
+        if (!/^(-----BEGIN PGP PUBLIC KEY BLOCK-----)/.test(this.genInfo.key))
           return false
 
-        if (!this.genInfo.key.match(/(-----END PGP PUBLIC KEY BLOCK-----)$/))
+        if (!/(-----END PGP PUBLIC KEY BLOCK-----)$/.test(this.genInfo.key))
           return false
 
         return true
-      } else return false
+      }
+      return false
     },
     downloadChecked() {
-      return this.downloadCheckList.filter((e) => e.checked).length == 3
+      return this.downloadCheckList.filter((e) => e.checked).length === 3
     },
     username() {
       return this.getFullname
-        ? this.getFullname.toLowerCase().replace(/\W+/g, '')
+        ? this.getFullname.toLowerCase().replaceAll(/\W+/g, '')
         : 'username'
     },
     orderedPrimaryActions() {
@@ -1432,10 +1435,10 @@ export default defineComponent({
       // then filtered on truthiness, so an action of the right name carrying an
       // empty value was skipped in favour of a later one that had a value.
       const findValue = (name: string) =>
-        this.primaryActions.find((e) => e.name == name && e.value)?.value
+        this.primaryActions.find((e) => e.name === name && e.value)?.value
       const getNumber = (type) => {
         let no = findValue(type)
-        return no ? no.replace(/\s/g, '') : null
+        return no ? no.replaceAll(/\s/g, '') : null
       }
       let email = findValue('Email')
       let website = findValue('Website')
@@ -1456,10 +1459,10 @@ export default defineComponent({
           }
           return false
         })
-        .filter((e) => e)
+        .filter(Boolean)
 
       let note = this.genInfo.desc
-        ? this.genInfo.desc.replace(/[\r\n]+/gm, '')
+        ? this.genInfo.desc.replaceAll(/[\r\n]+/gm, '')
         : null
       let key = this.pubKeyIsValid ? window.btoa(this.genInfo.key) : null
       let randomNumber = Math.floor(100000000 + Math.random() * 900000)
@@ -1531,12 +1534,12 @@ export default defineComponent({
       if (hex.length === 3) {
         hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2]
       }
-      let r = parseInt(hex.slice(0, 2), 16)
-      let g = parseInt(hex.slice(2, 4), 16)
-      let b = parseInt(hex.slice(4, 6), 16)
-      const brightness = Math.round(
-        (parseInt(r) * 299 + parseInt(g) * 587 + parseInt(b) * 114) / 1000,
-      )
+      let r = Number.parseInt(hex.slice(0, 2), 16)
+      let g = Number.parseInt(hex.slice(2, 4), 16)
+      let b = Number.parseInt(hex.slice(4, 6), 16)
+      // r/g/b are already numbers; the parseInt() that used to wrap each of
+      // them here was re-parsing its own output.
+      const brightness = Math.round((r * 299 + g * 587 + b * 114) / 1000)
       return brightness > 125
     },
     showAlert(content) {
@@ -1546,7 +1549,7 @@ export default defineComponent({
       this.filterPrimary = this.filterSecondary = ''
     },
     filteredAction(filterType, actionType) {
-      if (this[filterType].length)
+      if (this[filterType].length > 0)
         this.addAction(actionType, this[filterType][0].name)
       this.clearFilterActions()
     },
@@ -1584,11 +1587,11 @@ export default defineComponent({
       let reader = new FileReader()
       let file
       if (index2 >= 0) {
-        if (type == 'image') {
+        if (type === 'image') {
           file = await this.featured[index1].content[index2].file
-        } else if (type == 'music') {
+        } else if (type === 'music') {
           file = await this.featured[index1].content[index2].cover
-        } else if (type == 'product') {
+        } else if (type === 'product') {
           file = await this.featured[index1].content[index2].image.file
         }
       } else {
@@ -1611,10 +1614,10 @@ export default defineComponent({
           )
         }
         img.onload = () => {
-          if (type == 'photo') {
+          if (type === 'photo') {
             canvas.width = canvas.height = 320
           } else {
-            if (type == 'logo') {
+            if (type === 'logo') {
               maxWidth = 960
               maxHeight = 192
             } else {
@@ -1641,11 +1644,11 @@ export default defineComponent({
                 type: mime,
               })
               if (index2 >= 0) {
-                if (type == 'image') {
+                if (type === 'image') {
                   this.featured[index1].content[index2].file = image
-                } else if (type == 'music') {
+                } else if (type === 'music') {
                   this.featured[index1].content[index2].cover = image
-                } else if (type == 'product') {
+                } else if (type === 'product') {
                   this.featured[index1].content[index2].image.file = image
                 }
               } else {
@@ -1666,7 +1669,7 @@ export default defineComponent({
         let scripts = tracker.match(regex)
         let temp = document.createElement('div')
         temp.innerHTML = tracker
-        return scripts.length && temp
+        return scripts.length > 0 && temp
       }
       return false
     },
@@ -1706,29 +1709,29 @@ export default defineComponent({
       let redirect = document.createElement('script')
       redirect.textContent =
         '"http"==window.location.href.substr(0,4)&&"/"!=window.location.href.slice(-1)&&window.location.replace(window.location.href+"/");'
-      el.querySelector('head').appendChild(redirect)
+      el.querySelector('head').append(redirect)
 
       // Inject stylesheets
       let styleLink = document.createElement('link')
       styleLink.rel = 'stylesheet'
       styleLink.href = './style.min.css'
-      el.querySelector('head').appendChild(styleLink)
+      el.querySelector('head').append(styleLink)
 
       // Inject qrcode script
       let qrcode = document.createElement('script')
       qrcode.src = './qrcode.min.js'
-      el.querySelector('body').appendChild(qrcode)
+      el.querySelector('body').append(qrcode)
 
       // Inject general script
       let modals = document.createElement('script')
       modals.innerText = modalScript
-      el.querySelector('body').appendChild(modals)
+      el.querySelector('body').append(modals)
 
       // Inject media script
       let mediaHandler = document.createElement('script')
       mediaHandler.innerText = mediaScript
-      if (this.featured.length)
-        el.querySelector('body').appendChild(mediaHandler)
+      if (this.featured.length > 0)
+        el.querySelector('body').append(mediaHandler)
 
       // Inject tracking scripts. getTrackingCode() returns false/0 or a
       // detached <div> holding the user's snippet. Spreading childNodes takes a
@@ -1740,17 +1743,19 @@ export default defineComponent({
       let html = new Blob([`<!DOCTYPE html>${el.documentElement.outerHTML}`], {
         type: 'text/html',
       })
-      let theme = 1
+      let theme
       switch (this.theme) {
-        case 1:
-          theme = Theme1
-          break
         case 2:
           theme = Theme2
           break
         case 3:
           theme = Theme3
           break
+        // Theme 1 is the default. Without this branch an unexpected value left
+        // `theme` as the number it was initialised to, and the exported card
+        // shipped a style.min.css containing literally "1".
+        default:
+          theme = Theme1
       }
       let css = new Blob([theme], {
         type: 'text/css',
@@ -1804,12 +1809,12 @@ export default defineComponent({
       if (hasFeaturedContent) {
         this.featured.forEach((section) => {
           section.content.forEach((item) => {
-            if (item.contentType == 'media') {
+            if (item.contentType === 'media') {
               zip
                 .folder(username)
                 .folder('media')
                 .file(`${this.getTitle(item.title)}.${item.ext}`, item.file)
-              if (item.type.match(/music|document/gi)) {
+              if (/music|document/gi.test(item.type)) {
                 if (!item.info) {
                   zip
                     .folder(username)
@@ -1820,7 +1825,7 @@ export default defineComponent({
                     )
                 }
               }
-            } else if (item.contentType == 'product' && item.image) {
+            } else if (item.contentType === 'product' && item.image) {
               zip
                 .folder(username)
                 .folder('media')

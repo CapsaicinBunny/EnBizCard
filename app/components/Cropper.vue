@@ -147,7 +147,7 @@ export default defineComponent({
   mounted() {
     this.cropper = new Cropper(this.$refs.image as HTMLImageElement, {
       container: this.$refs.container as HTMLElement,
-      template: buildTemplate(this.type == 'photo' ? 1 : 3 / 2),
+      template: buildTemplate(this.type === 'photo' ? 1 : 3 / 2),
     })
   },
   beforeUnmount() {

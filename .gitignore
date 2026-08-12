@@ -93,3 +93,7 @@ sw.*
 
 
 .vscode
+
+# Claude Code: launch.json is shared (it defines the dev-server preview),
+# settings.local.json is per-machine permission state.
+.claude/settings.local.json

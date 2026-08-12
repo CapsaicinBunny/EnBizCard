@@ -164,8 +164,8 @@ export default defineComponent({
       const dt = (e as DragEvent).dataTransfer
       const input = e.target as HTMLInputElement
       if (
-        (dropped && dt && dt.files.length) ||
-        (!dropped && input.files && input.files.length)
+        (dropped && dt && dt.files.length > 0) ||
+        (!dropped && input.files && input.files.length > 0)
       ) {
         const file = (dropped ? dt!.files[0] : input.files![0]) as File
         const mimetype = file.type

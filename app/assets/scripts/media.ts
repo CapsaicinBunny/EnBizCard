@@ -75,7 +75,9 @@ pC.forEach((ctrl, i) => {
   })
 
   seek.addEventListener('change', () => {
-    source.currentTime = source.duration * (parseInt(seek.value) / 100)
+    // `seek` is an <input type="range">, so its value is always a numeric
+    // string — Number() is exact here where parseInt would truncate.
+    source.currentTime = source.duration * (Number(seek.value) / 100)
   })
 
   toggle.addEventListener('click', () => {

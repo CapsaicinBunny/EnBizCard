@@ -426,7 +426,9 @@ export default defineComponent({
     getFullname(): string | null {
       let fn = this.genInfo.fname
       let ln = this.genInfo.lname
-      return (fn + ln).length ? `${fn ? fn : ''}${ln ? ' ' + ln : ''}` : null
+      return (fn + ln).length > 0
+        ? `${fn ? fn : ''}${ln ? ' ' + ln : ''}`
+        : null
     },
     hasOnlyProfilePic(): boolean {
       return !(this.images.cover.url || this.images.logo.url)
@@ -442,9 +444,9 @@ export default defineComponent({
           'text/html',
         )
         let link = Array.from(html.getElementsByTagName('link')).filter(
-          (e) => e.getAttribute('rel') == 'stylesheet',
+          (e) => e.getAttribute('rel') === 'stylesheet',
         )
-        return link.length && link[0].getAttribute('href')
+        return link.length > 0 && link[0].getAttribute('href')
       }
       return false
     },
@@ -457,7 +459,7 @@ export default defineComponent({
     getHref(e: PrimaryAction | SecondaryAction): string | null {
       let value = null
       if (e.name === 'Viber' && e.value)
-        value = e.value.replace(/[\s\-()]/g, '').replace(/\+/, '%2B')
+        value = e.value.replaceAll(/[\s\-()]/g, '').replace(/\+/, '%2B')
       return e.href
         ? e.href + (value || e.value) + (e.hrefEnd ? e.hrefEnd : '')
         : value || e.value
@@ -479,7 +481,7 @@ export default defineComponent({
       return null
     },
     toggleContainer(e: HTMLElement): void {
-      if (e.style.top == '2rem') {
+      if (e.style.top === '2rem') {
         e.style.visibility = 'visible'
         e.style.top = '0px'
         e.style.opacity = '1'
@@ -516,30 +518,28 @@ export default defineComponent({
         const mediaSource = e.$refs.mediaSource as HTMLMediaElement
         const play = e.$refs.play
         const pause = e.$refs.pause
-        if (ref != mediaSource) {
+        if (ref !== mediaSource) {
           mediaSource.pause()
           play.style.display = 'block'
           pause.style.display = 'none'
+        } else if (mediaSource.paused) {
+          // Mirrors media.ts: only show the playing state once play()
+          // resolves, so an undecodable file doesn't leave a pause icon
+          // over a seek bar that never moves.
+          mediaSource
+            .play()
+            .then(() => {
+              play.style.display = 'none'
+              pause.style.display = 'block'
+            })
+            .catch(() => {
+              play.style.display = 'block'
+              pause.style.display = 'none'
+            })
         } else {
-          if (mediaSource.paused) {
-            // Mirrors media.ts: only show the playing state once play()
-            // resolves, so an undecodable file doesn't leave a pause icon
-            // over a seek bar that never moves.
-            mediaSource
-              .play()
-              .then(() => {
-                play.style.display = 'none'
-                pause.style.display = 'block'
-              })
-              .catch(() => {
-                play.style.display = 'block'
-                pause.style.display = 'none'
-              })
-          } else {
-            mediaSource.pause()
-            play.style.display = 'block'
-            pause.style.display = 'none'
-          }
+          mediaSource.pause()
+          play.style.display = 'block'
+          pause.style.display = 'none'
         }
       })
     },

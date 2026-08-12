@@ -111,7 +111,7 @@ export default defineComponent({
       const s = String(Math.floor(timenow % 60)).padStart(2, '0')
       bubble.value = `${m}:${s}`
 
-      if (value == 100) {
+      if (value === 100) {
         seekbar.value = '0'
         ;(this.$refs.play as HTMLElement).style.display = 'block'
         ;(this.$refs.pause as HTMLElement).style.display = 'none'
