@@ -526,9 +526,19 @@ export default defineComponent({
           pause.style.display = 'none'
         } else {
           if (mediaSource.paused) {
-            mediaSource.play()
-            play.style.display = 'none'
-            pause.style.display = 'block'
+            // Mirrors media.ts: only show the playing state once play()
+            // resolves, so an undecodable file doesn't leave a pause icon
+            // over a seek bar that never moves.
+            mediaSource
+              .play()
+              .then(() => {
+                play.style.display = 'none'
+                pause.style.display = 'block'
+              })
+              .catch(() => {
+                play.style.display = 'block'
+                pause.style.display = 'none'
+              })
           } else {
             mediaSource.pause()
             play.style.display = 'block'

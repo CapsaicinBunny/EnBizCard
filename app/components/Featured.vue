@@ -447,6 +447,9 @@ export default defineComponent({
           this.featured[this.index].content.length - 1
         )
       }
+      reader.onerror = () => {
+        this.showAlert(`Could not read ${file.name}. The file may be unreadable.`)
+      }
       reader.readAsDataURL(file)
     },
 
@@ -565,12 +568,25 @@ export default defineComponent({
         video.addEventListener('seeked', videoProcessor)
       }
 
+      // The entry is only pushed from videoProcessor, which runs on 'seeked'.
+      // A container the browser accepts by MIME but cannot decode (H.265 in
+      // Chrome, say) fires 'error' and never 'seeked', so without this the
+      // attachment simply never appears and nothing is reported.
+      video.addEventListener('error', () => {
+        this.showAlert(
+          `Could not read that video.\n\nThe file may use a codec your browser cannot decode.`
+        )
+      })
+
       reader.onload = (f) => {
         videoFile = new Blob([f.target!.result as ArrayBuffer], {
           type: 'video/mp4',
         })
         dataURI = URL.createObjectURL(videoFile)
         video.src = dataURI + '#t=0.2'
+      }
+      reader.onerror = () => {
+        this.showAlert(`Could not read ${file.name}. The file may be unreadable.`)
       }
       reader.readAsArrayBuffer(file)
     },

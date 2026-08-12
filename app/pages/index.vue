@@ -1989,8 +1989,18 @@ export default defineComponent({
       let ctx = canvas.getContext('2d')
       let img = document.createElement('img')
       let maxWidth, maxHeight
+      reader.onerror = () => {
+        this.showAlert('Could not read that image. The file may be unreadable.')
+      }
       reader.onload = (e) => {
         img.src = e.target.result
+        // Without this a data URI the browser cannot decode leaves `resized`
+        // null forever, which the export then refuses to package.
+        img.onerror = () => {
+          this.showAlert(
+            'Could not process that image. It may be corrupt or too large.'
+          )
+        }
         img.onload = () => {
           if (type == 'photo') {
             canvas.width = canvas.height = 320

@@ -171,6 +171,9 @@ export default defineComponent({
           this.showCropper = true
         }
       }
+      reader.onerror = () => {
+        this.showAlert(`Could not read ${file.name}. The file may be unreadable.`)
+      }
       reader.readAsDataURL(file)
     },
   },

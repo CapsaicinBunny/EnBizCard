@@ -62,6 +62,13 @@ function dN(value: HTMLElement) {
 
 window.addEventListener('load', () => {
   document.getElementById('topActions')!.style.display = 'flex'
+  // qrcode.min.js sits beside index.html in the export and is easy to leave
+  // out of an upload. Without this guard the ReferenceError kills the rest of
+  // this handler and the QR modal opens permanently blank.
+  if (typeof QRCode === 'undefined') {
+    qr.innerHTML = '<p>QR code unavailable — qrcode.min.js is missing.</p>'
+    return
+  }
   qr.innerHTML = new QRCode({
     content: window.location.href,
     container: 'svg-viewbox',
@@ -75,11 +82,23 @@ window.addEventListener('load', () => {
 // as always present, and a plain truthiness test on it is always true there.
 if ('canShare' in navigator) {
   s.addEventListener('click', () => {
-    navigator.share({
-      title: document.title,
-      text: 'You can view my Digital Business Card here:',
-      url: window.location.href,
-    })
+    // A user dismissing the share sheet rejects with AbortError, which is not
+    // an error worth reporting — but an unhandled rejection either way, and a
+    // genuine NotAllowedError would otherwise vanish. Fall back to the copy
+    // panel when the share actually failed.
+    navigator
+      .share({
+        title: document.title,
+        text: 'You can view my Digital Business Card here:',
+        url: window.location.href,
+      })
+      .catch((err: DOMException) => {
+        if (err && err.name === 'AbortError') return
+        tC(m)
+        cv.style.display = 'flex'
+        dN(qrv)
+        if (ki) dN(ki)
+      })
   })
 } else {
   s.addEventListener('click', () => {
@@ -110,9 +129,27 @@ c.addEventListener('click', () => tC(m))
 
 curl.addEventListener('click', async () => {
   const action = curl.querySelectorAll<HTMLElement>('.iconColor')[1]!
-  await navigator.clipboard.writeText(window.location.href)
-  action.innerText = 'Copied'
-  setTimeout(() => {
-    action.innerText = 'Copy URL'
-  }, 1000)
+  const reset = () => {
+    setTimeout(() => {
+      action.innerText = 'Copy URL'
+    }, 1000)
+  }
+  // navigator.clipboard is undefined outside a secure context — cards opened
+  // over plain http:// or file:// while testing — and writeText() rejects with
+  // NotAllowedError even on https when the document isn't focused. Left
+  // unhandled the label never changes and the user just clicks again.
+  try {
+    if (!navigator.clipboard) throw new Error('no clipboard API')
+    await navigator.clipboard.writeText(window.location.href)
+    action.innerText = 'Copied'
+  } catch {
+    // Fall back to selecting the URL so it can be copied manually.
+    const range = document.createRange()
+    range.selectNodeContents(curl.querySelectorAll<HTMLElement>('.iconColor')[0]!)
+    const sel = window.getSelection()
+    sel?.removeAllRanges()
+    sel?.addRange(range)
+    action.innerText = 'Press Ctrl+C'
+  }
+  reset()
 })

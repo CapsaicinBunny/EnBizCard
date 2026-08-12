@@ -209,6 +209,9 @@ export default defineComponent({
         // different entry, or threw on one with no `.image`.
         this.resizeImage('product', mime, this.index, i)
       }
+      reader.onerror = () => {
+        this.showAlert(`Could not read ${file.name}. The file may be unreadable.`)
+      }
       reader.readAsDataURL(file)
     },
   },
