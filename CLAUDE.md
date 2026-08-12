@@ -32,7 +32,7 @@ Nuxt 4 puts application code under `app/`, and static files served at the site r
 - [app/pages/index.vue](app/pages/index.vue) — the entire editor UI and its logic (~2200 lines). Card state (`genInfo`, `images`, `featured`, actions, colors) lives here, as does the "download package" / vCard generation logic.
 - [app/pages/hosting-guide/index.vue](app/pages/hosting-guide/index.vue) — static help page.
 - [app/components/Preview.vue](app/components/Preview.vue) — renders the live card preview (~1600 lines). **Its rendered DOM is serialized to produce the exported card**, so it deliberately renders a full `<html><head><body>` document.
-- [app/components/](app/components/) — the editor's smaller pieces: `Action.vue`, `Attachment.vue`, `Colour.vue`, `Cropper.vue`, `Featured.vue`, `ProductCard.vue`/`ProductShowcase.vue`, `Vcard.vue`, `Download.vue`, `Modal.vue`, `Help.vue`, `Footer.vue`, `Check.vue`, `MediaPlayer.vue`, `DocumentDownloader.vue`.
+- [app/components/](app/components/) — the editor's smaller pieces: `Action.vue`, `Attachment.vue`, `Colour.vue`, `Cropper.vue`, `Featured.vue`, `ProductCard.vue`/`ProductShowcase.vue`, `Vcard.vue`, `Download.vue`, `Modal.vue`, `Help.vue`, `SiteFooter.vue`, `Check.vue`, `MediaPlayer.vue`, `DocumentDownloader.vue`.
 - [app/utils/icons.ts](app/utils/icons.ts) — loads every `app/assets/icons/*.svg` as raw text via `import.meta.glob`, with gradient-id randomisation so an icon can appear twice without its `<defs>` ids colliding.
 - [app/plugins/icons.ts](app/plugins/icons.ts) — exposes `$icon(name)` and `$getSVG(item)` as Vue `globalProperties` so all ~40 `v-html` icon call sites work without per-component wiring.
 - [app/assets/styles/](app/assets/styles/) — theme SCSS sources plus the minified CSS shipped with generated cards.
@@ -95,7 +95,7 @@ There is no test suite.
 Two things about them are easy to get wrong:
 
 - **oxfmt is not JS-only.** It formats Markdown, CSS, SCSS and whole `.vue` files, templates included. Left unconfigured it un-minifies `app/assets/styles/T*.min.css` and `public/qrcode.min.js` — files that are shipped verbatim into exported cards. The `ignorePatterns` in [.oxfmtrc.json](.oxfmtrc.json) are load-bearing, not tidiness.
-- **A few `correctness` rules are demoted to warnings** in [.oxlintrc.json](.oxlintrc.json), with the reason written next to each. They flag real pre-existing Nuxt 2 style (comma-operator expression statements, `const vm = this`, the component literally named `Footer`). Fixing them is a separate change, not something to fold into an unrelated commit.
+- **`npm run lint` is clean, and it is meant to stay that way.** Nothing is demoted and nothing is suppressed file-by-file; the only two entries in `rules` are `unicorn/prefer-add-event-listener` (off) and `promise/always-return` (configured with `ignoreLastCallback`), each with its reason written next to it. A new warning is a real finding, not background noise — fix it or argue the rule down in the config where the next person can see the argument.
 
 ## Conventions
 
@@ -103,6 +103,7 @@ Two things about them are easy to get wrong:
 - **Line endings**: LF everywhere, enforced by [.gitattributes](.gitattributes) (`* text=auto eol=lf`). The working tree used to be CRLF on Windows via `core.autocrlf`, which made `format:check` fail on every file — oxfmt writes LF and git handed it CRLF straight back. If you meet a stray `\r`, that file predates the pin.
 - **Imports**: `~/` and `@/` resolve to `app/`; `~~/` and `@@/` resolve to the repo root (e.g. `~~/public/qrcode.min.js?raw`).
 - Components in `app/components/` are auto-imported, but the existing files still import explicitly — follow whatever the file you're editing already does.
+- **Don't name a component after an HTML element.** The site footer is `SiteFooter.vue`, not `Footer.vue`, because Vue resolves a plain `<Footer />` ambiguously against the real `<footer>` element. Auto-import derives the component name from the filename, so the guard has to live in the filename.
 - Options API only. Match the surrounding style rather than introducing Composition API piecemeal.
 
 ## Things to be careful about

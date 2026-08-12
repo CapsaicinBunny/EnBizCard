@@ -16,13 +16,14 @@
     // one-shot load, and each handler is deliberately the only one.
     "unicorn/prefer-add-event-listener": "off",
 
-    // Pre-existing style inherited from the Nuxt 2 codebase. Demoted to
-    // warnings so this tooling change stays a tooling change; fixing them is
-    // a follow-up, not something to bury in the same commit.
-    "eslint/no-unused-expressions": "warn",
-    "typescript/no-this-alias": "warn",
-    "vue/no-reserved-component-names": "warn",
-    "vue/return-in-computed-property": "warn"
+    // The rule guards against breaking a chain that someone downstream awaits.
+    // Every `.then()` here is the end of its chain — it swaps a play icon for a
+    // pause icon, or hands a finished blob to saveAs — and nothing consumes the
+    // result. `return undefined` at each site would be noise, not safety.
+    // Narrowed to the case that is a genuine bug, and promoted from warn to
+    // error to match: a *non*-final `.then()` that forgets to return silently
+    // hands the next link an undefined value.
+    "promise/always-return": ["error", { "ignoreLastCallback": true }]
   },
   // Vendored/minified assets and the pre-built demo card are shipped verbatim.
   "ignorePatterns": ["public/**", "app/assets/styles/**"]

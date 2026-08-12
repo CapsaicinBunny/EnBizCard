@@ -496,8 +496,7 @@ export default defineComponent({
       const maxHeight = 80
       const reader = new FileReader()
       const uA = navigator.userAgent.match(/firefox|android/gi)
-      const vm = this
-      function videoProcessor(): void {
+      const videoProcessor = (): void => {
         let width = video.videoWidth
         let height = video.videoHeight
 
@@ -524,7 +523,7 @@ export default defineComponent({
           contentType: 'media',
           ext: 'mp4',
         }
-        vm.featured[vm.index].content.push(entry)
+        this.featured[this.index].content.push(entry)
       }
       if (uA && uA.length == 2) {
         video.addEventListener('loadstart', videoProcessor)

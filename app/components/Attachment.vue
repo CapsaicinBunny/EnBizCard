@@ -96,7 +96,7 @@ export default defineComponent({
   },
   computed: {
     imageAttached(): boolean {
-      return this.content[this.type].url ? true : false
+      return Boolean(this.content[this.type].url)
     },
   },
   methods: {
@@ -104,9 +104,13 @@ export default defineComponent({
       this.showCropper = false
     },
     attachFile(e: Event, type: ImageSlot, dropped: boolean): void {
-      dropped
-        ? (this.fileLoaded(e as DragEvent, type, true), (this.dragOver = false))
-        : (this.$refs[`import${type}`] as HTMLInputElement).click()
+      if (dropped) {
+        this.fileLoaded(e as DragEvent, type, true)
+        this.dragOver = false
+      } else {
+        const input = this.$refs[`import${type}`] as HTMLInputElement
+        input.click()
+      }
     },
     fileLoaded(e: Event, type: ImageSlot, dropped: boolean): void {
       const dt = (e as DragEvent).dataTransfer

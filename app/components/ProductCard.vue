@@ -213,7 +213,7 @@ export default defineComponent({
   },
   mounted() {
     const input = this.$refs.input as HTMLInputElement
-    !input.value && input.focus()
+    if (!input.value) input.focus()
   },
 })
 </script>

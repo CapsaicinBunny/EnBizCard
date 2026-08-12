@@ -649,7 +649,7 @@
       </div>
     </div>
     <Vcard ref="vCard" :vCard="vCard" />
-    <Footer />
+    <SiteFooter />
   </div>
 </template>
 
@@ -662,7 +662,7 @@ import Featured from '@/components/Featured.vue'
 import Colour from '@/components/Colour.vue'
 import Preview from '@/components/Preview.vue'
 import Download from '@/components/Download.vue'
-import Footer from '@/components/Footer.vue'
+import SiteFooter from '@/components/SiteFooter.vue'
 import Cropper from '@/components/Cropper.vue'
 
 import Vcard from '@/components/Vcard.vue'
@@ -714,7 +714,7 @@ export default defineComponent({
     Colour,
     Preview,
     Download,
-    Footer,
+    SiteFooter,
     Vcard,
     VueDraggable,
   },
@@ -1408,7 +1408,7 @@ export default defineComponent({
         : 'username'
     },
     orderedPrimaryActions() {
-      return [...this.actions.primaryActions].sort((a, b) =>
+      return this.actions.primaryActions.toSorted((a, b) =>
         a.order > b.order ? 1 : a.order < b.order ? -1 : 0,
       )
     },
@@ -1418,7 +1418,7 @@ export default defineComponent({
       )
     },
     orderedSecondaryActions() {
-      return [...this.actions.secondaryActions].sort((a, b) =>
+      return this.actions.secondaryActions.toSorted((a, b) =>
         a.name.localeCompare(b.name),
       )
     },
@@ -1428,18 +1428,17 @@ export default defineComponent({
       )
     },
     vCard() {
+      // The `&& e.value` is not redundant: the original mapped to the value and
+      // then filtered on truthiness, so an action of the right name carrying an
+      // empty value was skipped in favour of a later one that had a value.
+      const findValue = (name: string) =>
+        this.primaryActions.find((e) => e.name == name && e.value)?.value
       const getNumber = (type) => {
-        let no = this.primaryActions
-          .map((e) => (e.name == type ? e.value : null))
-          .filter((e) => e)[0]
+        let no = findValue(type)
         return no ? no.replace(/\s/g, '') : null
       }
-      let email = this.primaryActions
-        .map((e) => (e.name == 'Email' ? e.value : null))
-        .filter((e) => e)[0]
-      let website = this.primaryActions
-        .map((e) => (e.name == 'Website' ? e.value : null))
-        .filter((e) => e)[0]
+      let email = findValue('Email')
+      let website = findValue('Website')
       let actions = [
         ...this.primaryActions,
         ...this.secondaryActions.map((e) => {
@@ -1538,7 +1537,7 @@ export default defineComponent({
       const brightness = Math.round(
         (parseInt(r) * 299 + parseInt(g) * 587 + parseInt(b) * 114) / 1000,
       )
-      return brightness > 125 ? true : false
+      return brightness > 125
     },
     showAlert(content) {
       this.content = content
@@ -1582,7 +1581,6 @@ export default defineComponent({
       index1?: number,
       index2?: number,
     ) {
-      let vm = this
       let reader = new FileReader()
       let file
       if (index2 >= 0) {
@@ -1644,14 +1642,14 @@ export default defineComponent({
               })
               if (index2 >= 0) {
                 if (type == 'image') {
-                  vm.featured[index1].content[index2].file = image
+                  this.featured[index1].content[index2].file = image
                 } else if (type == 'music') {
-                  vm.featured[index1].content[index2].cover = image
+                  this.featured[index1].content[index2].cover = image
                 } else if (type == 'product') {
-                  vm.featured[index1].content[index2].image.file = image
+                  this.featured[index1].content[index2].image.file = image
                 }
               } else {
-                vm.images[type].resized = image
+                this.images[type].resized = image
               }
             },
             mime,
@@ -1732,9 +1730,11 @@ export default defineComponent({
       if (this.featured.length)
         el.querySelector('body').appendChild(mediaHandler)
 
-      // Inject tracking scripts
+      // Inject tracking scripts. getTrackingCode() returns false/0 or a
+      // detached <div> holding the user's snippet. Spreading childNodes takes a
+      // static copy first, because append() moves each node out of that div.
       let tracker = this.getTrackingCode()
-      while (tracker?.firstChild) el.head.appendChild(tracker.firstChild)
+      if (tracker) el.head.append(...tracker.childNodes)
 
       // Create blobs
       let html = new Blob([`<!DOCTYPE html>${el.documentElement.outerHTML}`], {
@@ -1802,8 +1802,8 @@ export default defineComponent({
         (e) => e.content.length,
       ).length
       if (hasFeaturedContent) {
-        this.featured.forEach((item) => {
-          item.content.forEach((item) => {
+        this.featured.forEach((section) => {
+          section.content.forEach((item) => {
             if (item.contentType == 'media') {
               zip
                 .folder(username)
@@ -1851,8 +1851,8 @@ export default defineComponent({
         .generateAsync({
           type: 'blob',
         })
-        .then((zip) => {
-          saveAs(zip, `${name}'s Digital Business Card.zip`)
+        .then((blob) => {
+          saveAs(blob, `${name}'s Digital Business Card.zip`)
         })
         .catch((err) => {
           this.showAlert(

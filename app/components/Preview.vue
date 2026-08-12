@@ -449,11 +449,8 @@ export default defineComponent({
       return false
     },
     getFontFamily(): string | undefined {
-      const regex = /^font-family[^;]*/
       const css = (this.genInfo.fontCss ?? '').replace(/\s+/, '')
-      if (regex.test(css)) {
-        return css.match(/^font-family[^;]*/)![0]
-      }
+      return css.match(/^font-family[^;]*/)?.[0]
     },
   },
   methods: {
@@ -482,15 +479,17 @@ export default defineComponent({
       return null
     },
     toggleContainer(e: HTMLElement): void {
-      '2rem' == e.style.top
-        ? ((e.style.visibility = 'visible'),
-          (e.style.top = '0px'),
-          (e.style.opacity = '1'))
-        : ((e.style.top = '2rem'),
-          (e.style.opacity = '0'),
-          setTimeout(() => {
-            e.style.visibility = 'hidden'
-          }, 200))
+      if (e.style.top == '2rem') {
+        e.style.visibility = 'visible'
+        e.style.top = '0px'
+        e.style.opacity = '1'
+      } else {
+        e.style.top = '2rem'
+        e.style.opacity = '0'
+        setTimeout(() => {
+          e.style.visibility = 'hidden'
+        }, 200)
+      }
     },
     showKey(): void {
       const modal = this.$refs.modal as HTMLElement
