@@ -811,7 +811,7 @@ const SECONDARY_ACTION_GROUPS: Record<
     'Nextdoor',
     'HomeAdvisor',
   ],
-  shops: ['Etsy', 'eBay'],
+  shops: ['Amazon', 'Etsy', 'eBay'],
 }
 
 export default defineComponent({
@@ -1448,6 +1448,16 @@ export default defineComponent({
             value: null,
             color: '#f16521',
             label: 'Etsy shop name',
+          },
+          // Navy rather than the orange of the smile: the icon is flattened to
+          // a single white silhouette, and white-on-orange loses the mark.
+          {
+            name: 'Amazon',
+            icon: 'amazon',
+            placeholder: 'https://amazon.com/shop/username',
+            value: null,
+            color: '#232f3e',
+            label: 'Amazon shop or wish list URL',
           },
           {
             name: 'eBay',
