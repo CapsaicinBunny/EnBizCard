@@ -90,6 +90,17 @@ export interface SecondaryAction extends ActionBase {
   gradientIcon?: Flag
 }
 
+/** Browsing groups used by the profile picker in the editor. */
+export type SecondaryActionCategory =
+  | 'social'
+  | 'creative'
+  | 'media'
+  | 'developer'
+  | 'publishing'
+  | 'support'
+  | 'community'
+  | 'apps'
+
 export type CardAction = PrimaryAction | SecondaryAction
 
 export interface CardActions {

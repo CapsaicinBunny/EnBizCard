@@ -310,7 +310,11 @@
           </div>
         </div>
         <div id="step-4" class="mt-16">
-          <h2 class="font-extrabold text-2xl">Secondary actions</h2>
+          <h2 class="font-extrabold text-2xl">Social &amp; online profiles</h2>
+          <p class="mt-2 text-sm text-gray-400">
+            Add the places where people can follow, support, or explore your
+            work.
+          </p>
           <VueDraggable
             v-model="secondaryActions"
             handle=".drag"
@@ -343,41 +347,70 @@
               spellcheck="false"
               type="text"
               v-model="filterSecondary"
-              placeholder="Search an action"
-              class="px-4 mb-2 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              placeholder="Search profiles"
+              aria-label="Search social and online profiles"
+              class="px-4 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
               @keydown.esc="clearFilterActions"
               @keypress.enter="
                 filteredAction('filteredSecondaryActions', 'secondaryActions')
               "
             />
-            <p class="p-3" v-if="filteredSecondaryActions.length < 1">
-              Can't find an action? Please
-              <a
-                href="#help"
-                class="cursor-pointer underline font-extrabold text-emerald-600 hover:text-emerald-500 focus:text-emerald-500 transition-colors duration-200"
-                >leave your suggestion</a
-              >
-              on Telegram
-            </p>
-            <div class="stepC actions">
+            <div
+              v-if="!filterSecondary"
+              class="profile-category-rail mt-3 -mx-1 px-1 flex gap-2 overflow-x-auto pb-2"
+              aria-label="Profile categories"
+            >
               <button
-                v-for="(action, index) in filteredSecondaryActions"
-                :key="index"
+                v-for="category in secondaryActionCategories"
+                :key="category.id"
+                type="button"
+                :aria-pressed="secondaryCategory === category.id"
+                @click="secondaryCategory = category.id"
+                class="px-3 py-2 rounded-full shrink-0 text-sm font-extrabold border transition-colors duration-200 focus:outline-none focus:ring-3 ring-gray-100"
+                :class="
+                  secondaryCategory === category.id
+                    ? 'bg-emerald-600 border-emerald-500 text-white'
+                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
+                "
+              >
+                {{ category.label }}
+              </button>
+            </div>
+            <div class="mt-2 mb-3 flex items-baseline justify-between gap-3">
+              <p class="text-sm font-extrabold text-gray-300">
+                {{ secondaryResultsLabel }}
+              </p>
+              <p class="text-xs text-gray-500">
+                {{ filteredSecondaryActions.length }} available
+              </p>
+            </div>
+            <p class="p-3" v-if="filteredSecondaryActions.length < 1">
+              Can't find a profile? Please
+              <a
+                href="https://github.com/CapsaicinBunny/EnBizCard/issues"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="cursor-pointer underline font-extrabold text-emerald-600 hover:text-emerald-500 focus:text-emerald-500 transition-colors duration-200"
+                >suggest one on GitHub</a
+              >
+            </p>
+            <div class="profile-grid grid grid-cols-2 gap-2">
+              <button
+                v-for="action in filteredSecondaryActions"
+                :key="action.name"
                 @click="addAction('secondaryActions', action.name)"
-                class="p-3 flex items-center shrink-0 rounded hover:brightness-125 focus:brightness-125 transition-all duration-200 focus:outline-none"
+                class="profile-card min-w-0 p-3 flex items-center rounded hover:brightness-125 focus:brightness-125 transition-all duration-200 focus:outline-none focus:ring-3 ring-white"
                 :style="{ background: action.color }"
                 :title="
                   action.name.substr(0, 1).toUpperCase() + action.name.slice(1)
                 "
+                :aria-label="`Add ${action.name}`"
               >
                 <div
                   class="w-6 h-6 mr-3 shrink-0"
                   v-html="$icon(action.icon)"
                 ></div>
-                <p
-                  class="whitespace-nowrap"
-                  :class="{ 'text-gray-900': action.light }"
-                >
+                <p class="truncate" :class="{ 'text-gray-900': action.light }">
                   {{
                     action.name.substr(0, 1).toUpperCase() +
                     action.name.slice(1)
@@ -680,6 +713,7 @@ import type {
   PrimaryAction,
   ProductContent,
   SecondaryAction,
+  SecondaryActionCategory,
   ResizeTarget,
   VCardData,
 } from '~/types/card'
@@ -703,6 +737,82 @@ import Theme3 from '~/assets/styles/T3.min.css?raw'
 // TypeScript: the export needs runnable JS, not the annotated source.
 import modalScript from '~/assets/scripts/main.ts?minified'
 import mediaScript from '~/assets/scripts/media.ts?minified'
+
+type ProfilePickerCategory = 'popular' | SecondaryActionCategory
+
+const SECONDARY_ACTION_CATEGORIES: ReadonlyArray<{
+  id: ProfilePickerCategory
+  label: string
+}> = [
+  { id: 'popular', label: 'Popular' },
+  { id: 'social', label: 'Social' },
+  { id: 'creative', label: 'Creative' },
+  { id: 'media', label: 'Video & audio' },
+  { id: 'developer', label: 'Developer' },
+  { id: 'publishing', label: 'Publishing' },
+  { id: 'support', label: 'Support & payments' },
+  { id: 'community', label: 'Communities' },
+  { id: 'apps', label: 'Apps & reviews' },
+]
+
+const POPULAR_SECONDARY_ACTIONS: readonly string[] = [
+  'Instagram',
+  'LinkedIn',
+  'Facebook',
+  'YouTube',
+  'TikTok',
+  'X',
+  'Bluesky',
+  'GitHub',
+  'Discord',
+  'Spotify',
+  'PayPal',
+  'Threads',
+]
+
+const SECONDARY_ACTION_GROUPS: Record<
+  SecondaryActionCategory,
+  readonly string[]
+> = {
+  social: [
+    'Instagram',
+    'Threads',
+    'Bluesky',
+    'X',
+    'Facebook',
+    'LinkedIn',
+    'TikTok',
+    'Snapchat',
+    'Pinterest',
+    'Mastodon',
+    'Pixelfed',
+    'Friendica',
+    'Diaspora',
+    'VK',
+  ],
+  creative: ['Behance', 'Dribbble', 'ArtStation'],
+  media: [
+    'YouTube',
+    'Twitch',
+    'Spotify',
+    'SoundCloud',
+    'Vimeo',
+    'PeerTube',
+    'Funkwhale',
+  ],
+  developer: ['GitHub', 'GitLab', 'Codeberg'],
+  publishing: ['Substack', 'Medium', 'Tumblr', 'Quora'],
+  support: [
+    'PayPal',
+    'Cash App',
+    'Patreon',
+    'Ko-fi',
+    'Buy me a coffee',
+    'Open Collective',
+  ],
+  community: ['Discord', 'Reddit', 'Siilo'],
+  apps: ['App Store', 'Play Store', 'Yelp'],
+}
 
 export default defineComponent({
   components: {
@@ -800,6 +910,7 @@ export default defineComponent({
       filterPrimary: '',
       secondaryActions: [] as SecondaryAction[],
       filterSecondary: '',
+      secondaryCategory: 'popular' as ProfilePickerCategory,
       actions: {
         primaryActions: [
           {
@@ -1022,6 +1133,14 @@ export default defineComponent({
             label: 'Threads username',
           },
           {
+            name: 'Bluesky',
+            icon: 'bluesky',
+            placeholder: 'https://bsky.app/profile/your-handle.bsky.social',
+            value: null,
+            color: '#1185fe',
+            label: 'Bluesky profile URL',
+          },
+          {
             name: 'Pixelfed',
             icon: 'pixelfed',
             placeholder: 'https://pixelfed.social/username',
@@ -1055,13 +1174,13 @@ export default defineComponent({
             label: 'Friendica profile URL',
           },
           {
-            name: 'Twitter',
-            icon: 'twitter',
-            href: 'https://twitter.com/',
+            name: 'X',
+            icon: 'x-social',
+            href: 'https://x.com/',
             placeholder: 'username',
             value: null,
-            color: '#1da1f2',
-            label: 'Twitter username',
+            color: '#000000',
+            label: 'X username',
           },
           {
             name: 'Mastodon',
@@ -1099,13 +1218,13 @@ export default defineComponent({
             label: 'Vimeo channelname',
           },
           {
-            name: 'Peertube',
+            name: 'PeerTube',
             icon: 'peertube',
             placeholder: 'https://peertube.video/channelname',
             value: null,
             color: '#ffffff',
             light: 1,
-            label: 'Peertube channel URL',
+            label: 'PeerTube channel URL',
           },
           {
             name: 'Pinterest',
@@ -1190,6 +1309,14 @@ export default defineComponent({
             label: 'Medium publication',
           },
           {
+            name: 'Substack',
+            icon: 'substack',
+            placeholder: 'https://publication.substack.com/',
+            value: null,
+            color: '#ff6719',
+            label: 'Substack publication URL',
+          },
+          {
             name: 'Discord',
             icon: 'discord',
             placeholder: 'https://discord.gg/invitecode',
@@ -1216,13 +1343,13 @@ export default defineComponent({
             label: 'Spotify username',
           },
           {
-            name: 'Soundcloud',
+            name: 'SoundCloud',
             icon: 'soundcloud',
             href: 'https://soundcloud.com/',
             placeholder: 'username',
             value: null,
             color: '#ff3300',
-            label: 'Soundcloud username',
+            label: 'SoundCloud username',
           },
           {
             name: 'Funkwhale',
@@ -1289,7 +1416,7 @@ export default defineComponent({
             label: 'Patreon URL',
           },
           {
-            name: 'Open-Collective',
+            name: 'Open Collective',
             icon: 'open-collective',
             href: 'https://opencollective.com/',
             placeholder: 'projectname',
@@ -1363,6 +1490,15 @@ export default defineComponent({
             light: 1,
             label: 'Buy me a coffee username',
           },
+          {
+            name: 'Ko-fi',
+            icon: 'kofi',
+            href: 'https://ko-fi.com/',
+            placeholder: 'username',
+            value: null,
+            color: '#13c3ff',
+            label: 'Ko-fi username',
+          },
         ],
       } as CardActions,
       featured: [
@@ -1425,10 +1561,36 @@ export default defineComponent({
         a.name.localeCompare(b.name),
       )
     },
-    filteredSecondaryActions() {
-      return this.orderedSecondaryActions.filter((e) =>
-        e.name.toLowerCase().includes(this.filterSecondary.toLowerCase()),
+    secondaryActionCategories() {
+      return SECONDARY_ACTION_CATEGORIES
+    },
+    secondaryResultsLabel() {
+      if (this.filterSecondary) return `Results for “${this.filterSecondary}”`
+      return (
+        SECONDARY_ACTION_CATEGORIES.find(
+          (category) => category.id === this.secondaryCategory,
+        )?.label ?? 'Profiles'
       )
+    },
+    filteredSecondaryActions() {
+      const query = this.filterSecondary.trim().toLowerCase()
+      if (query)
+        return this.orderedSecondaryActions.filter((action) =>
+          action.name.toLowerCase().includes(query),
+        )
+
+      const available = new Map(
+        this.actions.secondaryActions.map((action) => [action.name, action]),
+      )
+      const names =
+        this.secondaryCategory === 'popular'
+          ? POPULAR_SECONDARY_ACTIONS
+          : SECONDARY_ACTION_GROUPS[
+              this.secondaryCategory as SecondaryActionCategory
+            ]
+      return names
+        .map((name) => available.get(name))
+        .filter(Boolean) as SecondaryAction[]
     },
     vCard() {
       // The `&& e.value` is not redundant: the original mapped to the value and
@@ -1877,3 +2039,15 @@ export default defineComponent({
   },
 })
 </script>
+
+<style scoped>
+.profile-category-rail {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior-inline: contain;
+}
+
+.profile-category-rail::-webkit-scrollbar {
+  display: none;
+}
+</style>
