@@ -4,10 +4,7 @@
       class="p-1 shrink-0 focus:outline-none drag cursor-move"
       tabindex="-1"
     >
-      <div
-        class="w-6 h-6"
-        v-html="$icon('drag')"
-      ></div>
+      <div class="w-6 h-6" v-html="$icon('drag')"></div>
     </button>
     <div class="flex flex-col items-center bg-gray-700 rounded p-2">
       <div class="flex items-center w-full">
@@ -107,10 +104,7 @@
       aria-label="Remove product"
       title="Remove product"
     >
-      <div
-        class="w-6 h-6"
-        v-html="$icon('x')"
-      ></div>
+      <div class="w-6 h-6" v-html="$icon('x')"></div>
     </button>
   </div>
 </template>
@@ -170,8 +164,8 @@ export default defineComponent({
       const dt = (e as DragEvent).dataTransfer
       const input = e.target as HTMLInputElement
       if (
-        (dropped && dt && dt.files.length) ||
-        (!dropped && input.files && input.files.length)
+        (dropped && dt && dt.files.length > 0) ||
+        (!dropped && input.files && input.files.length > 0)
       ) {
         const file = (dropped ? dt!.files[0] : input.files![0]) as File
         const mimetype = file.type
@@ -180,7 +174,7 @@ export default defineComponent({
           this.imageLoaded(file, i, mimetype)
         } else
           this.showAlert(
-            'Unsupported file format.\nOnly jpeg and png files can be attached.'
+            'Unsupported file format.\nOnly jpeg and png files can be attached.',
           )
       } else this.dragOver = false
     },
@@ -210,14 +204,16 @@ export default defineComponent({
         this.resizeImage('product', mime, this.index, i)
       }
       reader.onerror = () => {
-        this.showAlert(`Could not read ${file.name}. The file may be unreadable.`)
+        this.showAlert(
+          `Could not read ${file.name}. The file may be unreadable.`,
+        )
       }
       reader.readAsDataURL(file)
     },
   },
   mounted() {
     const input = this.$refs.input as HTMLInputElement
-    !input.value && input.focus()
+    if (!input.value) input.focus()
   },
 })
 </script>

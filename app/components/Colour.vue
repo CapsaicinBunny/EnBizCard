@@ -101,7 +101,7 @@ export default defineComponent({
     document.removeEventListener(
       'pointerdown',
       this.onDocumentPointerDown,
-      true
+      true,
     )
   },
   methods: {

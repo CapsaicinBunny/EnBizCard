@@ -13,32 +13,11 @@
     <transition name="drop">
       <div
         v-if="inView || showPreview"
-        class="
-          fixed
-          top-0
-          w-full
-          z-30
-          bg-gray-900
-          justify-between
-          items-center
-          flex
-          md:hidden
-        "
+        class="fixed top-0 w-full z-30 bg-gray-900 justify-between items-center flex md:hidden"
       >
-        <div
-          class="logo w-16 m-4"
-          v-html="$icon('logo')"
-        ></div>
+        <div class="logo w-16 m-4" v-html="$icon('logo')"></div>
         <button
-          class="
-            p-3
-            mx-4
-            font-extrabold
-            rounded
-            tracking-wide
-            focus:outline-none
-            select-none
-          "
+          class="p-3 mx-4 font-extrabold rounded tracking-wide focus:outline-none select-none"
           :class="showPreview ? 'bg-gray-700' : 'bg-emerald-600'"
           @click="!opening && togglePreview()"
         >
@@ -77,13 +56,7 @@
         ></div>
       </div>
       <h1
-        class="
-          text-3xl
-          md:text-5xl
-          font-extrabold
-          mt-24
-          md:mt-48 md:leading-tight
-        "
+        class="text-3xl md:text-5xl font-extrabold mt-24 md:mt-48 md:leading-tight"
       >
         Why Pay When Your Website Can Host Your Digital Business Cards for Free!
       </h1>
@@ -99,46 +72,13 @@
       </ul>
       <div class="mt-4 flex flex-wrap items-center">
         <button
-          class="
-            font-extrabold
-            leading-none
-            text-lg
-            tracking-wide
-            select-none
-            shrink-0
-            p-5
-            mt-2
-            mr-2
-            text-white
-            bg-emerald-600
-            rounded
-            hover:bg-emerald-500
-            focus:bg-emerald-500
-            transition-colors
-            duration-200
-            focus:outline-none
-          "
+          class="font-extrabold leading-none text-lg tracking-wide select-none shrink-0 p-5 mt-2 mr-2 text-white bg-emerald-600 rounded hover:bg-emerald-500 focus:bg-emerald-500 transition-colors duration-200 focus:outline-none"
           @click="create()"
         >
           Create your own
         </button>
         <a
-          class="
-            font-extrabold
-            leading-none
-            text-lg
-            tracking-wide
-            shrink-0
-            p-5
-            mt-2
-            text-white
-            bg-gray-700
-            rounded
-            hover:bg-gray-600
-            focus:bg-gray-600
-            transition-colors
-            duration-200
-          "
+          class="font-extrabold leading-none text-lg tracking-wide shrink-0 p-5 mt-2 text-white bg-gray-700 rounded hover:bg-gray-600 focus:bg-gray-600 transition-colors duration-200"
           href="/demo"
           target="_blank"
           >View demo</a
@@ -148,16 +88,7 @@
         Read the
         <NuxtLink
           to="/hosting-guide"
-          class="
-            cursor-pointer
-            underline
-            font-extrabold
-            text-emerald-600
-            hover:text-emerald-500
-            focus:text-emerald-500
-            transition-colors
-            duration-200
-          "
+          class="cursor-pointer underline font-extrabold text-emerald-600 hover:text-emerald-500 focus:text-emerald-500 transition-colors duration-200"
           >Hosting Guide</NuxtLink
         >
       </p>
@@ -212,19 +143,7 @@
                 type="text"
                 v-model="genInfo.fname"
                 autocapitalize="words"
-                class="
-                  mt-2
-                  px-4
-                  w-full
-                  h-12
-                  bg-black
-                  rounded
-                  border border-transparent
-                  transition-colors
-                  duration-200
-                  focus:outline-none focus:border-gray-600
-                  hover:border-gray-600
-                "
+                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
               />
             </div>
             <div>
@@ -235,19 +154,7 @@
                 type="text"
                 v-model="genInfo.lname"
                 autocapitalize="words"
-                class="
-                  mt-2
-                  px-4
-                  w-full
-                  h-12
-                  bg-black
-                  rounded
-                  border border-transparent
-                  transition-colors
-                  duration-200
-                  focus:outline-none focus:border-gray-600
-                  hover:border-gray-600
-                "
+                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
               />
             </div>
           </div>
@@ -260,20 +167,7 @@
               v-model="genInfo.pronouns"
               placeholder="He/Him/His"
               autocapitalize="words"
-              class="
-                mt-2
-                px-4
-                w-full
-                h-12
-                bg-black
-                placeholder-gray-600
-                rounded
-                border border-transparent
-                transition-colors
-                duration-200
-                focus:outline-none focus:border-gray-600
-                hover:border-gray-600
-              "
+              class="mt-2 px-4 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
             />
           </div>
           <div class="stepC mt-6">
@@ -284,19 +178,7 @@
               spellcheck="true"
               autocapitalize="words"
               v-model="genInfo.title"
-              class="
-                mt-2
-                px-4
-                w-full
-                h-12
-                bg-black
-                rounded
-                border border-transparent
-                transition-colors
-                duration-200
-                focus:outline-none focus:border-gray-600
-                hover:border-gray-600
-              "
+              class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
             />
           </div>
           <div class="stepC mt-6">
@@ -307,19 +189,7 @@
               type="text"
               v-model="genInfo.biz"
               autocapitalize="words"
-              class="
-                mt-2
-                px-4
-                w-full
-                h-12
-                bg-black
-                rounded
-                border border-transparent
-                transition-colors
-                duration-200
-                focus:outline-none focus:border-gray-600
-                hover:border-gray-600
-              "
+              class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
             />
           </div>
           <div class="stepC mt-6">
@@ -328,21 +198,7 @@
               id="business-address"
               :value="genInfo.addr"
               @input="genInfo.addr = $event.target.value"
-              class="
-                block
-                mt-2
-                px-4
-                py-3
-                w-full
-                bg-black
-                rounded
-                border border-transparent
-                transition-colors
-                duration-200
-                focus:outline-none focus:border-gray-600
-                resize-none
-                hover:border-gray-600
-              "
+              class="block mt-2 px-4 py-3 w-full bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 resize-none hover:border-gray-600"
               rows="4"
             ></textarea>
           </div>
@@ -354,21 +210,7 @@
               id="business-description"
               :value="genInfo.desc"
               @input="genInfo.desc = $event.target.value"
-              class="
-                block
-                mt-2
-                px-4
-                py-3
-                w-full
-                bg-black
-                rounded
-                border border-transparent
-                transition-colors
-                duration-200
-                focus:outline-none focus:border-gray-600
-                resize-none
-                hover:border-gray-600
-              "
+              class="block mt-2 px-4 py-3 w-full bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 resize-none hover:border-gray-600"
               rows="4"
             ></textarea>
           </div>
@@ -384,22 +226,7 @@
             <textarea
               id="pgp-public-key"
               v-model="genInfo.key"
-              class="
-                block
-                mt-2
-                px-4
-                py-3
-                w-full
-                bg-black
-                placeholder-gray-600
-                rounded
-                border border-transparent
-                transition-colors
-                duration-200
-                focus:outline-none focus:border-gray-600
-                resize-none
-                hover:border-gray-600
-              "
+              class="block mt-2 px-4 py-3 w-full bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 resize-none hover:border-gray-600"
               rows="4"
               spellcheck="false"
               placeholder="Paste public key block here"
@@ -442,20 +269,7 @@
               type="text"
               v-model="filterPrimary"
               placeholder="Search an action"
-              class="
-                px-4
-                mb-2
-                w-full
-                h-12
-                bg-black
-                placeholder-gray-600
-                rounded
-                border border-transparent
-                transition-colors
-                duration-200
-                focus:outline-none focus:border-gray-600
-                hover:border-gray-600
-              "
+              class="px-4 mb-2 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
               @keydown.esc="clearFilterActions"
               @keypress.enter="
                 filteredAction('filteredPrimaryActions', 'primaryActions')
@@ -465,16 +279,7 @@
               Can't find an action? Please
               <a
                 href="#help"
-                class="
-                  cursor-pointer
-                  underline
-                  font-extrabold
-                  text-emerald-600
-                  hover:text-emerald-500
-                  focus:text-emerald-500
-                  transition-colors
-                  duration-200
-                "
+                class="cursor-pointer underline font-extrabold text-emerald-600 hover:text-emerald-500 focus:text-emerald-500 transition-colors duration-200"
                 >leave your suggestion</a
               >
               on Telegram
@@ -484,19 +289,7 @@
                 v-for="(action, index) in filteredPrimaryActions"
                 :key="index"
                 @click="addAction('primaryActions', action.name)"
-                class="
-                  p-3
-                  flex
-                  items-center
-                  shrink-0
-                  rounded
-                  hover:bg-gray-600
-                  focus:bg-gray-600
-                  transition-colors
-                  duration-200
-                  focus:outline-none
-                  bg-gray-700
-                "
+                class="p-3 flex items-center shrink-0 rounded hover:bg-gray-600 focus:bg-gray-600 transition-colors duration-200 focus:outline-none bg-gray-700"
                 :title="
                   action.name.substr(0, 1).toUpperCase() + action.name.slice(1)
                 "
@@ -551,20 +344,7 @@
               type="text"
               v-model="filterSecondary"
               placeholder="Search an action"
-              class="
-                px-4
-                mb-2
-                w-full
-                h-12
-                bg-black
-                placeholder-gray-600
-                rounded
-                border border-transparent
-                transition-colors
-                duration-200
-                focus:outline-none focus:border-gray-600
-                hover:border-gray-600
-              "
+              class="px-4 mb-2 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
               @keydown.esc="clearFilterActions"
               @keypress.enter="
                 filteredAction('filteredSecondaryActions', 'secondaryActions')
@@ -574,16 +354,7 @@
               Can't find an action? Please
               <a
                 href="#help"
-                class="
-                  cursor-pointer
-                  underline
-                  font-extrabold
-                  text-emerald-600
-                  hover:text-emerald-500
-                  focus:text-emerald-500
-                  transition-colors
-                  duration-200
-                "
+                class="cursor-pointer underline font-extrabold text-emerald-600 hover:text-emerald-500 focus:text-emerald-500 transition-colors duration-200"
                 >leave your suggestion</a
               >
               on Telegram
@@ -593,18 +364,7 @@
                 v-for="(action, index) in filteredSecondaryActions"
                 :key="index"
                 @click="addAction('secondaryActions', action.name)"
-                class="
-                  p-3
-                  flex
-                  items-center
-                  shrink-0
-                  rounded
-                  hover:brightness-125
-                  focus:brightness-125
-                  transition-all
-                  duration-200
-                  focus:outline-none
-                "
+                class="p-3 flex items-center shrink-0 rounded hover:brightness-125 focus:brightness-125 transition-all duration-200 focus:outline-none"
                 :style="{ background: action.color }"
                 :title="
                   action.name.substr(0, 1).toUpperCase() + action.name.slice(1)
@@ -660,23 +420,11 @@
             <div class="flex mt-6">
               <div class="flex flex-wrap items-center">
                 <button
-                  class="
-                    p-3
-                    rounded
-                    bg-gray-700
-                    hover:bg-gray-600
-                    focus:bg-gray-600
-                    transition-colors
-                    duration-200
-                    focus:outline-none
-                  "
+                  class="p-3 rounded bg-gray-700 hover:bg-gray-600 focus:bg-gray-600 transition-colors duration-200 focus:outline-none"
                   @click="addFeature()"
                   aria-label="Add section"
                 >
-                  <div
-                    class="w-6 h-6"
-                    v-html="$icon('add')"
-                  ></div>
+                  <div class="w-6 h-6" v-html="$icon('add')"></div>
                 </button>
                 <p class="ml-3 leading-none">Add section</p>
               </div>
@@ -691,25 +439,7 @@
           <div class="stepC mt-6">
             <div class="flex items-center">
               <div
-                class="
-                  relative
-                  group
-                  inline-block
-                  w-24
-                  h-12
-                  mr-3
-                  align-middle
-                  select-none
-                  transition
-                  duration-200
-                  ease-in
-                  bg-gray-700
-                  rounded
-                  hover:bg-gray-600
-                  focus:bg-gray-600
-                  cursor-pointer
-                  focus:outline-none
-                "
+                class="relative group inline-block w-24 h-12 mr-3 align-middle select-none transition duration-200 ease-in bg-gray-700 rounded hover:bg-gray-600 focus:bg-gray-600 cursor-pointer focus:outline-none"
                 :class="{
                   'bg-emerald-600 hover:bg-emerald-500 focus:bg-emerald-500':
                     footerCredit,
@@ -725,22 +455,7 @@
                     aria-label="Toggle footer credit"
                     id="toggle"
                     v-model="footerCredit"
-                    class="
-                      toggle-switch
-                      absolute
-                      block
-                      w-10
-                      h-10
-                      m-1
-                      rounded
-                      border-4 border-transparent
-                      appearance-none
-                      cursor-pointer
-                      transition-colors
-                      duration-200
-                      focus:outline-none
-                      bg-white
-                    "
+                    class="toggle-switch absolute block w-10 h-10 m-1 rounded border-4 border-transparent appearance-none cursor-pointer transition-colors duration-200 focus:outline-none bg-white"
                     tabindex="-1"
                   />
                 </transition>
@@ -758,17 +473,7 @@
           <div class="stepC mt-3 flex flex-wrap">
             <button
               @click="changeTheme(1)"
-              class="
-                w-12
-                h-12
-                rounded
-                mt-3
-                mr-3
-                font-extrabold
-                focus:outline-none
-                transition-colors
-                duration-200
-              "
+              class="w-12 h-12 rounded mt-3 mr-3 font-extrabold focus:outline-none transition-colors duration-200"
               :class="
                 theme == 1
                   ? 'bg-emerald-600'
@@ -779,17 +484,7 @@
             </button>
             <button
               @click="changeTheme(2)"
-              class="
-                w-12
-                h-12
-                rounded
-                mt-3
-                mr-3
-                font-extrabold
-                focus:outline-none
-                transition-colors
-                duration-200
-              "
+              class="w-12 h-12 rounded mt-3 mr-3 font-extrabold focus:outline-none transition-colors duration-200"
               :class="
                 theme == 2
                   ? 'bg-emerald-600'
@@ -800,17 +495,7 @@
             </button>
             <button
               @click="changeTheme(3)"
-              class="
-                w-12
-                h-12
-                rounded
-                mt-3
-                mr-3
-                font-extrabold
-                focus:outline-none
-                transition-colors
-                duration-200
-              "
+              class="w-12 h-12 rounded mt-3 mr-3 font-extrabold focus:outline-none transition-colors duration-200"
               :class="
                 theme == 3
                   ? 'bg-emerald-600'
@@ -845,22 +530,7 @@
             <textarea
               id="font-link"
               v-model="genInfo.fontLink"
-              class="
-                block
-                mt-2
-                px-4
-                py-3
-                w-full
-                bg-black
-                placeholder-gray-600
-                rounded
-                border border-transparent
-                transition-colors
-                duration-200
-                focus:outline-none focus:border-gray-600
-                resize-none
-                hover:border-gray-600
-              "
+              class="block mt-2 px-4 py-3 w-full bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 resize-none hover:border-gray-600"
               rows="4"
               spellcheck="false"
               :placeholder="`<link href=&quot;https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap&quot; rel=&quot;stylesheet&quot;>`"
@@ -873,22 +543,7 @@
               type="text"
               id="font-css"
               v-model="genInfo.fontCss"
-              class="
-                block
-                mt-2
-                px-4
-                py-3
-                w-full
-                bg-black
-                placeholder-gray-600
-                rounded
-                border border-transparent
-                transition-colors
-                duration-200
-                focus:outline-none focus:border-gray-600
-                resize-none
-                hover:border-gray-600
-              "
+              class="block mt-2 px-4 py-3 w-full bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 resize-none hover:border-gray-600"
               :placeholder="`font-family: 'Poppins', sans-serif;`"
             />
           </div>
@@ -906,22 +561,7 @@
               id="tracking-code"
               aria-label="tracking-code"
               v-model="genInfo.tracker"
-              class="
-                block
-                mt-2
-                px-4
-                py-3
-                w-full
-                bg-black
-                placeholder-gray-600
-                rounded
-                border border-transparent
-                transition-colors
-                duration-200
-                focus:outline-none focus:border-gray-600
-                resize-none
-                hover:border-gray-600
-              "
+              class="block mt-2 px-4 py-3 w-full bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 resize-none hover:border-gray-600"
               rows="4"
               spellcheck="false"
               placeholder="Paste tracking code here"
@@ -940,22 +580,7 @@
               type="text"
               id="hosted-url"
               v-model="hostedURL"
-              class="
-                block
-                mt-2
-                px-4
-                py-3
-                w-full
-                bg-black
-                placeholder-gray-600
-                rounded
-                border border-transparent
-                transition-colors
-                duration-200
-                focus:outline-none focus:border-gray-600
-                resize-none
-                hover:border-gray-600
-              "
+              class="block mt-2 px-4 py-3 w-full bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 resize-none hover:border-gray-600"
               placeholder="https://yoursite/vcard/username"
             />
             <p class="mt-6 border p-4 rounded border-gray-700 text-gray-400">
@@ -977,14 +602,7 @@
       >
         <div
           id="preview"
-          class="
-            flex flex-col
-            items-center
-            justify-center
-            sm:sticky sm:top-0
-            md:mx-6
-            lg:mx-12
-          "
+          class="flex flex-col items-center justify-center sm:sticky sm:top-0 md:mx-6 lg:mx-12"
         >
           <div id="device" class="bg-black rounded sm:mt-10">
             <h2 class="text-center py-4 font-extrabold text-gray-200">
@@ -993,12 +611,7 @@
             <div id="browserFrame" class="overflow-hidden flex flex-col">
               <div
                 id="topBar"
-                class="
-                  topbar
-                  border-r-4 border-l-4 border-black
-                  bg-gray-900
-                  z-10
-                "
+                class="topbar border-r-4 border-l-4 border-black bg-gray-900 z-10"
               >
                 <div id="searchField" class="p-2 flex items-center">
                   <input
@@ -1009,10 +622,7 @@
                     :value="'https://yoursite/vcard/' + username"
                     tabindex="-1"
                   />
-                  <div
-                    class="w-6 ml-2"
-                    v-html="$icon('ellipsis')"
-                  ></div>
+                  <div class="w-6 ml-2" v-html="$icon('ellipsis')"></div>
                 </div>
               </div>
               <Preview
@@ -1039,7 +649,7 @@
       </div>
     </div>
     <Vcard ref="vCard" :vCard="vCard" />
-    <Footer />
+    <SiteFooter />
   </div>
 </template>
 
@@ -1052,7 +662,7 @@ import Featured from '@/components/Featured.vue'
 import Colour from '@/components/Colour.vue'
 import Preview from '@/components/Preview.vue'
 import Download from '@/components/Download.vue'
-import Footer from '@/components/Footer.vue'
+import SiteFooter from '@/components/SiteFooter.vue'
 import Cropper from '@/components/Cropper.vue'
 
 import Vcard from '@/components/Vcard.vue'
@@ -1103,7 +713,8 @@ export default defineComponent({
     Featured,
     Colour,
     Preview,
-    Download,    Footer,
+    Download,
+    SiteFooter,
     Vcard,
     VueDraggable,
   },
@@ -1775,60 +1386,62 @@ export default defineComponent({
     getFullname() {
       let fn = this.genInfo.fname
       let ln = this.genInfo.lname
-      return (fn + ln).length ? `${fn ? fn : ''}${ln ? ' ' + ln : ''}` : null
+      return (fn + ln).length > 0
+        ? `${fn ? fn : ''}${ln ? ' ' + ln : ''}`
+        : null
     },
     pubKeyIsValid() {
       if (this.genInfo.key) {
-        if (!this.genInfo.key.match(/^(-----BEGIN PGP PUBLIC KEY BLOCK-----)/))
+        if (!/^(-----BEGIN PGP PUBLIC KEY BLOCK-----)/.test(this.genInfo.key))
           return false
 
-        if (!this.genInfo.key.match(/(-----END PGP PUBLIC KEY BLOCK-----)$/))
+        if (!/(-----END PGP PUBLIC KEY BLOCK-----)$/.test(this.genInfo.key))
           return false
 
         return true
-      } else return false
+      }
+      return false
     },
     downloadChecked() {
-      return this.downloadCheckList.filter((e) => e.checked).length == 3
+      return this.downloadCheckList.filter((e) => e.checked).length === 3
     },
     username() {
       return this.getFullname
-        ? this.getFullname.toLowerCase().replace(/\W+/g, '')
+        ? this.getFullname.toLowerCase().replaceAll(/\W+/g, '')
         : 'username'
     },
     orderedPrimaryActions() {
-      return [...this.actions.primaryActions].sort((a, b) =>
-        a.order > b.order ? 1 : a.order < b.order ? -1 : 0
+      return this.actions.primaryActions.toSorted((a, b) =>
+        a.order > b.order ? 1 : a.order < b.order ? -1 : 0,
       )
     },
     filteredPrimaryActions() {
       return this.orderedPrimaryActions.filter((e) =>
-        e.name.toLowerCase().includes(this.filterPrimary.toLowerCase())
+        e.name.toLowerCase().includes(this.filterPrimary.toLowerCase()),
       )
     },
     orderedSecondaryActions() {
-      return [...this.actions.secondaryActions].sort((a, b) =>
-        a.name.localeCompare(b.name)
+      return this.actions.secondaryActions.toSorted((a, b) =>
+        a.name.localeCompare(b.name),
       )
     },
     filteredSecondaryActions() {
       return this.orderedSecondaryActions.filter((e) =>
-        e.name.toLowerCase().includes(this.filterSecondary.toLowerCase())
+        e.name.toLowerCase().includes(this.filterSecondary.toLowerCase()),
       )
     },
     vCard() {
+      // The `&& e.value` is not redundant: the original mapped to the value and
+      // then filtered on truthiness, so an action of the right name carrying an
+      // empty value was skipped in favour of a later one that had a value.
+      const findValue = (name: string) =>
+        this.primaryActions.find((e) => e.name === name && e.value)?.value
       const getNumber = (type) => {
-        let no = this.primaryActions
-          .map((e) => (e.name == type ? e.value : null))
-          .filter((e) => e)[0]
-        return no ? no.replace(/\s/g, '') : null
+        let no = findValue(type)
+        return no ? no.replaceAll(/\s/g, '') : null
       }
-      let email = this.primaryActions
-        .map((e) => (e.name == 'Email' ? e.value : null))
-        .filter((e) => e)[0]
-      let website = this.primaryActions
-        .map((e) => (e.name == 'Website' ? e.value : null))
-        .filter((e) => e)[0]
+      let email = findValue('Email')
+      let website = findValue('Website')
       let actions = [
         ...this.primaryActions,
         ...this.secondaryActions.map((e) => {
@@ -1846,10 +1459,10 @@ export default defineComponent({
           }
           return false
         })
-        .filter((e) => e)
+        .filter(Boolean)
 
       let note = this.genInfo.desc
-        ? this.genInfo.desc.replace(/[\r\n]+/gm, '')
+        ? this.genInfo.desc.replaceAll(/[\r\n]+/gm, '')
         : null
       let key = this.pubKeyIsValid ? window.btoa(this.genInfo.key) : null
       let randomNumber = Math.floor(100000000 + Math.random() * 900000)
@@ -1921,13 +1534,13 @@ export default defineComponent({
       if (hex.length === 3) {
         hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2]
       }
-      let r = parseInt(hex.slice(0, 2), 16)
-      let g = parseInt(hex.slice(2, 4), 16)
-      let b = parseInt(hex.slice(4, 6), 16)
-      const brightness = Math.round(
-        (parseInt(r) * 299 + parseInt(g) * 587 + parseInt(b) * 114) / 1000
-      )
-      return brightness > 125 ? true : false
+      let r = Number.parseInt(hex.slice(0, 2), 16)
+      let g = Number.parseInt(hex.slice(2, 4), 16)
+      let b = Number.parseInt(hex.slice(4, 6), 16)
+      // r/g/b are already numbers; the parseInt() that used to wrap each of
+      // them here was re-parsing its own output.
+      const brightness = Math.round((r * 299 + g * 587 + b * 114) / 1000)
+      return brightness > 125
     },
     showAlert(content) {
       this.content = content
@@ -1936,7 +1549,7 @@ export default defineComponent({
       this.filterPrimary = this.filterSecondary = ''
     },
     filteredAction(filterType, actionType) {
-      if (this[filterType].length)
+      if (this[filterType].length > 0)
         this.addAction(actionType, this[filterType][0].name)
       this.clearFilterActions()
     },
@@ -1962,24 +1575,23 @@ export default defineComponent({
       })
       saveAs(
         window.URL.createObjectURL(blob),
-        `${this.getFullname}'s public key.asc`
+        `${this.getFullname}'s public key.asc`,
       )
     },
     async resizeImage(
       type: ResizeTarget,
       mime: string,
       index1?: number,
-      index2?: number
+      index2?: number,
     ) {
-      let vm = this
       let reader = new FileReader()
       let file
       if (index2 >= 0) {
-        if (type == 'image') {
+        if (type === 'image') {
           file = await this.featured[index1].content[index2].file
-        } else if (type == 'music') {
+        } else if (type === 'music') {
           file = await this.featured[index1].content[index2].cover
-        } else if (type == 'product') {
+        } else if (type === 'product') {
           file = await this.featured[index1].content[index2].image.file
         }
       } else {
@@ -1998,14 +1610,14 @@ export default defineComponent({
         // null forever, which the export then refuses to package.
         img.onerror = () => {
           this.showAlert(
-            'Could not process that image. It may be corrupt or too large.'
+            'Could not process that image. It may be corrupt or too large.',
           )
         }
         img.onload = () => {
-          if (type == 'photo') {
+          if (type === 'photo') {
             canvas.width = canvas.height = 320
           } else {
-            if (type == 'logo') {
+            if (type === 'logo') {
               maxWidth = 960
               maxHeight = 192
             } else {
@@ -2032,19 +1644,19 @@ export default defineComponent({
                 type: mime,
               })
               if (index2 >= 0) {
-                if (type == 'image') {
-                  vm.featured[index1].content[index2].file = image
-                } else if (type == 'music') {
-                  vm.featured[index1].content[index2].cover = image
-                } else if (type == 'product') {
-                  vm.featured[index1].content[index2].image.file = image
+                if (type === 'image') {
+                  this.featured[index1].content[index2].file = image
+                } else if (type === 'music') {
+                  this.featured[index1].content[index2].cover = image
+                } else if (type === 'product') {
+                  this.featured[index1].content[index2].image.file = image
                 }
               } else {
-                vm.images[type].resized = image
+                this.images[type].resized = image
               }
             },
             mime,
-            0.8
+            0.8,
           )
         }
       }
@@ -2057,7 +1669,7 @@ export default defineComponent({
         let scripts = tracker.match(regex)
         let temp = document.createElement('div')
         temp.innerHTML = tracker
-        return scripts.length && temp
+        return scripts.length > 0 && temp
       }
       return false
     },
@@ -2072,7 +1684,7 @@ export default defineComponent({
           this.buildPackage()
         } catch (err) {
           this.showAlert(
-            `Could not build your card package.\n\n${errorText(err)}`
+            `Could not build your card package.\n\n${errorText(err)}`,
           )
         } finally {
           // Always restore the editor. Leaving PreviewMode false strands the
@@ -2089,7 +1701,7 @@ export default defineComponent({
     buildPackage() {
       let el = new DOMParser().parseFromString(
         this.$refs.html.$refs.html.outerHTML,
-        'text/html'
+        'text/html',
       )
 
       // Inject the trailing-slash redirect. It lives here rather than in
@@ -2097,52 +1709,53 @@ export default defineComponent({
       let redirect = document.createElement('script')
       redirect.textContent =
         '"http"==window.location.href.substr(0,4)&&"/"!=window.location.href.slice(-1)&&window.location.replace(window.location.href+"/");'
-      el.querySelector('head').appendChild(redirect)
+      el.querySelector('head').append(redirect)
 
       // Inject stylesheets
       let styleLink = document.createElement('link')
       styleLink.rel = 'stylesheet'
       styleLink.href = './style.min.css'
-      el.querySelector('head').appendChild(styleLink)
+      el.querySelector('head').append(styleLink)
 
       // Inject qrcode script
       let qrcode = document.createElement('script')
       qrcode.src = './qrcode.min.js'
-      el.querySelector('body').appendChild(qrcode)
+      el.querySelector('body').append(qrcode)
 
       // Inject general script
       let modals = document.createElement('script')
       modals.innerText = modalScript
-      el.querySelector('body').appendChild(modals)
+      el.querySelector('body').append(modals)
 
       // Inject media script
       let mediaHandler = document.createElement('script')
       mediaHandler.innerText = mediaScript
-      if (this.featured.length)
-        el.querySelector('body').appendChild(mediaHandler)
+      if (this.featured.length > 0)
+        el.querySelector('body').append(mediaHandler)
 
-      // Inject tracking scripts
+      // Inject tracking scripts. getTrackingCode() returns false/0 or a
+      // detached <div> holding the user's snippet. Spreading childNodes takes a
+      // static copy first, because append() moves each node out of that div.
       let tracker = this.getTrackingCode()
-      while (tracker?.firstChild) el.head.appendChild(tracker.firstChild)
+      if (tracker) el.head.append(...tracker.childNodes)
 
       // Create blobs
-      let html = new Blob(
-        [`<!DOCTYPE html>${el.documentElement.outerHTML}`],
-        {
-          type: 'text/html',
-        }
-      )
-      let theme = 1
+      let html = new Blob([`<!DOCTYPE html>${el.documentElement.outerHTML}`], {
+        type: 'text/html',
+      })
+      let theme
       switch (this.theme) {
-        case 1:
-          theme = Theme1
-          break
         case 2:
           theme = Theme2
           break
         case 3:
           theme = Theme3
           break
+        // Theme 1 is the default. Without this branch an unexpected value left
+        // `theme` as the number it was initialised to, and the exported card
+        // shipped a style.min.css containing literally "1".
+        default:
+          theme = Theme1
       }
       let css = new Blob([theme], {
         type: 'text/css',
@@ -2156,7 +1769,7 @@ export default defineComponent({
         ],
         {
           type: 'text/html',
-        }
+        },
       )
       let qrScript = new Blob([QRCode], {
         type: 'application/javascript',
@@ -2180,48 +1793,45 @@ export default defineComponent({
         if (this.images[key].url) {
           if (!this.images[key].resized) {
             throw new Error(
-              `The ${key} image is still being processed. Wait a moment and try again.`
+              `The ${key} image is still being processed. Wait a moment and try again.`,
             )
           }
           zip
             .folder(username)
-            .file(
-              `${key}.${this.images[key].ext}`,
-              this.images[key].resized
-            )
+            .file(`${key}.${this.images[key].ext}`, this.images[key].resized)
         }
       }
 
       // Featured content
       let hasFeaturedContent = this.featured.filter(
-        (e) => e.content.length
+        (e) => e.content.length,
       ).length
       if (hasFeaturedContent) {
-        this.featured.forEach((item) => {
-          item.content.forEach((item) => {
-            if (item.contentType == 'media') {
+        this.featured.forEach((section) => {
+          section.content.forEach((item) => {
+            if (item.contentType === 'media') {
               zip
                 .folder(username)
                 .folder('media')
                 .file(`${this.getTitle(item.title)}.${item.ext}`, item.file)
-              if (item.type.match(/music|document/gi)) {
+              if (/music|document/gi.test(item.type)) {
                 if (!item.info) {
                   zip
                     .folder(username)
                     .folder('media')
                     .file(
                       `${this.getTitle(item.title)}.${item.coverExt}`,
-                      item.cover
+                      item.cover,
                     )
                 }
               }
-            } else if (item.contentType == 'product' && item.image) {
+            } else if (item.contentType === 'product' && item.image) {
               zip
                 .folder(username)
                 .folder('media')
                 .file(
                   `${this.getTitle(item.image.title)}.${item.image.ext}`,
-                  item.image.file
+                  item.image.file,
                 )
             }
           })
@@ -2231,9 +1841,7 @@ export default defineComponent({
       //  Public key
       let name = this.getFullname
       if (this.pubKeyIsValid) {
-        zip
-          .folder(username)
-          .file(`${name}'s public key.asc`, this.genInfo.key)
+        zip.folder(username).file(`${name}'s public key.asc`, this.genInfo.key)
       }
 
       // VCARD
@@ -2248,12 +1856,12 @@ export default defineComponent({
         .generateAsync({
           type: 'blob',
         })
-        .then((zip) => {
-          saveAs(zip, `${name}'s Digital Business Card.zip`)
+        .then((blob) => {
+          saveAs(blob, `${name}'s Digital Business Card.zip`)
         })
         .catch((err) => {
           this.showAlert(
-            `Could not build your card package.\n\n${errorText(err)}`
+            `Could not build your card package.\n\n${errorText(err)}`,
           )
         })
     },

@@ -18,8 +18,7 @@ URL:{{ vCard.website }}
 KEY;TYPE=PGP;ENCODING=b:{{ vCard.key }}
 NOTE:{{ vCard.note }}
 UID:{{ vCard.uid }}
-END:VCARD</pre
-  >
+END:VCARD</pre>
 </template>
 
 <script lang="ts">
@@ -44,7 +43,9 @@ export default defineComponent({
     getFullname(): string | null {
       let fn = this.vCard.fn
       let ln = this.vCard.ln
-      return (fn + ln).length ? `${fn ? fn : ''}${ln ? ' ' + ln : ''}` : null
+      return (fn + ln).length > 0
+        ? `${fn ? fn : ''}${ln ? ' ' + ln : ''}`
+        : null
     },
   },
 })

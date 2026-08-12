@@ -121,7 +121,7 @@ export type ResizeImage = (
   target: ResizeTarget,
   mime: string,
   index1?: number,
-  index2?: number
+  index2?: number,
 ) => void
 
 /**

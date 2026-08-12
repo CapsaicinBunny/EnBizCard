@@ -21,8 +21,8 @@
           type == 'logo'
             ? 'Brand logo'
             : type == 'photo'
-            ? 'Card holder\'s photo'
-            : 'Cover image'
+              ? 'Card holder\'s photo'
+              : 'Cover image'
         }`"
       />
       <button
@@ -47,10 +47,7 @@
           @change="fileLoaded($event, type, false)"
           @click="$event.target.files = null"
         />
-        <div
-          class="w-6 h-6 pointer-events-none"
-          v-html="$icon('add')"
-        ></div>
+        <div class="w-6 h-6 pointer-events-none" v-html="$icon('add')"></div>
       </button>
       <p v-if="!imageAttached" class="ml-3 leading-none">
         {{ label
@@ -63,10 +60,7 @@
         :aria-label="`Remove ${type}`"
         :title="`Remove ${type}`"
       >
-        <div
-          class="w-6 h-6"
-          v-html="$icon('x')"
-        ></div>
+        <div class="w-6 h-6" v-html="$icon('x')"></div>
       </button>
     </div>
   </div>
@@ -102,7 +96,7 @@ export default defineComponent({
   },
   computed: {
     imageAttached(): boolean {
-      return this.content[this.type].url ? true : false
+      return Boolean(this.content[this.type].url)
     },
   },
   methods: {
@@ -110,34 +104,38 @@ export default defineComponent({
       this.showCropper = false
     },
     attachFile(e: Event, type: ImageSlot, dropped: boolean): void {
-      dropped
-        ? (this.fileLoaded(e as DragEvent, type, true), (this.dragOver = false))
-        : (this.$refs[`import${type}`] as HTMLInputElement).click()
+      if (dropped) {
+        this.fileLoaded(e as DragEvent, type, true)
+        this.dragOver = false
+      } else {
+        const input = this.$refs[`import${type}`] as HTMLInputElement
+        input.click()
+      }
     },
     fileLoaded(e: Event, type: ImageSlot, dropped: boolean): void {
       const dt = (e as DragEvent).dataTransfer
       const input = e.target as HTMLInputElement
       if (
-        (dropped && dt && dt.files.length) ||
-        (!dropped && input.files && input.files.length)
+        (dropped && dt && dt.files.length > 0) ||
+        (!dropped && input.files && input.files.length > 0)
       ) {
         const file = (dropped ? dt!.files[0] : input.files![0]) as File
         const mime = file.type
         if (
-          (type == 'logo' || type == 'cover') &&
+          (type === 'logo' || type === 'cover') &&
           file.type.match(/image\/(svg\+xml|png|jpeg|gif|webp)/)
         ) {
           this.imageLoaded(file, type, mime)
-        } else if (file.type.match(/image\/(png|jpeg|gif|webp)/)) {
+        } else if (/image\/(png|jpeg|gif|webp)/.test(file.type)) {
           this.imageLoaded(file, type, mime)
         } else {
-          if (type == 'logo' || type == 'cover') {
+          if (type === 'logo' || type === 'cover') {
             this.showAlert(
-              'Unsupported file format.\nOnly jpeg, png, webp, gif and svg file can be attached.'
+              'Unsupported file format.\nOnly jpeg, png, webp, gif and svg file can be attached.',
             )
           } else {
             this.showAlert(
-              'Unsupported file format.\nOnly jpeg, png, webp and gif file can be attached.'
+              'Unsupported file format.\nOnly jpeg, png, webp and gif file can be attached.',
             )
           }
         }
@@ -154,7 +152,7 @@ export default defineComponent({
           .split(':')[1]
           .split('/')[1]
           .match(/^\w+/g)![0]
-        if (type == 'logo' || mime.match(/svg|gif|webp/)) {
+        if (type === 'logo' || mime.match(/svg|gif|webp/)) {
           this.content[type] = {
             url: dataURI,
             blob: file,
@@ -162,7 +160,7 @@ export default defineComponent({
             mime,
             resized: file,
           }
-          if (!mime.match(/svg|gif|webp/)) this.resizeImage(type, mime)
+          if (!/svg|gif|webp/.test(mime)) this.resizeImage(type, mime)
         } else {
           this.content[type].ext = ext
           this.filetype = type
@@ -172,7 +170,9 @@ export default defineComponent({
         }
       }
       reader.onerror = () => {
-        this.showAlert(`Could not read ${file.name}. The file may be unreadable.`)
+        this.showAlert(
+          `Could not read ${file.name}. The file may be unreadable.`,
+        )
       }
       reader.readAsDataURL(file)
     },

@@ -41,14 +41,37 @@
           <!-- `<component :is="'style'">` renders a real <style> element while
                sidestepping Vue 3's ban on <style> tags in templates. -->
           <component :is="'style'">
-            #body{ font-family: sans-serif; } input[type='range']::-moz-range-track { background: none; } input[type='range']::-moz-range-thumb { -moz-appearance: none; width: 1.5rem; height: 1.5rem; border-radius: {{theme === 1? '100%': '0.25rem'}}; border: none; background: {{colors.buttonBg.color}}; z-index: 3; cursor: pointer; } input[type='range']::-webkit-slider-thumb { -webkit-appearance: none; width: 1.5rem; height: 1.5rem; border-radius: {{theme === 1? '100%': '0.25rem'}}; border: none; background: {{colors.buttonBg.color}}; z-index: 3; cursor: pointer; } .closeColor{ {{hasLightBG('mainBg') ? 'filter:invert(1) ':''}} } .topAction { {{ hasLightBG('logoBg') ? 'filter:invert(1) ':''}}} .iconColor{ color:#eee; {{hasLightBG('buttonBg') ? 'filter:invert(1)' : null}} } .cardColor{ {{hasLightBG('cardBg') && 'color:#222 !important'}} } .textColor{ {{hasLightBG('mainBg') ? 'color:#222 !important' : 'color:#eee !important'}} } .seekbarColor{  {{`background:${colors.buttonBg.color}80 !important`}} }
+            #body{ font-family: sans-serif; }
+            input[type='range']::-moz-range-track { background: none; }
+            input[type='range']::-moz-range-thumb { -moz-appearance: none;
+            width: 1.5rem; height: 1.5rem; border-radius:
+            {{ theme === 1 ? '100%' : '0.25rem' }}; border: none; background:
+            {{ colors.buttonBg.color }}; z-index: 3; cursor: pointer; }
+            input[type='range']::-webkit-slider-thumb { -webkit-appearance:
+            none; width: 1.5rem; height: 1.5rem; border-radius:
+            {{ theme === 1 ? '100%' : '0.25rem' }}; border: none; background:
+            {{ colors.buttonBg.color }}; z-index: 3; cursor: pointer; }
+            .closeColor{ {{ hasLightBG('mainBg') ? 'filter:invert(1) ' : '' }} }
+            .topAction { {{ hasLightBG('logoBg') ? 'filter:invert(1) ' : '' }}}
+            .iconColor{ color:#eee;
+            {{ hasLightBG('buttonBg') ? 'filter:invert(1)' : null }} }
+            .cardColor{ {{ hasLightBG('cardBg') && 'color:#222 !important' }} }
+            .textColor{
+            {{
+              hasLightBG('mainBg')
+                ? 'color:#222 !important'
+                : 'color:#eee !important'
+            }}
+            } .seekbarColor{
+            {{ `background:${colors.buttonBg.color}80 !important` }} }
           </component>
           <component :is="'style'" v-if="theme == 3">
-            #info{ border-left: 0.25rem dashed {{colors.buttonBg.color}} } .section{border-left: 0.25rem solid {{colors.buttonBg.color}}}
+            #info{ border-left: 0.25rem dashed {{ colors.buttonBg.color }} }
+            .section{border-left: 0.25rem solid {{ colors.buttonBg.color }}}
           </component>
           <component :is="'style'" v-if="getCssHref">
             #body{
-            {{genInfo.fontCss && getFontFamily}}
+            {{ genInfo.fontCss && getFontFamily }}
             }
           </component>
         </head>
@@ -64,10 +87,7 @@
             }"
           >
             <a id="close" @click="closePublicKey()" class="closeColor">
-              <div
-                class="icon"
-                v-html="$icon('close')"
-              ></div>
+              <div class="icon" v-html="$icon('close')"></div>
             </a>
             <div id="keyView">
               <p class="textColor">
@@ -85,10 +105,7 @@
                 }"
                 tabindex="-1"
               >
-                <div
-                  class="icon iconColor"
-                  v-html="$icon('download')"
-                ></div>
+                <div class="icon iconColor" v-html="$icon('download')"></div>
                 <span class="iconColor">Download Key</span>
               </a>
             </div>
@@ -102,10 +119,7 @@
                   backgroundColor: `${colors.buttonBg.color}`,
                 }"
               >
-                <div
-                  class="icon iconColor"
-                  v-html="$icon('copy')"
-                ></div>
+                <div class="icon iconColor" v-html="$icon('copy')"></div>
                 <span class="iconColor">Copy URL</span>
               </button>
             </div>
@@ -122,26 +136,17 @@
             >
               <div>
                 <a id="share" @click.prevent.capture="sharingAlert()">
-                  <div
-                    class="icon topAction"
-                    v-html="$icon('share')"
-                  ></div>
+                  <div class="icon topAction" v-html="$icon('share')"></div>
                 </a>
                 <a id="showQR" @click.prevent.capture="sharingAlert()"
-                  ><div
-                    class="icon topAction"
-                    v-html="$icon('qrcode')"
-                  ></div>
+                  ><div class="icon topAction" v-html="$icon('qrcode')"></div>
                 </a>
               </div>
               <a
                 v-if="pubKeyIsValid"
                 id="showKey"
                 @click.prevent.capture="showKey()"
-                ><div
-                  class="icon topAction"
-                  v-html="$icon('key')"
-                ></div>
+                ><div class="icon topAction" v-html="$icon('key')"></div>
               </a>
             </div>
             <div class="headerImgC">
@@ -214,10 +219,7 @@
               @click.prevent="downloadVcard"
               aria-label="Save Contact"
             >
-              <div
-                class="icon iconColor"
-                v-html="$icon('add-user')"
-              ></div>
+              <div class="icon iconColor" v-html="$icon('add-user')"></div>
               <p class="iconColor">Save Contact</p>
             </a>
             <div class="actions">
@@ -236,12 +238,7 @@
                     }"
                     :aria-label="item.name"
                   >
-                    <div
-                      class="icon iconColor"
-                      v-html="
-                        $icon(item.icon)
-                      "
-                    ></div>
+                    <div class="icon iconColor" v-html="$icon(item.icon)"></div>
                   </a>
                   <p class="textColor">
                     {{
@@ -429,7 +426,9 @@ export default defineComponent({
     getFullname(): string | null {
       let fn = this.genInfo.fname
       let ln = this.genInfo.lname
-      return (fn + ln).length ? `${fn ? fn : ''}${ln ? ' ' + ln : ''}` : null
+      return (fn + ln).length > 0
+        ? `${fn ? fn : ''}${ln ? ' ' + ln : ''}`
+        : null
     },
     hasOnlyProfilePic(): boolean {
       return !(this.images.cover.url || this.images.logo.url)
@@ -442,28 +441,25 @@ export default defineComponent({
       if (this.genInfo.fontLink) {
         let html = new DOMParser().parseFromString(
           this.genInfo.fontLink,
-          'text/html'
+          'text/html',
         )
         let link = Array.from(html.getElementsByTagName('link')).filter(
-          (e) => e.getAttribute('rel') == 'stylesheet'
+          (e) => e.getAttribute('rel') === 'stylesheet',
         )
-        return link.length && link[0].getAttribute('href')
+        return link.length > 0 && link[0].getAttribute('href')
       }
       return false
     },
     getFontFamily(): string | undefined {
-      const regex = /^font-family[^;]*/
       const css = (this.genInfo.fontCss ?? '').replace(/\s+/, '')
-      if (regex.test(css)) {
-        return css.match(/^font-family[^;]*/)![0]
-      }
+      return css.match(/^font-family[^;]*/)?.[0]
     },
   },
   methods: {
     getHref(e: PrimaryAction | SecondaryAction): string | null {
       let value = null
       if (e.name === 'Viber' && e.value)
-        value = e.value.replace(/[\s\-()]/g, '').replace(/\+/, '%2B')
+        value = e.value.replaceAll(/[\s\-()]/g, '').replace(/\+/, '%2B')
       return e.href
         ? e.href + (value || e.value) + (e.hrefEnd ? e.hrefEnd : '')
         : value || e.value
@@ -485,15 +481,17 @@ export default defineComponent({
       return null
     },
     toggleContainer(e: HTMLElement): void {
-      '2rem' == e.style.top
-        ? ((e.style.visibility = 'visible'),
-          (e.style.top = '0px'),
-          (e.style.opacity = '1'))
-        : ((e.style.top = '2rem'),
-          (e.style.opacity = '0'),
-          setTimeout(() => {
-            e.style.visibility = 'hidden'
-          }, 200))
+      if (e.style.top === '2rem') {
+        e.style.visibility = 'visible'
+        e.style.top = '0px'
+        e.style.opacity = '1'
+      } else {
+        e.style.top = '2rem'
+        e.style.opacity = '0'
+        setTimeout(() => {
+          e.style.visibility = 'hidden'
+        }, 200)
+      }
     },
     showKey(): void {
       const modal = this.$refs.modal as HTMLElement
@@ -507,7 +505,7 @@ export default defineComponent({
     },
     sharingAlert(): void {
       this.showAlert(
-        'You are able to share your business card after completing the hosting process.\n\nCheck out the <a class="underline font-extrabold text-emerald-600 hover:text-emerald-500 transition-colors duration-200" href="/demo" target="_blank">demo</a> to test the functionality.'
+        'You are able to share your business card after completing the hosting process.\n\nCheck out the <a class="underline font-extrabold text-emerald-600 hover:text-emerald-500 transition-colors duration-200" href="/demo" target="_blank">demo</a> to test the functionality.',
       )
     },
     /** Plays `ref` and pauses every other player, keeping the icons in sync. */
@@ -520,30 +518,28 @@ export default defineComponent({
         const mediaSource = e.$refs.mediaSource as HTMLMediaElement
         const play = e.$refs.play
         const pause = e.$refs.pause
-        if (ref != mediaSource) {
+        if (ref !== mediaSource) {
           mediaSource.pause()
           play.style.display = 'block'
           pause.style.display = 'none'
+        } else if (mediaSource.paused) {
+          // Mirrors media.ts: only show the playing state once play()
+          // resolves, so an undecodable file doesn't leave a pause icon
+          // over a seek bar that never moves.
+          mediaSource
+            .play()
+            .then(() => {
+              play.style.display = 'none'
+              pause.style.display = 'block'
+            })
+            .catch(() => {
+              play.style.display = 'block'
+              pause.style.display = 'none'
+            })
         } else {
-          if (mediaSource.paused) {
-            // Mirrors media.ts: only show the playing state once play()
-            // resolves, so an undecodable file doesn't leave a pause icon
-            // over a seek bar that never moves.
-            mediaSource
-              .play()
-              .then(() => {
-                play.style.display = 'none'
-                pause.style.display = 'block'
-              })
-              .catch(() => {
-                play.style.display = 'block'
-                pause.style.display = 'none'
-              })
-          } else {
-            mediaSource.pause()
-            play.style.display = 'block'
-            pause.style.display = 'none'
-          }
+          mediaSource.pause()
+          play.style.display = 'block'
+          pause.style.display = 'none'
         }
       })
     },
@@ -592,7 +588,9 @@ export default defineComponent({
     z-index: 1;
     width: 100%;
     bottom: 0;
-    transition: top 0.2s ease-out, opacity 0.1s ease-out;
+    transition:
+      top 0.2s ease-out,
+      opacity 0.1s ease-out;
     transform: translateZ(0);
   }
   #close {
@@ -957,7 +955,9 @@ export default defineComponent({
     z-index: 1;
     width: 100%;
     bottom: 0;
-    transition: top 0.2s ease-out, opacity 0.1s ease-out;
+    transition:
+      top 0.2s ease-out,
+      opacity 0.1s ease-out;
     transform: translateZ(0);
   }
   #close {
@@ -1321,7 +1321,9 @@ export default defineComponent({
     z-index: 1;
     width: 100%;
     bottom: 0;
-    transition: top 0.2s ease-out, opacity 0.1s ease-out;
+    transition:
+      top 0.2s ease-out,
+      opacity 0.1s ease-out;
     transform: translateZ(0);
   }
   #close {

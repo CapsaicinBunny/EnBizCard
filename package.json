@@ -9,6 +9,10 @@
     "start": "nuxt preview",
     "generate": "nuxt generate",
     "typecheck": "nuxt prepare && tsc --noEmit",
+    "lint": "oxlint",
+    "lint:fix": "oxlint --fix",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
     "postinstall": "nuxt prepare"
   },
   "engines": {
@@ -30,6 +34,8 @@
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.1.2",
     "@vite-pwa/nuxt": "^1.1.1",
+    "oxfmt": "^0.63.0",
+    "oxlint": "^1.78.0",
     "sass": "^1.83.4",
     "tailwindcss": "^4.3.3",
     "typescript": "^7.0.2"

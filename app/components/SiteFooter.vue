@@ -1,10 +1,7 @@
 <template>
   <footer class="mt-32 mx-4 flex flex-col">
     <div class="flex flex-col justify-center items-center">
-      <div
-        class="logo w-12"
-        v-html="$icon('logo')"
-      ></div>
+      <div class="logo w-12" v-html="$icon('logo')"></div>
       <!-- <p class="font-extrabold leading-tight">
         Digital&nbsp;Business&nbsp;Card
         <br />
@@ -49,5 +46,4 @@ import { defineComponent } from 'vue'
 export default defineComponent({})
 </script>
 
-<style>
-</style>
+<style></style>

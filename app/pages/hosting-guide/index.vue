@@ -226,15 +226,16 @@
         >
       </div>
     </div>
-    <Footer />
+    <SiteFooter />
   </div>
 </template>
 <script lang="ts">
 import { defineComponent } from 'vue'
-import Footer from '@/components/Footer.vue'
+import SiteFooter from '@/components/SiteFooter.vue'
 
 export default defineComponent({
   components: {
-    Footer,  },
+    SiteFooter,
+  },
 })
 </script>

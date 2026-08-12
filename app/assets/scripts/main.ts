@@ -65,6 +65,9 @@ window.addEventListener('load', () => {
   // qrcode.min.js sits beside index.html in the export and is easy to leave
   // out of an upload. Without this guard the ReferenceError kills the rest of
   // this handler and the QR modal opens permanently blank.
+  // `typeof` is required, not stylistic: QRCode is an undeclared global when
+  // the file is missing, and `QRCode === undefined` throws the very
+  // ReferenceError this guard exists to avoid.
   if (typeof QRCode === 'undefined') {
     qr.innerHTML = '<p>QR code unavailable — qrcode.min.js is missing.</p>'
     return
@@ -145,7 +148,9 @@ curl.addEventListener('click', async () => {
   } catch {
     // Fall back to selecting the URL so it can be copied manually.
     const range = document.createRange()
-    range.selectNodeContents(curl.querySelectorAll<HTMLElement>('.iconColor')[0]!)
+    range.selectNodeContents(
+      curl.querySelectorAll<HTMLElement>('.iconColor')[0]!,
+    )
     const sel = window.getSelection()
     sel?.removeAllRanges()
     sel?.addRange(range)

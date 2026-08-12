@@ -1,0 +1,126 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [
+    "oxc",
+    "typescript",
+    "unicorn",
+    "vue",
+    "promise",
+    "import",
+    "node"
+  ],
+  // `correctness` and `suspicious` are both errors: there is no test suite, so
+  // the linter is the only automated check that runs over `.vue` files at all
+  // (tsc cannot see inside an SFC — see CLAUDE.md). `style` is deliberately not
+  // enabled; it is ~1000 findings of formatting opinion that oxfmt already owns,
+  // and switching it on would bury the rules below in noise.
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "error"
+  },
+  "env": {
+    "browser": true,
+    "es2024": true
+  },
+  "rules": {
+    // -- Adopted from `pedantic` / `restriction` -----------------------------
+    // Enabled one at a time rather than by category, because both categories
+    // mix genuine bug-catchers with rules that are actively wrong for this
+    // codebase (see the rejected list at the bottom).
+
+    // Coercing comparisons. Verified safe before enabling: not one `== null`
+    // or `== undefined` in the tree, so every site compares a string or number
+    // to a literal, or an object to an object.
+    "eslint/eqeqeq": ["error", "always"],
+
+    // `parseInt(x)` without a radix. Modern engines default to 10 unless the
+    // string starts `0x`, which is exactly the input a user can paste into the
+    // colour field.
+    "eslint/radix": "error",
+
+    // A `switch` over a union that quietly does nothing for an unhandled case
+    // is how a new content type ends up missing from an exported card.
+    "eslint/default-case": "error",
+
+    // `isNaN` coerces its argument, `Number.isNaN` does not — a real bug class,
+    // not a naming preference.
+    "unicorn/prefer-number-properties": "error",
+
+    // `.match()` used as a boolean allocates a result array and, with a `/g`
+    // regex, is stateful. `.test()` is what was meant.
+    "unicorn/prefer-regexp-test": "error",
+
+    // `append()` over `appendChild()`: accepts several nodes and plain strings,
+    // and is what the export builder already uses.
+    "unicorn/prefer-dom-node-append": "error",
+
+    // `.replace(/x/g, …)` states the intent through a flag; `.replaceAll` says
+    // it in the method name and cannot be defeated by a dropped `/g`.
+    "unicorn/prefer-string-replace-all": "error",
+
+    // Small, unambiguous readability rules — each had 1-2 hits in the tree.
+    "unicorn/explicit-length-check": "error",
+    "unicorn/prefer-math-min-max": "error",
+    "unicorn/prefer-number-coercion": "error",
+    "unicorn/prefer-native-coercion-functions": "error",
+    "unicorn/prefer-string-slice": "error",
+    "eslint/no-else-return": "error",
+    "eslint/no-lonely-if": "error",
+
+    // -- Deliberately off ---------------------------------------------------
+
+    // FileReader, Image and HTMLMediaElement are driven through `onload` /
+    // `onerror` all over the attach paths. That is the idiomatic API for a
+    // one-shot load, and each handler is deliberately the only one.
+    "unicorn/prefer-add-event-listener": "off",
+
+    // The rule guards against breaking a chain that someone downstream awaits.
+    // Every `.then()` here is the end of its chain — it swaps a play icon for a
+    // pause icon, or hands a finished blob to saveAs — and nothing consumes the
+    // result. `return undefined` at each site would be noise, not safety.
+    // Narrowed to the case that is a genuine bug, and promoted from warn to
+    // error to match: a *non*-final `.then()` that forgets to return silently
+    // hands the next link an undefined value.
+    "promise/always-return": ["error", { "ignoreLastCallback": true }],
+
+    // The rule protects against astral characters, but its one hit here reads
+    // bytes out of `atob()` output in dataURIToBinary() — Latin-1 by
+    // definition, so no surrogate pair can occur and the two are identical.
+    // `codePointAt` also returns `number | undefined`, which is a worse type to
+    // write into a Uint8Array than `charCodeAt`'s plain `number`.
+    "unicorn/prefer-code-point": "off",
+
+    // Attractive for a privacy-first app, but oxlint's implementation takes no
+    // `allow` list, so it cannot distinguish the one call site here — an
+    // `import.meta.dev`-gated console.warn for an unknown icon name, which Vite
+    // strips from production entirely. Its fixer deleted that warning outright
+    // and left an empty `if`. Not worth losing a dev diagnostic over.
+    "eslint/no-console": "off",
+
+    // Tried, and it broke the export. Its autofix rewrote main.ts's
+    // `typeof QRCode === 'undefined'` guard to `QRCode === undefined`, which
+    // throws a ReferenceError when qrcode.min.js is missing from the upload —
+    // the exact failure the guard was added to survive. `typeof` is the only
+    // safe test for a global that may never have been declared.
+    "unicorn/no-typeof-undefined": "off"
+
+    // Considered and rejected, so nobody re-litigates them:
+    //
+    // * `unicorn/prefer-query-selector` — `getElementById(...)!` is the
+    //   documented pattern in app/assets/scripts/*.ts. It is faster and the
+    //   non-null assertion is load-bearing there.
+    // * `typescript/no-non-null-assertion` — same reason; the `!` marks
+    //   elements Preview.vue always renders (CLAUDE.md, "Export scripts").
+    // * `oxc/no-async-await`, `oxc/no-optional-chaining`,
+    //   `oxc/no-rest-spread-properties` — bans on language features for old
+    //   targets. This app builds for modern browsers only.
+    // * `eslint/max-lines`, `eslint/max-lines-per-function` — index.vue and
+    //   Preview.vue are long by design. Splitting them is a refactor, not a
+    //   lint fix.
+    // * `eslint/require-unicode-regexp` — adding `/u` turns previously legal
+    //   escapes into syntax errors, for no benefit on these patterns.
+  },
+  // Vendored/minified assets and the pre-built demo card are shipped verbatim.
+  "ignorePatterns": ["public/**", "app/assets/styles/**"]
+}

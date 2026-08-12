@@ -94,7 +94,8 @@ export default defineComponent({
     setProgress(e: Event): void {
       const mediaSource = this.$refs.mediaSource as HTMLMediaElement
       const input = e.target as HTMLInputElement
-      mediaSource.currentTime = mediaSource.duration * (Number(input.value) / 100)
+      mediaSource.currentTime =
+        mediaSource.duration * (Number(input.value) / 100)
     },
     updateSeek(): void {
       const mediaSource = this.$refs.mediaSource as HTMLMediaElement
@@ -110,7 +111,7 @@ export default defineComponent({
       const s = String(Math.floor(timenow % 60)).padStart(2, '0')
       bubble.value = `${m}:${s}`
 
-      if (value == 100) {
+      if (value === 100) {
         seekbar.value = '0'
         ;(this.$refs.play as HTMLElement).style.display = 'block'
         ;(this.$refs.pause as HTMLElement).style.display = 'none'

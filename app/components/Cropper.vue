@@ -128,7 +128,7 @@ export default defineComponent({
             this.content[this.type].url = null
             this.content[this.type].mime = null
             this.showAlert(
-              'That image was too large to process. Try a smaller one.'
+              'That image was too large to process. Try a smaller one.',
             )
             this.$emit('closeCropper')
             return
@@ -140,14 +140,14 @@ export default defineComponent({
           this.$emit('closeCropper')
         },
         this.mime,
-        0.8
+        0.8,
       )
     },
   },
   mounted() {
     this.cropper = new Cropper(this.$refs.image as HTMLImageElement, {
       container: this.$refs.container as HTMLElement,
-      template: buildTemplate(this.type == 'photo' ? 1 : 3 / 2),
+      template: buildTemplate(this.type === 'photo' ? 1 : 3 / 2),
     })
   },
   beforeUnmount() {

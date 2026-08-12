@@ -113,7 +113,11 @@ export default defineNuxtConfig({
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico?v=2' },
         { rel: 'icon', type: 'image/png', href: '/favicon-16x16.png' },
         { rel: 'icon', type: 'image/png', href: '/favicon-32x32.png' },
-        { rel: 'apple-touch-icon', sizes: '180x180', href: '/apple-touch-icon.png' },
+        {
+          rel: 'apple-touch-icon',
+          sizes: '180x180',
+          href: '/apple-touch-icon.png',
+        },
         { rel: 'mask-icon', color: themeColor, href: '/safari-pinned-tab.svg' },
       ],
       // QR code generator is a plain global script served from public/.

@@ -6,10 +6,7 @@
           class="p-1 shrink-0 focus:outline-none drag cursor-move"
           tabindex="-1"
         >
-          <div
-            class="w-6 h-6"
-            v-html="$icon('drag')"
-          ></div>
+          <div class="w-6 h-6" v-html="$icon('drag')"></div>
         </div>
         <div class="w-full">
           <input
@@ -29,10 +26,7 @@
         aria-label="Remove section"
         title="Remove section"
       >
-        <div
-          class="w-6 h-6"
-          v-html="$icon('x')"
-        ></div>
+        <div class="w-6 h-6" v-html="$icon('x')"></div>
       </button>
     </div>
     <VueDraggable
@@ -54,10 +48,7 @@
               class="p-1 shrink-0 focus:outline-none drag cursor-move"
               tabindex="-1"
             >
-              <div
-                class="w-6 h-6"
-                v-html="$icon('drag')"
-              ></div>
+              <div class="w-6 h-6" v-html="$icon('drag')"></div>
             </button>
             <img
               class="w-12 h-12 rounded-l object-contain shrink-0 bg-gray-700"
@@ -65,8 +56,8 @@
                 item.type == 'image'
                   ? item.dataURI
                   : item.coverDataURI
-                  ? item.coverDataURI
-                  : false
+                    ? item.coverDataURI
+                    : false
               "
               :src="item.type == 'image' ? item.dataURI : item.coverDataURI"
               :alt="item.title"
@@ -96,10 +87,7 @@
               aria-label="Remove media"
               title="Remove media"
             >
-              <div
-                class="w-6 h-6"
-                v-html="$icon('x')"
-              ></div>
+              <div class="w-6 h-6" v-html="$icon('x')"></div>
             </button>
           </div>
           <ProductCard
@@ -119,10 +107,7 @@
               class="p-1 shrink-0 focus:outline-none drag cursor-move"
               tabindex="-1"
             >
-              <div
-                class="w-6 h-6"
-                v-html="$icon('drag')"
-              ></div>
+              <div class="w-6 h-6" v-html="$icon('drag')"></div>
             </button>
             <div class="w-full">
               <textarea
@@ -141,10 +126,7 @@
               aria-label="Remove text"
               title="Remove text"
             >
-              <div
-                class="w-6 h-6"
-                v-html="$icon('x')"
-              ></div>
+              <div class="w-6 h-6" v-html="$icon('x')"></div>
             </button>
           </div>
           <div class="flex items-center mt-2" v-else>
@@ -152,10 +134,7 @@
               class="p-1 shrink-0 focus:outline-none drag cursor-move"
               tabindex="-1"
             >
-              <div
-                class="w-6 h-6"
-                v-html="$icon('drag')"
-              ></div>
+              <div class="w-6 h-6" v-html="$icon('drag')"></div>
             </button>
             <div class="w-full">
               <input
@@ -174,10 +153,7 @@
               aria-label="Remove field"
               title="Remove field"
             >
-              <div
-                class="w-6 h-6"
-                v-html="$icon('x')"
-              ></div>
+              <div class="w-6 h-6" v-html="$icon('x')"></div>
             </button>
           </div>
         </div>
@@ -206,10 +182,7 @@
           @change="fileLoaded($event, false)"
           @click="$event.target.files = null"
         />
-        <div
-          class="w-6 h-6 mr-3"
-          v-html="$icon('file')"
-        ></div>
+        <div class="w-6 h-6 mr-3" v-html="$icon('file')"></div>
         <p class="leading-none">Add media</p>
       </button>
       <button
@@ -217,10 +190,7 @@
         @click="addLink()"
         aria-label="Embed media"
       >
-        <div
-          class="w-6 h-6 mr-3"
-          v-html="$icon('code')"
-        ></div>
+        <div class="w-6 h-6 mr-3" v-html="$icon('code')"></div>
         <p class="leading-none">Embed media</p>
       </button>
       <button
@@ -228,10 +198,7 @@
         @click="addProduct()"
         aria-label="Add product"
       >
-        <div
-          class="w-6 h-6 mr-3"
-          v-html="$icon('product')"
-        ></div>
+        <div class="w-6 h-6 mr-3" v-html="$icon('product')"></div>
         <p class="leading-none">Add product</p>
       </button>
       <button
@@ -239,10 +206,7 @@
         @click="addText()"
         aria-label="Add text"
       >
-        <div
-          class="w-6 h-6 mr-3"
-          v-html="$icon('text')"
-        ></div>
+        <div class="w-6 h-6 mr-3" v-html="$icon('text')"></div>
         <p class="leading-none text-left">Add text</p>
       </button>
     </div>
@@ -284,9 +248,8 @@ function loadPdfjs(): Promise<Pdfjs> {
   if (!pdfjsPromise) {
     pdfjsPromise = (async () => {
       const pdfjs = await import('pdfjs-dist')
-      const { default: PdfjsWorker } = await import(
-        'pdfjs-dist/build/pdf.worker.min.mjs?worker'
-      )
+      const { default: PdfjsWorker } =
+        await import('pdfjs-dist/build/pdf.worker.min.mjs?worker')
       pdfjs.GlobalWorkerOptions.workerPort = new PdfjsWorker()
       return pdfjs
     })()
@@ -330,14 +293,17 @@ export default defineComponent({
   methods: {
     mediaType(t: string): MediaKind | undefined {
       switch (true) {
-        case t == 'image/jpeg' || t == 'image/png':
+        case t === 'image/jpeg' || t === 'image/png':
           return 'image'
-        case t == 'audio/mpeg':
+        case t === 'audio/mpeg':
           return 'music'
-        case t == 'video/mp4' || t == 'video/webm':
+        case t === 'video/mp4' || t === 'video/webm':
           return 'video'
-        case t == 'application/pdf':
+        case t === 'application/pdf':
           return 'document'
+        // Anything else is an unsupported mimetype; callers alert on undefined.
+        default:
+          return undefined
       }
     },
     attachMedia(): void {
@@ -347,12 +313,11 @@ export default defineComponent({
       this.featured[this.index].content.push('')
       // Bare strings are the link entries; everything else carries contentType.
       const links = this.featured[this.index].content.filter(
-        (e) => typeof e === 'string'
+        (e) => typeof e === 'string',
       )
       setTimeout(
-        () =>
-          (this.$refs.link as HTMLInputElement[])[links.length - 1].focus(),
-        50
+        () => (this.$refs.link as HTMLInputElement[])[links.length - 1].focus(),
+        50,
       )
     },
     addProduct(): void {
@@ -370,20 +335,20 @@ export default defineComponent({
       const entry: TextContent = { contentType: 'text', value: null }
       this.featured[this.index].content.push(entry)
       const texts = this.featured[this.index].content.filter(
-        (e) => typeof e !== 'string' && e.contentType == 'text'
+        (e) => typeof e !== 'string' && e.contentType === 'text',
       )
       setTimeout(
         () =>
           (this.$refs.text as HTMLTextAreaElement[])[texts.length - 1].focus(),
-        50
+        50,
       )
     },
     fileLoaded(e: Event, dropped: boolean): void {
       const dt = (e as DragEvent).dataTransfer
       const input = e.target as HTMLInputElement
       if (
-        (dropped && dt && dt.files.length) ||
-        (!dropped && input.files && input.files.length)
+        (dropped && dt && dt.files.length > 0) ||
+        (!dropped && input.files && input.files.length > 0)
       ) {
         const file = (dropped ? dt!.files[0] : input.files![0]) as File
         this.dragOver = false
@@ -405,7 +370,7 @@ export default defineComponent({
               break
             default:
               this.showAlert(
-                'Unsupported file format.\n\nOnly jpeg, png, mp3, mp4, webm and pdf files can be attached.'
+                'Unsupported file format.\n\nOnly jpeg, png, mp3, mp4, webm and pdf files can be attached.',
               )
               break
           }
@@ -444,11 +409,13 @@ export default defineComponent({
           type,
           mime,
           this.index,
-          this.featured[this.index].content.length - 1
+          this.featured[this.index].content.length - 1,
         )
       }
       reader.onerror = () => {
-        this.showAlert(`Could not read ${file.name}. The file may be unreadable.`)
+        this.showAlert(
+          `Could not read ${file.name}. The file may be unreadable.`,
+        )
       }
       reader.readAsDataURL(file)
     },
@@ -466,7 +433,7 @@ export default defineComponent({
             type,
             'image/jpeg',
             this.index,
-            this.featured[this.index].content.length - 1
+            this.featured[this.index].content.length - 1,
           )
         }
       } catch (err) {
@@ -532,8 +499,7 @@ export default defineComponent({
       const maxHeight = 80
       const reader = new FileReader()
       const uA = navigator.userAgent.match(/firefox|android/gi)
-      const vm = this
-      function videoProcessor(): void {
+      const videoProcessor = (): void => {
         let width = video.videoWidth
         let height = video.videoHeight
 
@@ -560,9 +526,9 @@ export default defineComponent({
           contentType: 'media',
           ext: 'mp4',
         }
-        vm.featured[vm.index].content.push(entry)
+        this.featured[this.index].content.push(entry)
       }
-      if (uA && uA.length == 2) {
+      if (uA && uA.length === 2) {
         video.addEventListener('loadstart', videoProcessor)
       } else {
         video.addEventListener('seeked', videoProcessor)
@@ -574,7 +540,7 @@ export default defineComponent({
       // attachment simply never appears and nothing is reported.
       video.addEventListener('error', () => {
         this.showAlert(
-          `Could not read that video.\n\nThe file may use a codec your browser cannot decode.`
+          `Could not read that video.\n\nThe file may use a codec your browser cannot decode.`,
         )
       })
 
@@ -586,7 +552,9 @@ export default defineComponent({
         video.src = dataURI + '#t=0.2'
       }
       reader.onerror = () => {
-        this.showAlert(`Could not read ${file.name}. The file may be unreadable.`)
+        this.showAlert(
+          `Could not read ${file.name}. The file may be unreadable.`,
+        )
       }
       reader.readAsArrayBuffer(file)
     },
@@ -595,7 +563,7 @@ export default defineComponent({
     dataURIToBinary(dataURI: string): Uint8Array {
       const BASE64_MARKER = ';base64,'
       const base64Index = dataURI.indexOf(BASE64_MARKER) + BASE64_MARKER.length
-      const base64 = dataURI.substring(base64Index)
+      const base64 = dataURI.slice(base64Index)
       const raw = window.atob(base64)
       const rawLength = raw.length
       const array = new Uint8Array(new ArrayBuffer(rawLength))
@@ -610,10 +578,10 @@ export default defineComponent({
     },
     formatBytes(a: number, b: number = 2): string {
       if (0 === a) return '0 Bytes'
-      const c = 0 > b ? 0 : b,
+      const c = Math.max(0, b),
         d = Math.floor(Math.log(a) / Math.log(1024))
       return (
-        parseFloat((a / Math.pow(1024, d)).toFixed(c)) +
+        Number((a / Math.pow(1024, d)).toFixed(c)) +
         ' ' +
         ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'][d]
       )
