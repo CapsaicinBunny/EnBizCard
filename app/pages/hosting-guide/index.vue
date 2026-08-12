@@ -1,7 +1,7 @@
 <template>
   <div class="bg-gray-900 mx-auto text-gray-100" style="max-width: 960px">
     <div class="px-4">
-      <div class="flex items-start justify-between pt-8">
+      <div class="flex items-start pt-8">
         <NuxtLink to="/">
           <div
             class="logo w-24"
@@ -9,12 +9,6 @@
             title="EnBizCard - An Open-Source Digital Business Card Generator"
           ></div
         ></NuxtLink>
-        <a
-          class="font-extrabold tracking-wide leading-none shrink-0 p-3 border-2 text-white border-gray-700 rounded hover:bg-gray-700 focus:bg-gray-700 transition-colors duration-200"
-          href="https://www.vishnuraghav.com/donate"
-          target="_blank"
-          >Donate</a
-        >
       </div>
       <div id="guide" class="max-w-screen-sm">
         <h1
@@ -153,16 +147,16 @@
             </li>
           </ul>
           <p class="mt-4">
-            If you got any doubt setting up your digital business card on any of
-            these platforms, You can always
+            If you have any doubt setting up your digital business card on any
+            of these platforms, you can always
             <a
               class="underline text-emerald-600 font-extrabold hover:text-emerald-500 focus:text-emerald-500 transition-colors duration-200"
-              href="https://t.me/enbizcard"
+              href="https://github.com/CapsaicinBunny/EnBizCard/issues"
               target="_blank"
               rel="noopener noreferrer"
-              >join the telegram group</a
+              >open an issue</a
             >
-            and ask it.
+            and ask.
           </p>
         </div>
         <div class="mt-16">
@@ -221,12 +215,11 @@
           </ul>
         </div>
       </div>
-      <Help />
       <div class="mt-24">
-        Help me improve this guide on
+        Help improve this guide on
         <a
           class="underline text-emerald-600 font-extrabold hover:text-emerald-500 focus:text-emerald-500 transition-colors duration-200"
-          href="https://github.com/vishnuraghavb/EnBizCard"
+          href="https://github.com/CapsaicinBunny/EnBizCard"
           target="_blank"
           rel="noopener noreferrer"
           >GitHub</a
@@ -239,12 +232,9 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import Footer from '@/components/Footer.vue'
-import Help from '@/components/Help.vue'
 
 export default defineComponent({
   components: {
-    Footer,
-    Help,
-  },
+    Footer,  },
 })
 </script>

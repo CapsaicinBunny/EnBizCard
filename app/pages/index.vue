@@ -69,33 +69,12 @@
     </transition>
 
     <div class="px-4">
-      <div class="flex items-start justify-between pt-8">
+      <div class="flex items-start pt-8">
         <div
           class="logo w-24"
           v-html="$icon('logo')"
           title="EnBizCard - An Open-Source Digital Business Card Generator"
         ></div>
-        <a
-          class="
-            font-extrabold
-            tracking-wide
-            leading-none
-            shrink-0
-            p-3
-            border-2
-            text-white
-            border-gray-700
-            rounded
-            hover:bg-gray-700
-            focus:bg-gray-700
-            transition-colors
-            duration-200
-          "
-          href="https://www.vishnuraghav.com/donate"
-          target="_blank"
-          rel="noreferrer"
-          >Donate</a
-        >
       </div>
       <h1
         class="
@@ -991,7 +970,6 @@
           :downloadChecked="downloadChecked"
           :downloadPackage="downloadPackage"
         />
-        <Help />
       </div>
       <div
         id="preview-container"
@@ -1074,7 +1052,6 @@ import Featured from '@/components/Featured.vue'
 import Colour from '@/components/Colour.vue'
 import Preview from '@/components/Preview.vue'
 import Download from '@/components/Download.vue'
-import Help from '@/components/Help.vue'
 import Footer from '@/components/Footer.vue'
 import Cropper from '@/components/Cropper.vue'
 
@@ -1126,9 +1103,7 @@ export default defineComponent({
     Featured,
     Colour,
     Preview,
-    Download,
-    Help,
-    Footer,
+    Download,    Footer,
     Vcard,
     VueDraggable,
   },
