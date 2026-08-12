@@ -1,4 +1,4 @@
-<p align="center"><a href="https://enbizcard.vercel.app/"><img src="assets/images/GitHub.png" width="100%"></a></p>
+<p align="center"><a href="https://enbizcard.vercel.app/"><img src="app/assets/images/GitHub.png" width="100%"></a></p>
 
 <h1 align="center">An Open-Source Digital Business Card Generator</h1>
 <!-- <h3 align="center">Your Website Can Host Your Digital Business Cards for FREE!</h3> -->
@@ -9,7 +9,11 @@
 ---
 
 <p align="center">
-<a href="https://www.gnu.org/licenses/agpl-3.0" alt="License: GPLv3"><img src="https://img.shields.io/badge/License-AGPL%20v3-blue"></a> <a href="https://github.com/vishnuraghavb/EnBizCard/issues" alt="GitHub issues"><img src="https://img.shields.io/github/issues/vishnuraghavb/EnBizCard?label=Issues"></a> <a href="https://liberapay.com/vishnuraghavb/donate" alt="Liberapay"><img src="https://img.shields.io/liberapay/patrons/vishnuraghavb.svg?logo=liberapay"></a> <a href="https://www.vishnuraghav.com/donate" alt="Donate"><img src="https://img.shields.io/badge/Donate%20to-Vishnu%20Raghav-brightgreen"></a></p>
+<a href="https://www.gnu.org/licenses/agpl-3.0" alt="License: GPLv3"><img src="https://img.shields.io/badge/License-AGPL%20v3-blue"></a> <a href="https://github.com/CapsaicinBunny/EnBizCard/issues" alt="GitHub issues"><img src="https://img.shields.io/github/issues/CapsaicinBunny/EnBizCard?label=Issues"></a></p>
+
+<p align="center">Made with ❤️ by <a href="https://github.com/CapsaicinBunny">CapsaicinBunny</a> &amp; <a href="https://www.vishnuraghav.com/">Vishnu Raghav</a></p>
+
+<p align="center"><em>A fork of <a href="https://github.com/vishnuraghavb/EnBizCard">vishnuraghavb/EnBizCard</a>, migrated to Nuxt 4 / Vue 3 and TypeScript.</em></p>
 
 ---
 
@@ -39,19 +43,10 @@
 - Your data belongs to you
 - Private by design
 
-## Future
-
-Check out the [roadmap](https://github.com/vishnuraghavb/EnBizCard/projects/1) to see the upcoming features of Digital Business Card Generator.
-
-Your feedback and suggestions are very important. If you have an idea to improve Digital Business Card Generator, [do let me know](#having-issues-suggestions-and-feedback). I'm always open to ideas ;)
-
 ## Having issues, suggestions and feedback?
 
-You can,
-
-- [Create an issue here](https://github.com/vishnuraghavb/EnBizCard/issues)
-- [Join the Telegram group](http://t.me/enbizcard) (quicker replies and best for discussion)
-- Contact me at apps@vishnuraghav.com
+- [Create an issue here](https://github.com/CapsaicinBunny/EnBizCard/issues) for anything specific to this fork.
+- For the original project, see [vishnuraghavb/EnBizCard](https://github.com/vishnuraghavb/EnBizCard).
 
 ## Assets
 
@@ -67,7 +62,7 @@ In order to quickly host the EnBizCard Generator on a machine running Docker and
 1. Clone the repository to your machine and `cd` into the directory.
 
 ```
-git clone git@github.com:vishnuraghavb/EnBizCard.git
+git clone git@github.com:CapsaicinBunny/EnBizCard.git
 ```
 
 2. Create a .env file by copying and adjusting env.example:
@@ -99,7 +94,3 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ```
-
-## Support me
-
-<a href="https://www.vishnuraghav.com/donate/"><img alt="Donate to Vishnu Raghav" src="assets/images/donate.svg" width="207"></a>

@@ -1,10 +1,11 @@
-FROM node:16.17.0-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm i
+RUN npm ci
 COPY . .
 RUN npm run generate
 
 FROM nginx:alpine
-COPY --from=build /app/public /usr/share/nginx/html
+# Nuxt 4 emits the static site to .output/public (Nuxt 2 used ./public).
+COPY --from=build /app/.output/public /usr/share/nginx/html
 EXPOSE 80
