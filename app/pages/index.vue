@@ -357,7 +357,7 @@
             />
             <div
               v-if="!filterSecondary"
-              class="profile-category-rail mt-3 -mx-1 px-1 flex gap-2 overflow-x-auto pb-2"
+              class="mt-3 flex flex-wrap gap-2"
               aria-label="Profile categories"
             >
               <button
@@ -2039,15 +2039,3 @@ export default defineComponent({
   },
 })
 </script>
-
-<style scoped>
-.profile-category-rail {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  overscroll-behavior-inline: contain;
-}
-
-.profile-category-rail::-webkit-scrollbar {
-  display: none;
-}
-</style>
