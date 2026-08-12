@@ -1095,6 +1095,7 @@ import type {
   SecondaryAction,
   VCardData,
 } from '~/types/card'
+import { errorText } from '~/utils/errors'
 import JSZip from 'jszip'
 // vuedraggable@4 is unmaintained and breaks on Vue 3.3+ (its slot vnodes have a
 // null `el`, so Sortable's context assignment throws). vue-draggable-plus is the
@@ -2070,162 +2071,190 @@ export default defineComponent({
       return false
     },
     downloadPackage() {
-      if (this.downloadChecked) {
-        this.PreviewMode = false
-        setTimeout(() => {
-          let el = new DOMParser().parseFromString(
-            this.$refs.html.$refs.html.outerHTML,
-            'text/html'
+      if (!this.downloadChecked) {
+        this.showAlert('Please confirm every item in the checklist first.')
+        return
+      }
+      this.PreviewMode = false
+      setTimeout(() => {
+        try {
+          this.buildPackage()
+        } catch (err) {
+          this.showAlert(
+            `Could not build your card package.\n\n${errorText(err)}`
           )
+        } finally {
+          // Always restore the editor. Leaving PreviewMode false strands the
+          // preview on the export's relative ./media/ paths, with no way back
+          // short of a reload that would discard the card.
+          this.PreviewMode = true
+        }
+      }, 250)
+    },
+    /**
+     * Serialises the live preview into the downloadable zip. Throws on
+     * failure; downloadPackage() is what reports it and restores the editor.
+     */
+    buildPackage() {
+      let el = new DOMParser().parseFromString(
+        this.$refs.html.$refs.html.outerHTML,
+        'text/html'
+      )
 
-          // Inject the trailing-slash redirect. It lives here rather than in
-          // Preview.vue's template so it cannot run inside the generator.
-          let redirect = document.createElement('script')
-          redirect.textContent =
-            '"http"==window.location.href.substr(0,4)&&"/"!=window.location.href.slice(-1)&&window.location.replace(window.location.href+"/");'
-          el.querySelector('head').appendChild(redirect)
+      // Inject the trailing-slash redirect. It lives here rather than in
+      // Preview.vue's template so it cannot run inside the generator.
+      let redirect = document.createElement('script')
+      redirect.textContent =
+        '"http"==window.location.href.substr(0,4)&&"/"!=window.location.href.slice(-1)&&window.location.replace(window.location.href+"/");'
+      el.querySelector('head').appendChild(redirect)
 
-          // Inject stylesheets
-          let styleLink = document.createElement('link')
-          styleLink.rel = 'stylesheet'
-          styleLink.href = './style.min.css'
-          el.querySelector('head').appendChild(styleLink)
+      // Inject stylesheets
+      let styleLink = document.createElement('link')
+      styleLink.rel = 'stylesheet'
+      styleLink.href = './style.min.css'
+      el.querySelector('head').appendChild(styleLink)
 
-          // Inject qrcode script
-          let qrcode = document.createElement('script')
-          qrcode.src = './qrcode.min.js'
-          el.querySelector('body').appendChild(qrcode)
+      // Inject qrcode script
+      let qrcode = document.createElement('script')
+      qrcode.src = './qrcode.min.js'
+      el.querySelector('body').appendChild(qrcode)
 
-          // Inject general script
-          let modals = document.createElement('script')
-          modals.innerText = modalScript
-          el.querySelector('body').appendChild(modals)
+      // Inject general script
+      let modals = document.createElement('script')
+      modals.innerText = modalScript
+      el.querySelector('body').appendChild(modals)
 
-          // Inject media script
-          let mediaHandler = document.createElement('script')
-          mediaHandler.innerText = mediaScript
-          if (this.featured.length)
-            el.querySelector('body').appendChild(mediaHandler)
+      // Inject media script
+      let mediaHandler = document.createElement('script')
+      mediaHandler.innerText = mediaScript
+      if (this.featured.length)
+        el.querySelector('body').appendChild(mediaHandler)
 
-          // Inject tracking scripts
-          let tracker = this.getTrackingCode()
-          while (tracker?.firstChild) el.head.appendChild(tracker.firstChild)
+      // Inject tracking scripts
+      let tracker = this.getTrackingCode()
+      while (tracker?.firstChild) el.head.appendChild(tracker.firstChild)
 
-          // Create blobs
-          let html = new Blob(
-            [`<!DOCTYPE html>${el.documentElement.outerHTML}`],
-            {
-              type: 'text/html',
-            }
-          )
-          let theme = 1
-          switch (this.theme) {
-            case 1:
-              theme = Theme1
-              break
-            case 2:
-              theme = Theme2
-              break
-            case 3:
-              theme = Theme3
-              break
-          }
-          let css = new Blob([theme], {
-            type: 'text/css',
-          })
-          let vCard = new Blob([this.$refs.vCard.$refs.vCard.innerText], {
-            type: 'text/plain',
-          })
-          let guide = new Blob(
-            [
-              '<html><head><meta http-equiv="refresh" content="0; url=https://enbizcard.vishnuraghav.com/hosting-guide" /></head></html>',
-            ],
-            {
-              type: 'text/html',
-            }
-          )
-          let qrScript = new Blob([QRCode], {
-            type: 'application/javascript',
-          })
+      // Create blobs
+      let html = new Blob(
+        [`<!DOCTYPE html>${el.documentElement.outerHTML}`],
+        {
+          type: 'text/html',
+        }
+      )
+      let theme = 1
+      switch (this.theme) {
+        case 1:
+          theme = Theme1
+          break
+        case 2:
+          theme = Theme2
+          break
+        case 3:
+          theme = Theme3
+          break
+      }
+      let css = new Blob([theme], {
+        type: 'text/css',
+      })
+      let vCard = new Blob([this.$refs.vCard.$refs.vCard.innerText], {
+        type: 'text/plain',
+      })
+      let guide = new Blob(
+        [
+          '<html><head><meta http-equiv="refresh" content="0; url=https://enbizcard.vishnuraghav.com/hosting-guide" /></head></html>',
+        ],
+        {
+          type: 'text/html',
+        }
+      )
+      let qrScript = new Blob([QRCode], {
+        type: 'application/javascript',
+      })
 
-          // Prepare files
-          let username = this.username
-          let zip = new JSZip()
-          zip.folder(username).file('index.html', html)
-          zip.folder(username).file('style.min.css', css)
-          zip.folder(username).file('qrcode.min.js', qrScript)
-          zip.file('Hosting-Guide.html', guide)
+      // Prepare files
+      let username = this.username
+      let zip = new JSZip()
+      zip.folder(username).file('index.html', html)
+      zip.folder(username).file('style.min.css', css)
+      zip.folder(username).file('qrcode.min.js', qrScript)
+      zip.file('Hosting-Guide.html', guide)
 
-          // Image attachments
-          for (const key in this.images) {
-            if (this.images[key].url) {
+      // Image attachments
+      for (const key in this.images) {
+        if (this.images[key].url) {
+          zip
+            .folder(username)
+            .file(
+              `${key}.${this.images[key].ext}`,
+              this.images[key].resized
+            )
+        }
+      }
+
+      // Featured content
+      let hasFeaturedContent = this.featured.filter(
+        (e) => e.content.length
+      ).length
+      if (hasFeaturedContent) {
+        this.featured.forEach((item) => {
+          item.content.forEach((item) => {
+            if (item.contentType == 'media') {
               zip
                 .folder(username)
-                .file(
-                  `${key}.${this.images[key].ext}`,
-                  this.images[key].resized
-                )
-            }
-          }
-
-          // Featured content
-          let hasFeaturedContent = this.featured.filter(
-            (e) => e.content.length
-          ).length
-          if (hasFeaturedContent) {
-            this.featured.forEach((item) => {
-              item.content.forEach((item) => {
-                if (item.contentType == 'media') {
-                  zip
-                    .folder(username)
-                    .folder('media')
-                    .file(`${this.getTitle(item.title)}.${item.ext}`, item.file)
-                  if (item.type.match(/music|document/gi)) {
-                    if (!item.info) {
-                      zip
-                        .folder(username)
-                        .folder('media')
-                        .file(
-                          `${this.getTitle(item.title)}.${item.coverExt}`,
-                          item.cover
-                        )
-                    }
-                  }
-                } else if (item.contentType == 'product' && item.image) {
+                .folder('media')
+                .file(`${this.getTitle(item.title)}.${item.ext}`, item.file)
+              if (item.type.match(/music|document/gi)) {
+                if (!item.info) {
                   zip
                     .folder(username)
                     .folder('media')
                     .file(
-                      `${this.getTitle(item.image.title)}.${item.image.ext}`,
-                      item.image.file
+                      `${this.getTitle(item.title)}.${item.coverExt}`,
+                      item.cover
                     )
                 }
-              })
-            })
-          }
-
-          //  Public key
-          let name = this.getFullname
-          if (this.pubKeyIsValid) {
-            zip
-              .folder(username)
-              .file(`${name}'s public key.asc`, this.genInfo.key)
-          }
-
-          // VCARD
-          zip.folder(username).file(`${username}.vcf`, vCard)
-
-          // Final ZIP file
-          zip
-            .generateAsync({
-              type: 'blob',
-            })
-            .then(function (zip) {
-              saveAs(zip, `${name}'s Digital Business Card.zip`)
-            })
-          this.PreviewMode = true
-        }, 250)
+              }
+            } else if (item.contentType == 'product' && item.image) {
+              zip
+                .folder(username)
+                .folder('media')
+                .file(
+                  `${this.getTitle(item.image.title)}.${item.image.ext}`,
+                  item.image.file
+                )
+            }
+          })
+        })
       }
+
+      //  Public key
+      let name = this.getFullname
+      if (this.pubKeyIsValid) {
+        zip
+          .folder(username)
+          .file(`${name}'s public key.asc`, this.genInfo.key)
+      }
+
+      // VCARD
+      zip.folder(username).file(`${username}.vcf`, vCard)
+
+      // Final ZIP file. JSZip defers reading every file it was handed until
+      // generateAsync(), so this is where an unreadable blob surfaces — and
+      // it rejects rather than throwing, so the try/catch around this method
+      // cannot see it. Without the catch the user clicks Download and simply
+      // nothing happens.
+      zip
+        .generateAsync({
+          type: 'blob',
+        })
+        .then((zip) => {
+          saveAs(zip, `${name}'s Digital Business Card.zip`)
+        })
+        .catch((err) => {
+          this.showAlert(
+            `Could not build your card package.\n\n${errorText(err)}`
+          )
+        })
     },
   },
   mounted() {

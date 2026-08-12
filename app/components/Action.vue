@@ -49,12 +49,14 @@ export default defineComponent({
     name: { type: String, required: true },
     item: { type: Object as PropType<CardAction>, required: true },
     index: { type: Number, required: true },
-    /** Which list this row belongs to, so removeAction() targets the right one. */
-    type: {
-      type: String as PropType<'primaryActions' | 'secondaryActions'>,
-      required: true,
-    },
-    buttonBg: { type: String, required: true },
+    /**
+     * The list this row belongs to — the array itself, not its name, because
+     * the input writes back through it (`v-model="type[index].value"`). The
+     * name arrives separately as `name`.
+     */
+    type: { type: Array as PropType<CardAction[]>, required: true },
+    /** Only read for primary actions; the secondary list does not pass it. */
+    buttonBg: { type: String, default: '' },
     removeAction: {
       type: Function as PropType<
         (type: 'primaryActions' | 'secondaryActions', index: number) => void

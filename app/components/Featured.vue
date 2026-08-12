@@ -265,13 +265,9 @@ import type {
 // function. Reach through it, but tolerate a bundler that does unwrap.
 import { convertFileToBuffer } from 'id3-parser/lib/util.js'
 import id3 from 'id3-parser'
+import { errorText } from '~/utils/errors'
 
 const parse = typeof id3 === 'function' ? id3 : id3.default
-
-/** `catch` binds `unknown`, so unwrap a message without assuming an Error. */
-function errorText(err: unknown): string {
-  return err instanceof Error ? err.message : String(err)
-}
 // pdf.js used to be vendored under assets/scripts and pulled in with CommonJS
 // require(), which Vite cannot resolve. It now comes from npm, with the worker
 // bundled by Vite's ?worker import.
@@ -499,7 +495,14 @@ export default defineComponent({
         })
         return false
       }
-      const tags = { title: tag.title, artist: tag.artist, album: tag.album }
+      // id3-parser declares every frame optional, so a tagged MP3 with no TIT2
+      // still yields `undefined` here. getTitle() lowercases it on the export
+      // path, so fall back to the filename rather than crashing the download.
+      const tags = {
+        title: tag.title || this.getFileName(file),
+        artist: tag.artist,
+        album: tag.album,
+      }
       if (!tag.image) {
         this.featured[this.index].content.push({
           ...base,
