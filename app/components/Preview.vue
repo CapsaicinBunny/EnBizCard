@@ -343,7 +343,9 @@
                   />
                 </div>
                 <ProductShowcase
-                  v-else-if="item.contentType == 'product' && item.title"
+                  v-else-if="
+                    item.contentType == 'product' && hasProductContent(item)
+                  "
                   :product="item"
                   :colors="colors"
                   :PreviewMode="PreviewMode"
@@ -404,7 +406,9 @@ import type {
   PrimaryAction,
   SecondaryAction,
 } from '~/types/card'
+import { hasProductContent } from '~/types/card'
 import { formatAddress, hasAddress, mapSearchURL } from '~/utils/address'
+import { resolveEmbed } from '~/utils/embed'
 
 export default defineComponent({
   props: {
@@ -529,18 +533,16 @@ export default defineComponent({
     getTitle(e: string): string {
       return e.toLowerCase().split(' ').join('_')
     },
-    /** Pulls the embeddable src out of a pasted iframe or Instagram blockquote. */
+    /** Options API templates cannot see imports; re-expose it as a method. */
+    hasProductContent,
+    /**
+     * The embeddable src for a link entry, or null if it resolves to nothing.
+     *
+     * Bare strings are the link entries; everything else carries a
+     * contentType. See app/utils/embed.ts for what is accepted.
+     */
     stripAttr(val: FeaturedContent): string | null {
-      if (typeof val !== 'string') return null
-      if (/<iframe(.*)\/iframe>/.test(val)) {
-        const iframe = val.match(/<iframe(.*)\/iframe>/)![0]
-        return iframe.match(/src="?([^"\s]+)"/)![1]
-      } else if (/\/\/www\.instagram\.com\/embed\.js/.test(val)) {
-        return `${
-          val.match(/data-instgrm-permalink="(.*?)\/\?/)![1]
-        }/embed/captioned`
-      }
-      return null
+      return typeof val === 'string' ? resolveEmbed(val) : null
     },
     toggleContainer(e: HTMLElement): void {
       if (e.style.top === '2rem') {

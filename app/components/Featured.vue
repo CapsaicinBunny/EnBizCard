@@ -129,32 +129,41 @@
               <div class="w-6 h-6" v-html="$icon('x')"></div>
             </button>
           </div>
-          <div class="flex items-center mt-2" v-else>
-            <button
-              class="p-1 shrink-0 focus:outline-none drag cursor-move"
-              tabindex="-1"
-            >
-              <div class="w-6 h-6" v-html="$icon('drag')"></div>
-            </button>
-            <div class="w-full">
-              <input
-                class="px-4 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-500 hover:border-gray-500"
-                ref="link"
-                type="text"
-                aria-label="Paste embed code here"
-                title="Paste embed code here"
-                v-model="featured[index].content[i]"
-                placeholder="Paste embed code here"
-              />
+          <div class="mt-2" v-else>
+            <div class="flex items-center">
+              <button
+                class="p-1 shrink-0 focus:outline-none drag cursor-move"
+                tabindex="-1"
+              >
+                <div class="w-6 h-6" v-html="$icon('drag')"></div>
+              </button>
+              <div class="w-full">
+                <input
+                  class="px-4 w-full h-12 bg-black placeholder-gray-600 rounded border transition-colors duration-200 focus:outline-none focus:border-gray-500 hover:border-gray-500"
+                  :class="
+                    unresolved(item) ? 'border-amber-600' : 'border-transparent'
+                  "
+                  ref="link"
+                  type="text"
+                  aria-label="Paste a link or embed code"
+                  title="Paste a link or embed code"
+                  v-model="featured[index].content[i]"
+                  placeholder="Paste a link or embed code"
+                />
+              </div>
+              <button
+                class="p-1 m-2 shrink-0 focus:outline-none rounded hover:bg-gray-700 focus:bg-gray-700 transition-colors duration-200"
+                @click="removeItem(i)"
+                aria-label="Remove field"
+                title="Remove field"
+              >
+                <div class="w-6 h-6" v-html="$icon('x')"></div>
+              </button>
             </div>
-            <button
-              class="p-1 m-2 shrink-0 focus:outline-none rounded hover:bg-gray-700 focus:bg-gray-700 transition-colors duration-200"
-              @click="removeItem(i)"
-              aria-label="Remove field"
-              title="Remove field"
-            >
-              <div class="w-6 h-6" v-html="$icon('x')"></div>
-            </button>
+            <!-- Without this the card just renders nothing and never says why. -->
+            <p v-if="unresolved(item)" class="ml-8 mt-1 text-sm text-amber-500">
+              {{ EMBED_HINT }}
+            </p>
           </div>
         </div>
       </transition-group>
@@ -216,6 +225,7 @@
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue'
 import type {
+  FeaturedContent,
   FeaturedSection,
   MediaContent,
   MediaKind,
@@ -231,6 +241,7 @@ import type {
 import { convertFileToBuffer } from 'id3-parser/lib/util.js'
 import id3 from 'id3-parser'
 import { errorText } from '~/utils/errors'
+import { EMBED_HINT, resolveEmbed } from '~/utils/embed'
 
 const parse = typeof id3 === 'function' ? id3 : id3.default
 // pdf.js used to be vendored under assets/scripts and pulled in with CommonJS
@@ -279,6 +290,8 @@ export default defineComponent({
   data() {
     return {
       dragOver: false,
+      // Constant, but the template can only read it through the instance.
+      EMBED_HINT,
     }
   },
   components: {
@@ -291,6 +304,16 @@ export default defineComponent({
     },
   },
   methods: {
+    /**
+     * A link entry the user has typed into that the card cannot embed.
+     *
+     * Empty is not unresolved — a freshly added row should not scold you
+     * before you have typed anything.
+     */
+    unresolved(item: FeaturedContent): boolean {
+      if (typeof item !== 'string' || !item.trim()) return false
+      return resolveEmbed(item) === null
+    },
     mediaType(t: string): MediaKind | undefined {
       switch (true) {
         case t === 'image/jpeg' || t === 'image/png':

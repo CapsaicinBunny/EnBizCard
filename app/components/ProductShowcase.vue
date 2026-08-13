@@ -10,7 +10,7 @@
       alt="Product image"
     />
     <div class="controls cardColor prodInfo">
-      <p class="title">
+      <p v-if="product.title" class="title">
         {{ product.title }}
       </p>
       <p v-if="product.description" class="sub">
@@ -20,7 +20,7 @@
         {{ product.price }}
       </p>
       <a
-        v-if="product.label"
+        v-if="product.label && product.link"
         class="label"
         :style="{
           backgroundColor: `${colors.buttonBg.color}`,

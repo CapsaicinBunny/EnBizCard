@@ -522,7 +522,10 @@
               </div>
             </div>
             <p class="mt-6 border p-4 rounded border-gray-700 text-gray-400">
-              Supported media formats: jpeg, png, mp3, mp4, webm and pdf
+              Sections hold anything that is not a contact detail — photos of
+              your work, a price list, a certificate, a short video. Media
+              formats: jpeg, png, mp3, mp4, webm and pdf. Embeds accept a
+              YouTube, Vimeo or Instagram link.
             </p>
           </div>
         </div>

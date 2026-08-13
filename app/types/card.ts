@@ -392,6 +392,24 @@ export interface ProductContent {
   link: string | null
 }
 
+/**
+ * Whether a product has anything worth putting on the card.
+ *
+ * Preview.vue used to gate the whole showcase on `title`, so a product with a
+ * photo and a price but no title vanished from the card with nothing to say
+ * why. Any one of these fields is a product worth showing; the button needs
+ * both halves, because a label with no link is not something to click.
+ */
+export function hasProductContent(product: ProductContent): boolean {
+  return Boolean(
+    product.image ||
+    product.title ||
+    product.description ||
+    product.price ||
+    (product.label && product.link),
+  )
+}
+
 export interface TextContent {
   contentType: 'text'
   value: string | null
