@@ -82,6 +82,26 @@ interface ActionBase {
   placeholder: string
   value: string | null
   label: string
+  /**
+   * The user's own wording for this row, and what the card and the vCard show
+   * in place of `name`. Two rows use it: a contact row whose `contactType` is
+   * the group's 'Custom' entry, and a custom social profile, where it is the
+   * service's name.
+   */
+  customLabel?: string | null
+  /**
+   * Set on actions that may be added more than once. `addAction()` clones the
+   * template instead of moving it, and `removeAction()` drops the clone rather
+   * than returning it to the pool — otherwise the picker would grow a
+   * duplicate entry every time a row was deleted.
+   */
+  repeatable?: Flag
+  /**
+   * Identifies a row for `v-for` keys. Assigned by `addAction()` rather than
+   * authored in the tables: a repeatable row keyed by `name` gives two Phones
+   * the same key, and Vue then reuses the wrong DOM when the list reorders.
+   */
+  rowId?: number
 }
 
 /**
@@ -182,13 +202,6 @@ export interface PrimaryAction extends ActionBase {
   order: number
   isURL?: Flag
   /**
-   * Set on actions that may be added more than once. `addAction()` clones the
-   * template instead of moving it, and `removeAction()` drops the clone rather
-   * than returning it to the pool — otherwise the picker would grow a
-   * duplicate entry every time a row was deleted.
-   */
-  repeatable?: Flag
-  /**
    * Set on rows that offer a type dropdown, and the reason they are
    * repeatable: one entry per number or address, each choosing its own type.
    * Phone replaced three fixed Mobile/Office/Home actions whose *names* used
@@ -197,8 +210,6 @@ export interface PrimaryAction extends ActionBase {
   typeGroup?: ContactTypeGroup
   /** The currently selected `ContactType.label` within `typeGroup`. */
   contactType?: string
-  /** What the user typed when `contactType` is the group's 'Custom' entry. */
-  customLabel?: string | null
   /**
    * Set on rows that collect several values instead of one, which is what let
    * Address and Work move in here from the fixed Contact-information block —
@@ -251,6 +262,17 @@ export interface SecondaryAction extends ActionBase {
   light?: Flag
   /** Icon carries its own gradient `<defs>` and needs id randomisation. */
   gradientIcon?: Flag
+  /**
+   * A profile the app has no entry for: the user supplies the name, the link,
+   * the chip colour and the icon themselves.
+   */
+  custom?: Flag
+  /**
+   * Sanitised SVG source for a custom row, inlined in place of a bundled icon.
+   * Always the output of `sanitiseSVG()` — it goes straight into `v-html` and
+   * into the exported card, so raw upload text must never reach it.
+   */
+  customIcon?: string | null
 }
 
 /** Browsing groups used by the profile picker in the editor. */

@@ -287,7 +287,7 @@
                     target="_blank"
                     rel="noopener noreferrer"
                     :style="{ background: item.color }"
-                    :aria-label="item.name"
+                    :aria-label="item.customLabel || item.name"
                   >
                     <div class="icon" v-html="$getSVG(item)"></div>
                   </a>

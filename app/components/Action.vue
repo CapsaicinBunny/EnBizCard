@@ -47,6 +47,17 @@
           {{ option.label }}
         </option>
       </select>
+      <!-- A custom social row is named by the user: 'Custom' is the template's
+           name, not the service's, and the card and vCard both show this. -->
+      <input
+        v-if="item.custom"
+        class="px-3 w-28 h-12 shrink-0 bg-black placeholder-gray-600 border-y border-transparent text-sm focus:outline-none focus:border-gray-600 hover:border-gray-600 transition-colors duration-200"
+        type="text"
+        :aria-label="'Profile name'"
+        title="Profile name"
+        v-model="type[index].customLabel"
+        placeholder="Name"
+      />
       <!-- Only for the 'Custom' type, which is the one case where the label is
            the user's own words rather than a fixed vCard TYPE. -->
       <input
@@ -88,6 +99,39 @@
         <div class="w-6 h-6" v-html="$icon('x')"></div>
       </button>
     </div>
+    <!-- The icon and colour for a custom profile. Its own line because the
+         chip on the line above is the live preview of both. -->
+    <div v-if="item.custom" class="flex items-center gap-3 mt-3 ml-7">
+      <label
+        class="px-3 h-10 flex items-center rounded border border-gray-700 text-sm cursor-pointer hover:border-gray-500 transition-colors duration-200"
+      >
+        <div class="w-4 h-4 mr-2" v-html="$icon('add-img')"></div>
+        {{ item.customIcon ? 'Replace icon' : 'Upload SVG icon' }}
+        <input
+          type="file"
+          accept="image/svg+xml,.svg"
+          class="hidden"
+          @change="uploadIcon"
+        />
+      </label>
+      <button
+        v-if="item.customIcon"
+        class="px-3 h-10 rounded border border-gray-700 text-sm hover:border-gray-500 transition-colors duration-200"
+        @click="type[index].customIcon = null"
+      >
+        Remove icon
+      </button>
+      <label class="flex items-center gap-2 text-sm text-gray-400">
+        Colour
+        <input
+          type="color"
+          class="w-10 h-10 bg-black rounded border border-gray-700 cursor-pointer"
+          aria-label="Chip colour"
+          :value="item.color"
+          @input="type[index].color = $event.target.value"
+        />
+      </label>
+    </div>
     <div v-if="item.fields" class="grid grid-cols-2 gap-4 mt-3 ml-7 mr-10">
       <label
         v-for="field in item.fields"
@@ -110,8 +154,15 @@
 
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue'
-import type { CardAction, ContactType, ContactTypeGroup } from '~/types/card'
+import type {
+  CardAction,
+  ContactType,
+  ContactTypeGroup,
+  SecondaryAction,
+} from '~/types/card'
 import { CONTACT_TYPES, contactTypeFor } from '~/types/card'
+import { sanitiseSVG, SVGError } from '~/utils/svg'
+import { errorText } from '~/utils/errors'
 
 export default defineComponent({
   props: {
@@ -132,6 +183,11 @@ export default defineComponent({
       >,
       required: true,
     },
+    /** Only the custom-icon upload reports through this. */
+    showAlert: {
+      type: Function as PropType<(content: string) => void>,
+      default: () => {},
+    },
   },
   computed: {
     /** Undefined on every secondary action and on untyped primary rows. */
@@ -145,6 +201,37 @@ export default defineComponent({
       if (!this.group) return false
       const selected = (this.item as { contactType?: string }).contactType
       return Boolean(contactTypeFor(this.group, selected).custom)
+    },
+  },
+  methods: {
+    /**
+     * Read an uploaded SVG, sanitise it and store the result on the row.
+     *
+     * Every failure path reports: the two attach handlers in Featured.vue
+     * used to swallow theirs, and a dependency breakage there showed up as an
+     * attachment that simply never appeared. The input is cleared afterwards
+     * so picking the same file twice still fires a change event.
+     */
+    async uploadIcon(event: Event) {
+      const input = event.target as HTMLInputElement
+      const file = input.files?.[0]
+      input.value = ''
+      if (!file) return
+      try {
+        const svg = sanitiseSVG(
+          await file.text(),
+          // Namespaces the file's ids. Per row, so two custom icons in one
+          // exported document cannot share a gradient or clip-path id.
+          `c${this.item.rowId ?? this.index}`,
+        )
+        ;(this.type[this.index] as SecondaryAction).customIcon = svg
+      } catch (error) {
+        this.showAlert(
+          error instanceof SVGError
+            ? error.message
+            : `That icon could not be read. ${errorText(error)}`,
+        )
+      }
     },
   },
   mounted() {

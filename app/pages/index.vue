@@ -290,13 +290,14 @@
             >
               <Action
                 v-for="(item, index) in primaryActions"
-                :key="item.name"
+                :key="item.rowId"
                 name="primaryActions"
                 :type="primaryActions"
                 :item="item"
                 :index="index"
                 :buttonBg="colors.buttonBg.color"
                 :removeAction="removeAction"
+                :showAlert="showAlert"
               />
             </transition-group>
           </VueDraggable>
@@ -392,12 +393,13 @@
             >
               <Action
                 v-for="(item, index) in secondaryActions"
-                :key="item.name"
+                :key="item.rowId"
                 name="secondaryActions"
                 :type="secondaryActions"
                 :item="item"
                 :index="index"
                 :removeAction="removeAction"
+                :showAlert="showAlert"
               />
             </transition-group>
           </VueDraggable>
@@ -1020,6 +1022,7 @@ const POPULAR_SECONDARY_ACTIONS: readonly string[] = [
   'Spotify',
   'PayPal',
   'Threads',
+  'Custom',
 ]
 
 const SECONDARY_ACTION_GROUPS: Record<
@@ -1459,6 +1462,21 @@ export default defineComponent({
           // },
         ],
         secondaryActions: [
+          // For services the app has no entry for. Repeatable, because the
+          // point of it is the long tail — one row per profile, each with its
+          // own name, link, colour and uploaded icon.
+          {
+            name: 'Custom',
+            icon: 'add',
+            placeholder: 'https://example.com/your-profile',
+            value: null,
+            color: '#334155',
+            label: 'Profile URL',
+            custom: 1,
+            repeatable: 1,
+            customLabel: null,
+            customIcon: null,
+          },
           // todo: Fix Instagram gradient icon preview
           {
             name: 'Instagram',
@@ -1984,6 +2002,8 @@ export default defineComponent({
           content: [],
         },
       ] as FeaturedSection[],
+      /** Hands out `rowId`s. See `ActionBase.rowId` for why they exist. */
+      rowSeq: 0,
       hostedURL: null as string | null,
       footerCredit: true,
       PreviewMode: true,
@@ -2158,7 +2178,9 @@ export default defineComponent({
           if (e.name === 'Website') return false
           if (e.isURL && e.value) {
             return {
-              title: e.name,
+              // A custom profile is named by the user, so 'Custom' would be
+              // the X-ABLabel on every one of them.
+              title: e.customLabel || e.name,
               url:
                 (e.href ? e.href : '') + e.value + (e.hrefEnd ? e.hrefEnd : ''),
               property: (e as PrimaryAction).vcardProperty,
@@ -2324,9 +2346,11 @@ export default defineComponent({
         // at the template's one record, so they would all read alike.
         this[type].push({
           ...template,
+          rowId: ++this.rowSeq,
           ...(template.values ? { values: { ...template.values } } : {}),
         })
       } else {
+        template.rowId = ++this.rowSeq
         this[type].push(template)
         this.actions[type].splice(index, 1)
       }
