@@ -54,16 +54,22 @@ const ki = document.getElementById('keyView')
  * Rewritten rather than resolved at click time so the status bar and "copy
  * link address" show where the link really goes.
  */
-const addr = document.getElementById('bizaddr')
-if (addr) {
-  const q = encodeURIComponent((addr.textContent ?? '').trim())
-  const ua = navigator.userAgent
-  if (/iPhone|iPad|iPod|Macintosh/.test(ua)) {
-    addr.setAttribute('href', `https://maps.apple.com/?q=${q}`)
-  } else if (/Android/.test(ua)) {
+const ua = navigator.userAgent
+const apple = /iPhone|iPad|iPod|Macintosh/.test(ua)
+const android = /Android/.test(ua)
+if (apple || android) {
+  // A class, not an id: a card can list several addresses.
+  for (const addr of document.querySelectorAll('.bizaddr')) {
+    // From the attribute, not the text: the visible text is prefixed with the
+    // address's label when the card lists more than one, and feeding "Work:"
+    // to a geocoder is how you end up somewhere else entirely.
+    const q = encodeURIComponent(addr.getAttribute('data-address') ?? '')
     // `geo:0,0?q=` is the free-text search form: no coordinates are known
     // here, and 0,0 is the documented placeholder for that case.
-    addr.setAttribute('href', `geo:0,0?q=${q}`)
+    addr.setAttribute(
+      'href',
+      apple ? `https://maps.apple.com/?q=${q}` : `geo:0,0?q=${q}`,
+    )
   }
 }
 

@@ -197,30 +197,35 @@
                 ({{ genInfo.pronouns }})
               </p>
               <p class="jobtitle">
-                {{ genInfo.title }}
+                {{ workValues.title }}
               </p>
               <!-- Reuses .jobtitle rather than adding a class, which would
                    mean editing three SCSS sources, three prebuilt .min.css
                    files and the three inline theme blocks in this file. -->
-              <p v-if="genInfo.dept" class="jobtitle">
-                {{ genInfo.dept }}
+              <p v-if="workValues.dept" class="jobtitle">
+                {{ workValues.dept }}
               </p>
               <p class="bizname">
-                {{ genInfo.biz }}
+                {{ workValues.org }}
               </p>
-              <!-- A link, not text: `id` is what main.ts looks up in the
-                   exported card to swap this OpenStreetMap URL for a `geo:`
-                   or Apple Maps one, so the address opens the phone's own map
-                   app. Without JS the href still resolves. -->
+              <!-- Links, not text: the class is what main.ts looks up in the
+                   exported card to swap these OpenStreetMap URLs for `geo:`
+                   or Apple Maps ones, so an address opens the phone's own map
+                   app. Without JS the href still resolves. A card can carry
+                   several addresses, so each is labelled once there is more
+                   than one to tell apart. -->
               <a
-                v-if="hasAddress"
-                id="bizaddr"
+                v-for="(addr, i) in addressRows"
+                :key="'ad' + i"
                 class="bizaddr textColor"
-                :href="mapURL"
+                :data-address="addr.text"
+                :href="addr.url"
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                {{ formattedAddress }}
+                <template v-if="addressRows.length > 1"
+                  >{{ addr.label }}: </template
+                >{{ addr.text }}
               </a>
             </div>
             <p class="sub textColor" v-if="genInfo.desc">
@@ -242,7 +247,7 @@
             <div class="actions">
               <div
                 class="actionsC"
-                v-for="(item, index) in primaryActions"
+                v-for="(item, index) in buttonActions"
                 :key="'pa' + index"
               >
                 <div class="actionBtn">
@@ -456,14 +461,36 @@ export default defineComponent({
       ].filter(Boolean)
       return parts.length > 0 ? parts.join(' ') : null
     },
-    hasAddress(): boolean {
-      return hasAddress(this.genInfo.address)
+    /**
+     * The Work row's three values, or empty ones until a Work row is added.
+     * These were fixed genInfo fields before Work became a primary action.
+     */
+    workValues(): Record<string, string | null> {
+      return (
+        this.primaryActions.find((a) => a.name === 'Work')?.values ?? {
+          title: null,
+          dept: null,
+          org: null,
+        }
+      )
     },
-    formattedAddress(): string {
-      return formatAddress(this.genInfo.address)
+    /** One entry per Address row with anything filled in. */
+    addressRows(): { label: string; text: string; url: string }[] {
+      return this.primaryActions
+        .filter((a) => a.name === 'Address' && hasAddress(a.values))
+        .map((a) => ({
+          label: a.customLabel || a.contactType || 'Address',
+          text: formatAddress(a.values),
+          url: mapSearchURL(a.values),
+        }))
     },
-    mapURL(): string {
-      return mapSearchURL(this.genInfo.address)
+    /**
+     * Only the rows that render as a tappable circle. Address and Work carry
+     * several values and are drawn in the header instead, so leaving them in
+     * would put an icon with no single link under the Save Contact button.
+     */
+    buttonActions(): PrimaryAction[] {
+      return this.primaryActions.filter((a) => !a.fields)
     },
     hasOnlyProfilePic(): boolean {
       return !(this.images.cover.url || this.images.logo.url)

@@ -246,7 +246,7 @@ export function buildVCard(data: VCardData): string {
       ),
     )
 
-  if (data.address) lines.push(...address(data.address, group))
+  for (const addr of data.addresses) lines.push(...address(addr, group))
 
   lines.push(...typedLines('TEL', data.phones, group, (v) => `tel:${v}`))
   if (data.sms)

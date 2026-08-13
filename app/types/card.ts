@@ -38,25 +38,6 @@ export interface Colour {
 
 export type CardColours = Record<ColourSlot, Colour>
 
-/**
- * A postal address, split into the components RFC 6350 6.3.1 defines.
- *
- * It used to be one free-text textarea, which could only ever be dumped into
- * ADR's street slot: an address book that received it could not sort by city,
- * and no map application could parse it reliably. `type` is a
- * `CONTACT_TYPES.address` label, and `label` carries the user's own wording
- * when that type is 'Custom'.
- */
-export interface CardAddress {
-  type: string
-  label: string | null
-  street: string | null
-  city: string | null
-  region: string | null
-  postcode: string | null
-  country: string | null
-}
-
 /** Free-text fields. Every one is optional from the user's point of view. */
 export interface GenInfo {
   /** Honorific before the name — Dr, Prof, Ms. Maps to N's 4th component. */
@@ -75,11 +56,6 @@ export interface GenInfo {
   phoneticLast: string | null
   nickname: string | null
   pronouns: string | null
-  title: string | null
-  /** Organisational unit. ORG's second component, after the company name. */
-  dept: string | null
-  biz: string | null
-  address: CardAddress
   desc: string | null
   /** ASCII-armoured PGP public key. */
   key: string | null
@@ -217,6 +193,30 @@ export interface PrimaryAction extends ActionBase {
   contactType?: string
   /** What the user typed when `contactType` is the group's 'Custom' entry. */
   customLabel?: string | null
+  /**
+   * Set on rows that collect several values instead of one, which is what let
+   * Address and Work move in here from the fixed Contact-information block —
+   * an address only becomes repeatable once it is an action like any other.
+   * `value` stays null on these; the data lives in `values`.
+   */
+  fields?: readonly ActionField[]
+  /**
+   * Values for `fields`, keyed by `ActionField.key`. Always cloned when a
+   * repeatable row is added: sharing the template's object would make every
+   * address on the card the same address.
+   */
+  values?: Record<string, string | null>
+}
+
+/** One input inside a multi-field action row. */
+export interface ActionField {
+  key: string
+  label: string
+  placeholder?: string
+  /** Browser autofill hint, so an address can be filled in one gesture. */
+  autocomplete?: string
+  /** Give the field a whole row of the two-column grid. */
+  wide?: true
 }
 
 /** Browsing groups used by the primary action picker in the editor. */
@@ -415,8 +415,8 @@ export interface VCardData {
   title: string | null
   org: string | null
   dept: string | null
-  /** Null when the user has filled in none of the five components. */
-  address: VCardAddress | null
+  /** One per Address row that has any component filled in. */
+  addresses: VCardAddress[]
   /** Carried as `X-PRONOUNS`; RFC 6350 registers no property for these. */
   pronouns: string | null
   /**

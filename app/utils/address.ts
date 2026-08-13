@@ -1,17 +1,29 @@
 /**
- * Address formatting, shared by the editor and the preview.
+ * Address formatting, shared by the editor, the preview and the export.
  *
- * In a .ts file rather than duplicated in the two SFCs so it is actually
+ * In a .ts file rather than duplicated in the SFCs so it is actually
  * type-checked, and so the string the card displays is provably the same one
  * the map link searches for — they used to be able to drift.
+ *
+ * The input is an action row's `values` record rather than a dedicated type,
+ * because an Address is a multi-field primary action now: its components are
+ * keyed by `ActionField.key` exactly like any other such row.
  */
-import type { CardAddress } from '~/types/card'
+export type AddressValues = Record<string, string | null>
+
+/** The five components, in the order ADR and a postal envelope put them. */
+export const ADDRESS_KEYS = [
+  'street',
+  'city',
+  'region',
+  'postcode',
+  'country',
+] as const
 
 /** True once any component is filled. ADR and the map link both key off it. */
-export function hasAddress(addr: CardAddress): boolean {
-  return Boolean(
-    addr.street || addr.city || addr.region || addr.postcode || addr.country,
-  )
+export function hasAddress(values: AddressValues | undefined): boolean {
+  if (!values) return false
+  return ADDRESS_KEYS.some((key) => values[key])
 }
 
 /**
@@ -21,18 +33,19 @@ export function hasAddress(addr: CardAddress): boolean {
  * is how a postal address writes them — a geocoder reads "London NW1 6XE" as
  * one locality and "London, NW1 6XE" as two competing fragments.
  */
-export function formatAddress(addr: CardAddress): string {
+export function formatAddress(values: AddressValues | undefined): string {
+  if (!values) return ''
   const locality = [
-    addr.city,
-    [addr.region, addr.postcode].filter(Boolean).join(' '),
+    values.city,
+    [values.region, values.postcode].filter(Boolean).join(' '),
   ]
     .filter(Boolean)
     .join(', ')
-  return [addr.street, locality, addr.country].filter(Boolean).join(', ')
+  return [values.street, locality, values.country].filter(Boolean).join(', ')
 }
 
 /**
- * Where the address links to when JavaScript never runs.
+ * Where an address links to when JavaScript never runs.
  *
  * OpenStreetMap because it works in every browser, needs no app installed,
  * and adds no third-party tracking to a card whose whole premise is that
@@ -41,8 +54,8 @@ export function formatAddress(addr: CardAddress): string {
  * phone's own map application; neither survives as a static fallback, which
  * is why the plain link has to be a web one.
  */
-export function mapSearchURL(addr: CardAddress): string {
+export function mapSearchURL(values: AddressValues | undefined): string {
   return `https://www.openstreetmap.org/search?query=${encodeURIComponent(
-    formatAddress(addr),
+    formatAddress(values),
   )}`
 }

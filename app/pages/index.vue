@@ -242,129 +242,6 @@
               class="mt-2 px-4 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
             />
           </div>
-          <h3 class="mt-10 font-bold text-lg">Work</h3>
-          <div class="stepC mt-4 grid grid-cols-2 gap-4">
-            <div class="col-span-2">
-              <label for="job-title" class="ml-4">Job title</label>
-              <input
-                id="job-title"
-                type="text"
-                spellcheck="true"
-                autocapitalize="words"
-                v-model="genInfo.title"
-                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
-              />
-            </div>
-            <div>
-              <label for="department" class="ml-4">Department</label>
-              <input
-                id="department"
-                type="text"
-                spellcheck="true"
-                autocapitalize="words"
-                v-model="genInfo.dept"
-                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
-              />
-            </div>
-            <div>
-              <label for="business-name" class="ml-4">Company</label>
-              <input
-                id="business-name"
-                spellcheck="false"
-                type="text"
-                v-model="genInfo.biz"
-                autocapitalize="words"
-                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
-              />
-            </div>
-          </div>
-          <h3 class="mt-10 font-bold text-lg">Address</h3>
-          <div class="stepC mt-4 grid grid-cols-2 gap-4">
-            <div>
-              <label for="address-type" class="ml-4">Type</label>
-              <select
-                id="address-type"
-                v-model="genInfo.address.type"
-                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
-              >
-                <option
-                  v-for="option in addressTypes"
-                  :key="option.label"
-                  :value="option.label"
-                >
-                  {{ option.label }}
-                </option>
-              </select>
-            </div>
-            <div v-if="addressIsCustom">
-              <label for="address-label" class="ml-4">Label</label>
-              <input
-                id="address-label"
-                type="text"
-                v-model="genInfo.address.label"
-                placeholder="Studio"
-                autocapitalize="words"
-                class="mt-2 px-4 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
-              />
-            </div>
-          </div>
-          <div class="stepC mt-4">
-            <label for="address-street" class="ml-4">Street</label>
-            <input
-              id="address-street"
-              type="text"
-              v-model="genInfo.address.street"
-              autocapitalize="words"
-              autocomplete="street-address"
-              class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
-            />
-          </div>
-          <div class="stepC mt-4 grid grid-cols-2 gap-4">
-            <div>
-              <label for="address-city" class="ml-4">City</label>
-              <input
-                id="address-city"
-                type="text"
-                v-model="genInfo.address.city"
-                autocapitalize="words"
-                autocomplete="address-level2"
-                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
-              />
-            </div>
-            <div>
-              <label for="address-region" class="ml-4">State</label>
-              <input
-                id="address-region"
-                type="text"
-                v-model="genInfo.address.region"
-                autocapitalize="words"
-                autocomplete="address-level1"
-                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
-              />
-            </div>
-            <div>
-              <label for="address-postcode" class="ml-4">Zip code</label>
-              <input
-                id="address-postcode"
-                type="text"
-                spellcheck="false"
-                v-model="genInfo.address.postcode"
-                autocomplete="postal-code"
-                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
-              />
-            </div>
-            <div>
-              <label for="address-country" class="ml-4">Country</label>
-              <input
-                id="address-country"
-                type="text"
-                v-model="genInfo.address.country"
-                autocapitalize="words"
-                autocomplete="country-name"
-                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
-              />
-            </div>
-          </div>
           <div class="stepC mt-6">
             <label for="business-description" class="ml-4"
               >Business description
@@ -944,7 +821,7 @@ import type {
   ResizeTarget,
   VCardData,
 } from '~/types/card'
-import { abLabelFor, contactTypeFor, CONTACT_TYPES } from '~/types/card'
+import { abLabelFor, contactTypeFor } from '~/types/card'
 import { buildVCard } from '~/utils/vcard'
 import { hasAddress } from '~/utils/address'
 import { errorText } from '~/utils/errors'
@@ -1019,7 +896,7 @@ const PRIMARY_ACTION_CATEGORIES: ReadonlyArray<{
 
 const PRIMARY_ACTION_GROUPS: Record<PrimaryActionCategory, readonly string[]> =
   {
-    contact: ['Phone', 'Fax', 'SMS', 'Email'],
+    contact: ['Phone', 'Fax', 'SMS', 'Email', 'Address', 'Work'],
     messaging: [
       'WhatsApp',
       'Telegram',
@@ -1292,18 +1169,6 @@ export default defineComponent({
         phoneticLast: null,
         nickname: null,
         pronouns: null,
-        title: null,
-        dept: null,
-        biz: null,
-        address: {
-          type: 'Work',
-          label: null,
-          street: null,
-          city: null,
-          region: null,
-          postcode: null,
-          country: null,
-        },
         desc: null,
         key: null,
         tracker: null,
@@ -1384,13 +1249,74 @@ export default defineComponent({
             contactType: 'Work',
             customLabel: null,
           },
+          // Address and Work are multi-field rows, which is what let them
+          // leave the fixed Contact-information block: an address is only
+          // repeatable once it is an action that can be added like any other.
+          {
+            name: 'Address',
+            icon: 'location',
+            placeholder: '',
+            value: null,
+            label: 'Address',
+            order: 4,
+            isURL: 0,
+            repeatable: 1,
+            typeGroup: 'address',
+            contactType: 'Work',
+            customLabel: null,
+            fields: [
+              {
+                key: 'street',
+                label: 'Street',
+                autocomplete: 'street-address',
+                wide: true,
+              },
+              { key: 'city', label: 'City', autocomplete: 'address-level2' },
+              { key: 'region', label: 'State', autocomplete: 'address-level1' },
+              {
+                key: 'postcode',
+                label: 'Zip code',
+                autocomplete: 'postal-code',
+              },
+              {
+                key: 'country',
+                label: 'Country',
+                autocomplete: 'country-name',
+              },
+            ],
+            values: {
+              street: null,
+              city: null,
+              region: null,
+              postcode: null,
+              country: null,
+            },
+          },
+          // Not repeatable: vCard has no way to pair a TITLE with a particular
+          // ORG, so two jobs would import as two titles and two companies with
+          // nothing saying which belongs to which.
+          {
+            name: 'Work',
+            icon: 'work',
+            placeholder: '',
+            value: null,
+            label: 'Work details',
+            order: 5,
+            isURL: 0,
+            fields: [
+              { key: 'title', label: 'Job title', wide: true },
+              { key: 'dept', label: 'Department' },
+              { key: 'org', label: 'Company' },
+            ],
+            values: { title: null, dept: null, org: null },
+          },
           {
             name: 'Website',
             icon: 'website',
             placeholder: 'https://example.com',
             value: null,
             label: 'Website URL',
-            order: 4,
+            order: 6,
             isURL: 1,
           },
           {
@@ -1399,7 +1325,7 @@ export default defineComponent({
             placeholder: 'https://example.com/storeID',
             value: null,
             label: 'Online Store URL',
-            order: 5,
+            order: 7,
             isURL: 1,
           },
           {
@@ -1408,7 +1334,7 @@ export default defineComponent({
             placeholder: 'https://osm.org/go/location',
             value: null,
             label: 'Map location URL',
-            order: 6,
+            order: 8,
             isURL: 1,
           },
 
@@ -1419,7 +1345,7 @@ export default defineComponent({
             placeholder: '+XXXXXXXXXXXX',
             value: null,
             label: 'Signal number with country code (no spaces)',
-            order: 10,
+            order: 12,
             isURL: 1,
           },
           {
@@ -1429,7 +1355,7 @@ export default defineComponent({
             placeholder: 'username',
             value: null,
             label: 'Telegram username',
-            order: 9,
+            order: 11,
             isURL: 1,
           },
           {
@@ -1439,7 +1365,7 @@ export default defineComponent({
             placeholder: '@username:matrix.org',
             value: null,
             label: 'Matrix userID',
-            order: 15,
+            order: 17,
             isURL: 1,
           },
           {
@@ -1448,7 +1374,7 @@ export default defineComponent({
             placeholder: 'https://wa.me/profileID',
             value: null,
             label: 'WhatsApp profile URL',
-            order: 8,
+            order: 10,
             isURL: 1,
           },
           {
@@ -1458,7 +1384,7 @@ export default defineComponent({
             placeholder: 'username',
             value: null,
             label: 'Messenger username',
-            order: 11,
+            order: 13,
             isURL: 1,
           },
           {
@@ -1468,7 +1394,7 @@ export default defineComponent({
             placeholder: 'LINE ID',
             value: null,
             label: 'Line profile ID',
-            order: 12,
+            order: 14,
             isURL: 1,
           },
           {
@@ -1478,7 +1404,7 @@ export default defineComponent({
             placeholder: 'XX XXXXX XXXXX',
             value: null,
             label: 'Viber mobile number',
-            order: 13,
+            order: 15,
             isURL: 1,
           },
           {
@@ -1488,7 +1414,7 @@ export default defineComponent({
             placeholder: 'WeChat ID',
             value: null,
             label: 'WeChat profile ID',
-            order: 14,
+            order: 16,
             isURL: 1,
           },
           {
@@ -1497,7 +1423,7 @@ export default defineComponent({
             placeholder: 'https://example.com/calendarID',
             value: null,
             label: 'Calendar URL',
-            order: 7,
+            order: 9,
             isURL: 1,
           },
           {
@@ -1507,7 +1433,7 @@ export default defineComponent({
             placeholder: 'XMPP ID',
             value: null,
             label: 'XMPP ID',
-            order: 16,
+            order: 18,
             isURL: 1,
           },
           {
@@ -1516,7 +1442,7 @@ export default defineComponent({
             placeholder: 'https://imo.im/...',
             value: null,
             label: 'imo invite link',
-            order: 17,
+            order: 19,
             isURL: 1,
           },
           // {
@@ -1526,7 +1452,7 @@ export default defineComponent({
           //   placeholder: 'IRC ID',
           //   value: null,
           //   label: 'IRC ID',
-          //   order: 18,
+          //   order: 20,
           //   isURL: 1,
           // },
         ],
@@ -2078,16 +2004,19 @@ export default defineComponent({
       ].filter(Boolean)
       return parts.length > 0 ? parts.join(' ') : null
     },
-    addressTypes() {
-      return CONTACT_TYPES.address
-    },
-    addressIsCustom() {
-      return Boolean(
-        contactTypeFor('address', this.genInfo.address.type).custom,
+    /**
+     * The single Work row, or undefined until one is added. Its three values
+     * are the card's job title, department and company — they were fixed
+     * genInfo fields until Work became an action.
+     */
+    workValues(): Record<string, string | null> {
+      return (
+        this.primaryActions.find((a) => a.name === 'Work')?.values ?? {
+          title: null,
+          dept: null,
+          org: null,
+        }
       )
-    },
-    hasAddress() {
-      return hasAddress(this.genInfo.address)
     },
     pubKeyIsValid() {
       if (this.genInfo.key) {
@@ -2240,8 +2169,24 @@ export default defineComponent({
         ? this.genInfo.desc.replaceAll(/[\r\n]+/gm, '')
         : null
       let key = this.pubKeyIsValid ? window.btoa(this.genInfo.key) : null
-      const addr = this.genInfo.address
-      const addressType = contactTypeFor('address', addr.type)
+      // One ADR per Address row that has anything in it. Rows the user added
+      // and left blank emit nothing at all.
+      const addresses = this.primaryActions
+        .filter((e) => e.name === 'Address' && hasAddress(e.values))
+        .map((e) => {
+          const type = contactTypeFor('address', e.contactType)
+          const v = e.values!
+          return {
+            type: type.vcard,
+            label: abLabelFor(type, e.customLabel),
+            street: v.street ?? null,
+            city: v.city ?? null,
+            region: v.region ?? null,
+            postcode: v.postcode ?? null,
+            country: v.country ?? null,
+          }
+        })
+      const work = this.workValues
       return {
         prefix: this.genInfo.prefix,
         fn: this.genInfo.fname,
@@ -2251,20 +2196,10 @@ export default defineComponent({
         phoneticFirst: this.genInfo.phoneticFirst,
         phoneticLast: this.genInfo.phoneticLast,
         nickname: this.genInfo.nickname,
-        title: this.genInfo.title,
-        org: this.genInfo.biz,
-        dept: this.genInfo.dept,
-        address: this.hasAddress
-          ? {
-              type: addressType.vcard,
-              label: abLabelFor(addressType, addr.label),
-              street: addr.street,
-              city: addr.city,
-              region: addr.region,
-              postcode: addr.postcode,
-              country: addr.country,
-            }
-          : null,
+        title: work.title,
+        org: work.org,
+        dept: work.dept,
+        addresses,
         pronouns: this.genInfo.pronouns,
         phones,
         emails,
@@ -2382,8 +2317,13 @@ export default defineComponent({
       if (template.repeatable) {
         // Stays in the pool so it can be picked again, and each row gets its
         // own object — pushing the template itself would make every phone
-        // share one `value` and one `contactType`.
-        this[type].push({ ...template })
+        // share one `value` and one `contactType`. `values` needs its own
+        // copy too: a shallow spread would leave every Address row pointing
+        // at the template's one record, so they would all read alike.
+        this[type].push({
+          ...template,
+          ...(template.values ? { values: { ...template.values } } : {}),
+        })
       } else {
         this[type].push(template)
         this.actions[type].splice(index, 1)
