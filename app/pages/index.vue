@@ -2207,7 +2207,6 @@ export default defineComponent({
         phones,
         emails,
         sms: getNumber('SMS'),
-        hostedURL: this.hostedURL,
         website,
         urls,
         key,

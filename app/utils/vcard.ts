@@ -263,8 +263,6 @@ export function buildVCard(data: VCardData): string {
   lines.push(...uri('PHOTO', data.photo))
   lines.push(...uri('LOGO', data.logo))
 
-  if (data.hostedURL)
-    lines.push(...labelledUrl(group, data.hostedURL, 'Digital Business Card'))
   if (data.website) lines.push(...uri('URL', data.website))
   for (const entry of data.urls)
     lines.push(...labelledUrl(group, entry.url, entry.title, entry.property))

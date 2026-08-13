@@ -453,7 +453,11 @@ export interface VCardData {
   phones: VCardTyped[]
   emails: VCardTyped[]
   sms: string | null
-  hostedURL: string | null
+  /**
+   * The Website action. Deliberately not the Hosting step's "Hosted card URL":
+   * that one configures where the export will be published, and it is not a
+   * fact about the person, so it has no business in their contact record.
+   */
   website: string | null
   urls: VCardUrl[]
   /** base64 of the PGP key, only set when it passes validation. */
