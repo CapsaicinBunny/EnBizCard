@@ -621,77 +621,117 @@
         <div id="step-9" class="mt-16">
           <h2 class="font-extrabold text-2xl">Fonts</h2>
           <p class="mt-2 text-gray-400">
-            Pick a font for your card, or choose Custom to paste an embed code
-            from any font service.
+            Headings and body text can use different fonts. Leave headings on
+            Default and they simply inherit the body font.
           </p>
-          <div
-            class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2"
-            aria-label="Card fonts"
-          >
-            <button
-              v-for="preset in fontPresets"
-              :key="preset.id"
-              type="button"
-              :aria-pressed="fontPreset === preset.id"
-              :title="`${preset.name} — ${preset.note}`"
-              @click="selectFontPreset(preset.id)"
-              class="px-3 py-2 text-left rounded border transition-colors duration-200 focus:outline-none focus:ring-3 ring-gray-100"
-              :class="
-                fontPreset === preset.id
-                  ? 'bg-emerald-600 border-emerald-500 text-white'
-                  : 'bg-gray-800 border-gray-700 hover:bg-gray-700'
-              "
+          <!--
+            One block per role, same preset list. `role.key` drives both the
+            selected-preset field and which half of genInfo is written, so
+            adding a third role would not need new markup.
+          -->
+          <div v-for="role in fontRoles" :key="role.key" class="mt-8">
+            <h3 class="font-extrabold text-lg">{{ role.label }}</h3>
+            <p class="mt-1 text-sm text-gray-500">{{ role.note }}</p>
+            <div
+              class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2"
+              :aria-label="`${role.label} font`"
             >
-              <span class="block font-extrabold truncate">{{
-                preset.name
-              }}</span>
-              <span
-                class="block text-xs truncate"
+              <button
+                v-for="preset in fontPresets"
+                :key="preset.id"
+                type="button"
+                :aria-pressed="selectedFont(role.key) === preset.id"
+                :title="`${preset.name} — ${preset.note}`"
+                @click="selectFontPreset(role.key, preset.id)"
+                class="px-3 py-2 text-left rounded border transition-colors duration-200 focus:outline-none focus:ring-3 ring-gray-100"
                 :class="
-                  fontPreset === preset.id
-                    ? 'text-emerald-100'
-                    : 'text-gray-500'
+                  selectedFont(role.key) === preset.id
+                    ? 'bg-emerald-600 border-emerald-500 text-white'
+                    : 'bg-gray-800 border-gray-700 hover:bg-gray-700'
                 "
-                >{{ preset.note }}</span
               >
-            </button>
+                <span class="block font-extrabold truncate">{{
+                  preset.name
+                }}</span>
+                <span
+                  class="block text-xs truncate"
+                  :class="
+                    selectedFont(role.key) === preset.id
+                      ? 'text-emerald-100'
+                      : 'text-gray-500'
+                  "
+                  >{{ preset.note }}</span
+                >
+              </button>
+            </div>
+            <p
+              v-if="
+                selectedFont(role.key) !== 'default' &&
+                selectedFont(role.key) !== 'custom'
+              "
+              class="mt-4 text-sm text-gray-500"
+            >
+              Loaded from Google Fonts. Your card stays self-hosted, but
+              readers' browsers will fetch the font file from Google when they
+              open it.
+            </p>
+            <div
+              v-show="selectedFont(role.key) === 'custom'"
+              class="stepC mt-4"
+            >
+              <label :for="`font-link-${role.key}`" class="ml-4"
+                >Web font embed code</label
+              >
+              <textarea
+                :id="`font-link-${role.key}`"
+                :value="
+                  role.key === 'heading'
+                    ? genInfo.headingLink
+                    : genInfo.fontLink
+                "
+                @input="
+                  setFontField(
+                    role.key,
+                    'link',
+                    ($event.target as HTMLTextAreaElement).value,
+                  )
+                "
+                class="block mt-2 px-4 py-3 w-full bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 resize-none hover:border-gray-600"
+                rows="4"
+                spellcheck="false"
+                :placeholder="`<link href=&quot;https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap&quot; rel=&quot;stylesheet&quot;>`"
+              ></textarea>
+            </div>
+            <div
+              v-show="selectedFont(role.key) === 'custom'"
+              class="stepC mt-4"
+            >
+              <label :for="`font-css-${role.key}`" class="ml-4"
+                >Web font CSS rule</label
+              >
+              <input
+                spellcheck="false"
+                type="text"
+                :id="`font-css-${role.key}`"
+                :value="
+                  role.key === 'heading' ? genInfo.headingCss : genInfo.fontCss
+                "
+                @input="
+                  setFontField(
+                    role.key,
+                    'css',
+                    ($event.target as HTMLInputElement).value,
+                  )
+                "
+                class="block mt-2 px-4 py-3 w-full bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 resize-none hover:border-gray-600"
+                :placeholder="`font-family: 'Poppins', sans-serif;`"
+              />
+            </div>
           </div>
-          <p
-            v-if="fontPreset !== 'default' && fontPreset !== 'custom'"
-            class="mt-4 text-sm text-gray-500"
-          >
-            Loaded from Google Fonts. Your card stays self-hosted, but readers'
-            browsers will fetch the font file from Google when they open it.
-          </p>
-          <div v-show="fontPreset === 'custom'" class="stepC mt-6">
-            <label for="font-link" class="ml-4">Web font embed code</label>
-            <textarea
-              id="font-link"
-              v-model="genInfo.fontLink"
-              class="block mt-2 px-4 py-3 w-full bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 resize-none hover:border-gray-600"
-              rows="4"
-              spellcheck="false"
-              :placeholder="`<link href=&quot;https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap&quot; rel=&quot;stylesheet&quot;>`"
-            ></textarea>
-          </div>
-          <div v-show="fontPreset === 'custom'" class="stepC mt-6">
-            <label for="font-css" class="ml-4">Web font CSS rule</label>
-            <input
-              spellcheck="false"
-              type="text"
-              id="font-css"
-              v-model="genInfo.fontCss"
-              class="block mt-2 px-4 py-3 w-full bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 resize-none hover:border-gray-600"
-              :placeholder="`font-family: 'Poppins', sans-serif;`"
-            />
-          </div>
-          <p
-            v-if="fontPreset === 'custom'"
-            class="mt-6 border p-4 rounded border-gray-700 text-gray-400"
-          >
-            Supports services such as Google Fonts, Adobe Typekit, etc. Make
-            sure to get the embed code for both regular and bold font variants
-            from the same font family.
+          <p class="mt-6 border p-4 rounded border-gray-700 text-gray-400">
+            Custom fonts support services such as Google Fonts, Adobe Typekit
+            and others. Get the embed code for both the regular and bold
+            variants from the same family — the card uses both.
           </p>
         </div>
         <div id="step-10" class="mt-16">
@@ -814,6 +854,7 @@ import type {
   DownloadCheckItem,
   FeaturedSection,
   FontPreset,
+  FontRole,
   ContactTypeGroup,
   GenInfo,
   PrimaryActionCategory,
@@ -940,9 +981,11 @@ const SECONDARY_ACTION_CATEGORIES: ReadonlyArray<{
 
 /**
  * Google Fonts embed tag for a family, at the regular and bold weights the
- * card actually uses. Both must come from one request: two separate <link>s
- * would not survive `getCssHref`, which reads only the first stylesheet it
- * finds in `fontLink`.
+ * card actually uses.
+ *
+ * One request per family is a convenience, not a constraint: Preview.vue
+ * collects every stylesheet link it finds across both roles, so a heading
+ * font and a body font load side by side.
  */
 function googleFontLink(family: string): string {
   const name = family.replaceAll(' ', '+')
@@ -1183,6 +1226,8 @@ export default defineComponent({
         tracker: null,
         fontLink: null,
         fontCss: null,
+        headingLink: null,
+        headingCss: null,
       } as GenInfo,
       // The subsets currently shown in the card, filled by addAction().
       primaryActions: [] as PrimaryAction[],
@@ -1199,6 +1244,7 @@ export default defineComponent({
       // also writes genInfo.fontLink/fontCss — the two fields stay the single
       // source of truth for what the card actually renders.
       fontPreset: 'default',
+      headingFontPreset: 'default',
       actions: {
         primaryActions: [
           // One Phone entry, added as many times as the card needs. Each row
@@ -2140,6 +2186,21 @@ export default defineComponent({
     secondaryActionCategories() {
       return SECONDARY_ACTION_CATEGORIES
     },
+    /** The two text roles a font can be chosen for. */
+    fontRoles(): ReadonlyArray<{ key: FontRole; label: string; note: string }> {
+      return [
+        {
+          key: 'heading',
+          label: 'Headings',
+          note: 'Your name, section titles and card titles.',
+        },
+        {
+          key: 'body',
+          label: 'Body text',
+          note: 'Everything else — descriptions, reviews, buttons.',
+        },
+      ]
+    },
     fontPresets() {
       return FONT_PRESETS
     },
@@ -2308,8 +2369,32 @@ export default defineComponent({
       ])
       return buildVCard({ ...this.vCard, photo, logo })
     },
-    selectFontPreset(id: string) {
-      this.fontPreset = id
+    /** Which preset card is lit for a role. */
+    selectedFont(role: FontRole): string {
+      return role === 'heading' ? this.headingFontPreset : this.fontPreset
+    },
+    /**
+     * Write one of a role's two custom fields.
+     *
+     * The inputs are :value + @input rather than v-model because which field
+     * they bind to depends on the role, and v-model cannot take an expression
+     * on the left.
+     */
+    setFontField(role: FontRole, field: 'link' | 'css', value: string) {
+      // Empty means "unset", matching what the presets store.
+      const stored = value.trim() ? value : null
+      if (role === 'heading') {
+        if (field === 'link') this.genInfo.headingLink = stored
+        else this.genInfo.headingCss = stored
+      } else if (field === 'link') {
+        this.genInfo.fontLink = stored
+      } else {
+        this.genInfo.fontCss = stored
+      }
+    },
+    selectFontPreset(role: FontRole, id: string) {
+      if (role === 'heading') this.headingFontPreset = id
+      else this.fontPreset = id
       // 'custom' only reveals the two fields; it deliberately leaves whatever
       // is in them alone, so switching to it after picking a preset gives the
       // user that preset's markup to edit rather than a blank box.
@@ -2317,9 +2402,17 @@ export default defineComponent({
       const preset = FONT_PRESETS.find((p) => p.id === id)
       if (!preset) return
       // Empty string means "no web font" — store null, which is what an
-      // untouched card carries and what Preview.vue's checks expect.
-      this.genInfo.fontLink = preset.link || null
-      this.genInfo.fontCss = preset.css || null
+      // untouched card carries and what Preview.vue's checks expect. For
+      // headings that also means "inherit the body font", which is why
+      // 'default' is the right resting state for the pair rather than a
+      // rule naming the reader's own sans.
+      if (role === 'heading') {
+        this.genInfo.headingLink = preset.link || null
+        this.genInfo.headingCss = preset.css || null
+      } else {
+        this.genInfo.fontLink = preset.link || null
+        this.genInfo.fontCss = preset.css || null
+      }
     },
     togglePreview() {
       this.opening = true

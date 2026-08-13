@@ -61,9 +61,40 @@ export interface GenInfo {
   key: string | null
   /** The user's own analytics snippet, copied verbatim into their export. */
   tracker: string | null
+  /**
+   * The body font: the embed markup and the `font-family` rule for it.
+   *
+   * Named without a role prefix because it predates headings having their own
+   * font, and renaming it would break nothing in this repo but would be a
+   * gratuitous churn of every reference. Read it as the body pair.
+   */
   fontLink: string | null
   fontCss: string | null
+  /**
+   * The heading font, applied to the name, section titles and card titles.
+   * Null means headings simply inherit the body font, which is what every
+   * card carried before this pair existed.
+   */
+  headingLink: string | null
+  headingCss: string | null
 }
+
+/**
+ * Which text a font applies to. The two roles are independent: either can be
+ * a preset, a custom embed, or left at the reader's own default.
+ */
+export type FontRole = 'body' | 'heading'
+
+/**
+ * Selectors the heading font claims.
+ *
+ * `.name` is the person's name, `.section` a featured section's heading, and
+ * `.title` the heading inside a media, product or carousel tile. The bare
+ * element selectors catch the modal's own headings. Everything else inherits
+ * the body font from `#body`, so this list is the whole definition of what
+ * "heading" means on a card.
+ */
+export const HEADING_SELECTORS = '.name, .section, .title, h1, h2, h3'
 
 /**
  * `0 | 1` rather than boolean because these values are authored inline in the
@@ -293,7 +324,7 @@ export type SecondaryActionCategory =
  * `link` and `css` are copied verbatim into `genInfo.fontLink` / `fontCss`, so
  * each must be exactly what a user would otherwise paste by hand: a
  * `<link rel="stylesheet">` tag, and a `font-family` declaration. Preview.vue
- * re-parses both (`getCssHref`, `getFontFamily`) rather than trusting them, so
+ * re-parses both (see app/utils/fonts.ts) rather than trusting them, so
  * a preset goes down the same path as typed input.
  *
  * The `default` preset carries empty strings, which clear both fields and let

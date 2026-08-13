@@ -36,7 +36,12 @@
             It is injected into the exported card's <head> by downloadPackage(),
             alongside the qrcode/modal/media scripts.
           -->
-          <link v-if="getCssHref" :href="getCssHref" rel="stylesheet" />
+          <link
+            v-for="href in getCssHrefs"
+            :key="href"
+            :href="href"
+            rel="stylesheet"
+          />
           <title>{{ getFullname }}'s Digital Business Card</title>
           <!-- `<component :is="'style'">` renders a real <style> element while
                sidestepping Vue 3's ban on <style> tags in templates. -->
@@ -69,11 +74,9 @@
             #info{ border-left: 0.25rem dashed {{ colors.buttonBg.color }} }
             .section{border-left: 0.25rem solid {{ colors.buttonBg.color }}}
           </component>
-          <component :is="'style'" v-if="getCssHref">
-            #body{
-            {{ genInfo.fontCss && getFontFamily }}
-            }
-          </component>
+          <component :is="'style'" v-if="getFontRules">{{
+            getFontRules
+          }}</component>
         </head>
         <body id="body">
           <div
@@ -548,12 +551,14 @@ import {
   hasProductContent,
   hasReviewContent,
   hasSlideContent,
+  HEADING_SELECTORS,
   MAX_RATING,
   slideFileName,
   starCount,
 } from '~/types/card'
 import { formatAddress, hasAddress, mapSearchURL } from '~/utils/address'
 import { resolveEmbed } from '~/utils/embed'
+import { fontFamilyRule, stylesheetHrefs } from '~/utils/fonts'
 
 export default defineComponent({
   props: {
@@ -648,22 +653,33 @@ export default defineComponent({
     // along with a watcher between them. `featured` is a list of sections, so
     // `featured.music` was always undefined: the watcher never fired and
     // nothing read `paused`. Removed rather than typed.
-    getCssHref(): string | false | null {
-      if (this.genInfo.fontLink) {
-        let html = new DOMParser().parseFromString(
-          this.genInfo.fontLink,
-          'text/html',
-        )
-        let link = Array.from(html.getElementsByTagName('link')).filter(
-          (e) => e.getAttribute('rel') === 'stylesheet',
-        )
-        return link.length > 0 && link[0].getAttribute('href')
+    /** Every font stylesheet the card needs, body and heading together. */
+    getCssHrefs(): string[] {
+      const hrefs = stylesheetHrefs(this.genInfo.fontLink)
+      for (const href of stylesheetHrefs(this.genInfo.headingLink)) {
+        // The two roles frequently share one request — the same preset picked
+        // for both, or one Google URL carrying two families.
+        if (!hrefs.includes(href)) hrefs.push(href)
       }
-      return false
+      return hrefs
     },
-    getFontFamily(): string | undefined {
-      const css = (this.genInfo.fontCss ?? '').replace(/\s+/, '')
-      return css.match(/^font-family[^;]*/)?.[0]
+    /**
+     * The font rules for the card, or '' when neither role has one.
+     *
+     * Built here rather than interpolated in the template so the selectors and
+     * the braces are in one place; a `<style>` assembled across template lines
+     * is where an unbalanced brace hides.
+     */
+    getFontRules(): string {
+      const rules: string[] = []
+      const body = fontFamilyRule(this.genInfo.fontCss)
+      const heading = fontFamilyRule(this.genInfo.headingCss)
+      if (body) rules.push(`#body{${body};}`)
+      // Emitted second so it wins over #body on equal specificity, and only
+      // when set — otherwise headings inherit the body font, which is the
+      // behaviour every card had before headings could differ.
+      if (heading) rules.push(`${HEADING_SELECTORS}{${heading};}`)
+      return rules.join('\n')
     },
   },
   methods: {
