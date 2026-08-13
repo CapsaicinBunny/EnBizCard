@@ -428,25 +428,51 @@ export interface TextContent {
  * a `typeof x === 'string'` check before touching any property.
  */
 /**
- * A horizontal strip of photos and clips, held as one item in a section.
+ * What a carousel may hold: everything a section can, except an embed and
+ * another carousel.
  *
- * Slides are ordinary `MediaContent`, so the attach path, the cover handling
- * and the export packaging all work unchanged — only 'image' and 'video' are
- * ever produced, because Carousel.vue accepts nothing else. Music and PDFs are
- * deliberately excluded: a document tile has no meaningful "next slide".
+ * The union is the guard against nesting — there is no `CarouselContent` arm,
+ * so a carousel inside a carousel does not typecheck rather than merely being
+ * discouraged. Embeds are left out because they are bare strings with no
+ * `contentType`, and an iframe inside a snapping scroller swallows the swipe.
+ */
+export type CarouselSlide =
+  | MediaContent
+  | ProductContent
+  | TextContent
+  | ReviewContent
+
+/**
+ * A horizontal strip of slides, held as one item in a section.
+ *
+ * Media slides stay ordinary `MediaContent`, so the attach path, the cover
+ * handling and the export packaging all work unchanged.
  */
 export interface CarouselContent {
   contentType: 'carousel'
-  slides: MediaContent[]
+  slides: CarouselSlide[]
 }
 
-/** What a carousel slide may be. Narrower than MediaKind by design. */
-export type CarouselSlideKind = Extract<MediaKind, 'image' | 'video'>
-
-export function isCarouselSlideKind(
-  kind: MediaKind | undefined,
-): kind is CarouselSlideKind {
-  return kind === 'image' || kind === 'video'
+/** Whether a slide carries anything worth rendering. */
+export function hasSlideContent(slide: CarouselSlide): boolean {
+  switch (slide.contentType) {
+    case 'media':
+      return true
+    case 'product':
+      return hasProductContent(slide)
+    case 'review':
+      return hasReviewContent(slide)
+    case 'text':
+      return Boolean(slide.value?.trim())
+    default: {
+      // Unreachable — every arm of CarouselSlide is handled above. The
+      // assignment to `never` is the point: adding a slide kind without
+      // teaching this function about it becomes a compile error, rather than
+      // a slide that silently renders as nothing.
+      const exhaustive: never = slide
+      return exhaustive
+    }
+  }
 }
 
 /**

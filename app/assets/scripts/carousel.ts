@@ -78,4 +78,51 @@ document.querySelectorAll<HTMLElement>('.carousel').forEach((carousel) => {
   }
 
   update()
+
+  /*
+   * Auto-rotation.
+   *
+   * Off entirely for a visitor who asked for reduced motion — content that
+   * moves on its own is the case the media query exists for, and this one
+   * carries text people are part-way through reading.
+   */
+  const ROTATE_MS = 5000
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+  let paused = false
+  const advance = () => {
+    if (paused) return
+    // Don't yank a clip away from someone watching it.
+    for (const video of track.querySelectorAll('video')) {
+      if (!video.paused) return
+    }
+    const index = currentIndex()
+    const width = slides[0]!.getBoundingClientRect().width
+    const last = index >= slides.length - 1
+    track.scrollTo({ left: last ? 0 : (index + 1) * width, behavior: 'smooth' })
+  }
+
+  const timer = window.setInterval(advance, ROTATE_MS)
+
+  // Pause while the visitor is reading or reaching for a control. `focusin`
+  // covers the keyboard path, which hover alone would leave rotating.
+  const hold = () => {
+    paused = true
+  }
+  const release = () => {
+    paused = false
+  }
+  carousel.addEventListener('pointerenter', hold)
+  carousel.addEventListener('pointerleave', release)
+  carousel.addEventListener('focusin', hold)
+  carousel.addEventListener('focusout', release)
+  // A touch swipe is a deliberate choice of slide; stop competing with it.
+  carousel.addEventListener('touchstart', () => window.clearInterval(timer), {
+    passive: true,
+  })
+  // Nothing to rotate while the tab is hidden, and browsers throttle the
+  // timer there anyway, which makes the first slide back a jump.
+  document.addEventListener('visibilitychange', () => {
+    paused = document.hidden
+  })
 })

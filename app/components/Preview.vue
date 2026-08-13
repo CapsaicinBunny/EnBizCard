@@ -364,44 +364,92 @@
                   :style="{ backgroundColor: `${colors.cardBg.color}` }"
                 >
                   <div class="track">
-                    <div
-                      class="slide"
-                      v-for="(slide, s) in item.slides"
-                      :key="'s' + s"
-                    >
-                      <img
-                        v-if="slide.type == 'image'"
-                        :src="
-                          PreviewMode
-                            ? slide.dataURI
-                            : `./media/${slideFileName(index, i, s, slide.ext)}`
-                        "
-                        :alt="slide.title ?? ''"
-                      />
-                      <MediaPlayer
-                        v-else
-                        ref="mediaPlayer"
-                        :media="slide"
-                        type="video"
-                        :colors="colors"
-                        :togglePlay="togglePlay"
-                        :PreviewMode="PreviewMode"
-                        :exportName="slideFileName(index, i, s, slide.ext)"
-                      />
-                      <p
-                        v-if="slide.type == 'image' && slide.title"
-                        class="caption cardColor"
-                      >
-                        {{ slide.title }}
-                      </p>
-                    </div>
+                    <!--
+                      `v-if` rather than a filtered list on purpose: `s` stays
+                      the slide's index in item.slides, which is what
+                      downloadPackage() names its file after. Filtering here
+                      would shift the indices and point every <img> at the
+                      wrong file.
+                    -->
+                    <template v-for="(slide, s) in item.slides" :key="'s' + s">
+                      <div class="slide" v-if="hasSlideContent(slide)">
+                        <template v-if="slide.contentType == 'media'">
+                          <img
+                            v-if="slide.type == 'image'"
+                            :src="
+                              PreviewMode
+                                ? slide.dataURI
+                                : `./media/${slideFileName(index, i, s, slide.ext)}`
+                            "
+                            :alt="slide.title ?? ''"
+                          />
+                          <MediaPlayer
+                            v-else
+                            ref="mediaPlayer"
+                            :media="slide"
+                            type="video"
+                            :colors="colors"
+                            :togglePlay="togglePlay"
+                            :PreviewMode="PreviewMode"
+                            :exportName="slideFileName(index, i, s, slide.ext)"
+                          />
+                          <p
+                            v-if="slide.type == 'image' && slide.title"
+                            class="caption cardColor"
+                          >
+                            {{ slide.title }}
+                          </p>
+                        </template>
+                        <ProductShowcase
+                          v-else-if="slide.contentType == 'product'"
+                          :product="slide"
+                          :colors="colors"
+                          :PreviewMode="PreviewMode"
+                          :exportName="
+                            slide.image
+                              ? slideFileName(index, i, s, slide.image.ext)
+                              : null
+                          "
+                        />
+                        <div
+                          v-else-if="slide.contentType == 'review'"
+                          class="review"
+                        >
+                          <p
+                            v-if="starCount(slide.rating)"
+                            class="stars"
+                            :aria-label="`${starCount(slide.rating)} out of 5`"
+                          >
+                            <span aria-hidden="true">{{
+                              stars(slide.rating)
+                            }}</span>
+                          </p>
+                          <p class="textC cardColor">{{ slide.body }}</p>
+                          <p class="attribution cardColor">
+                            <span v-if="slide.author">{{ slide.author }}</span>
+                            <span v-if="slide.source">
+                              {{ slide.author ? ' · ' : '' }}
+                              <a
+                                v-if="slide.link"
+                                class="cardColor"
+                                :href="slide.link"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >{{ slide.source }}</a
+                              >
+                              <template v-else>{{ slide.source }}</template>
+                            </span>
+                            <span v-if="slide.date"> · {{ slide.date }}</span>
+                          </p>
+                        </div>
+                        <p v-else class="textC cardColor">{{ slide.value }}</p>
+                      </div>
+                    </template>
                   </div>
                   <div class="cDots" :aria-hidden="true">
-                    <span
-                      v-for="(slide, s) in item.slides"
-                      :key="'d' + s"
-                      class="cDot"
-                    ></span>
+                    <template v-for="(slide, s) in item.slides" :key="'d' + s">
+                      <span v-if="hasSlideContent(slide)" class="cDot"></span>
+                    </template>
                   </div>
                 </div>
                 <div
@@ -499,6 +547,7 @@ import type {
 import {
   hasProductContent,
   hasReviewContent,
+  hasSlideContent,
   MAX_RATING,
   slideFileName,
   starCount,
@@ -632,6 +681,7 @@ export default defineComponent({
     /** Options API templates cannot see imports; re-expose them as methods. */
     hasProductContent,
     hasReviewContent,
+    hasSlideContent,
     slideFileName,
     starCount,
     /** The filled/empty star row for a rating, as text. */

@@ -2446,7 +2446,12 @@ export default defineComponent({
         } else if (type === 'product') {
           file = await this.featured[index1].content[index2].image.file
         } else if (type === 'carousel') {
-          file = await this.featured[index1].content[index2].slides[index3].file
+          // A slide is either media (its own file) or a product (its image).
+          const slide = this.featured[index1].content[index2].slides[index3]
+          file =
+            slide.contentType === 'product'
+              ? await slide.image.file
+              : await slide.file
         }
       } else {
         file = await this.images[type].blob
@@ -2505,8 +2510,10 @@ export default defineComponent({
                 } else if (type === 'product') {
                   this.featured[index1].content[index2].image.file = image
                 } else if (type === 'carousel') {
-                  this.featured[index1].content[index2].slides[index3].file =
-                    image
+                  const slide =
+                    this.featured[index1].content[index2].slides[index3]
+                  if (slide.contentType === 'product') slide.image.file = image
+                  else slide.file = image
                 }
               } else {
                 this.images[type].resized = image
@@ -2694,6 +2701,15 @@ export default defineComponent({
               // Named positionally, matching Preview.vue's <img src>. See
               // slideFileName() for why these are not title-derived.
               item.slides.forEach((slide, slideIndex) => {
+                // Only media and product slides carry a file; text and
+                // review slides are entirely inline in the HTML.
+                const asset =
+                  slide.contentType === 'media'
+                    ? { file: slide.file, ext: slide.ext }
+                    : slide.contentType === 'product' && slide.image
+                      ? { file: slide.image.file, ext: slide.image.ext }
+                      : null
+                if (!asset) return
                 zip
                   .folder(username)
                   .folder('media')
@@ -2702,9 +2718,9 @@ export default defineComponent({
                       sectionIndex,
                       itemIndex,
                       slideIndex,
-                      slide.ext,
+                      asset.ext,
                     ),
-                    slide.file,
+                    asset.file,
                   )
               })
             } else if (item.contentType === 'media') {

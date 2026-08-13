@@ -2,7 +2,8 @@
   <div class="mt-2 rounded bg-gray-900 p-2">
     <div class="flex items-center">
       <button
-        class="p-1 shrink-0 focus:outline-none drag cursor-move"
+        class="p-1 shrink-0 focus:outline-none cursor-move"
+        :class="dragClass"
         tabindex="-1"
       >
         <div class="w-6 h-6" v-html="$icon('drag')"></div>
@@ -90,6 +91,12 @@ import { MAX_RATING, type ReviewContent } from '~/types/card'
 export default defineComponent({
   props: {
     item: { type: Object as PropType<ReviewContent>, required: true },
+    /**
+     * Which drag handle this row belongs to. A row nested in a carousel must
+     * not answer to the section list's handle, or dragging a slide reorders
+     * the section instead.
+     */
+    dragClass: { type: String, default: 'drag' },
   },
   emits: ['remove'],
   data() {
