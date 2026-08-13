@@ -38,14 +38,48 @@ export interface Colour {
 
 export type CardColours = Record<ColourSlot, Colour>
 
+/**
+ * A postal address, split into the components RFC 6350 6.3.1 defines.
+ *
+ * It used to be one free-text textarea, which could only ever be dumped into
+ * ADR's street slot: an address book that received it could not sort by city,
+ * and no map application could parse it reliably. `type` is a
+ * `CONTACT_TYPES.address` label, and `label` carries the user's own wording
+ * when that type is 'Custom'.
+ */
+export interface CardAddress {
+  type: string
+  label: string | null
+  street: string | null
+  city: string | null
+  region: string | null
+  postcode: string | null
+  country: string | null
+}
+
 /** Free-text fields. Every one is optional from the user's point of view. */
 export interface GenInfo {
+  /** Honorific before the name — Dr, Prof, Ms. Maps to N's 4th component. */
+  prefix: string | null
   fname: string | null
+  mname: string | null
   lname: string | null
+  /** Credentials after the name — Jr, PhD, MBA. N's 5th component. */
+  suffix: string | null
+  /**
+   * How the name sounds, for address books that sort or announce phonetically.
+   * RFC 6350 registers nothing for this; every implementation that supports it
+   * (Apple, Google, Android) uses the same X-PHONETIC-* names.
+   */
+  phoneticFirst: string | null
+  phoneticLast: string | null
+  nickname: string | null
   pronouns: string | null
   title: string | null
+  /** Organisational unit. ORG's second component, after the company name. */
+  dept: string | null
   biz: string | null
-  addr: string | null
+  address: CardAddress
   desc: string | null
   /** ASCII-armoured PGP public key. */
   key: string | null
@@ -87,32 +121,78 @@ interface ActionBase {
  * Two labels may share a value ('Office' and 'Work' both carry work); that is
  * why this is a per-group list rather than one flat label->value map.
  */
-export type ContactTypeGroup = 'phone' | 'email'
+export type ContactTypeGroup = 'phone' | 'fax' | 'email' | 'address'
 
 export interface ContactType {
   label: string
+  /**
+   * The RFC 6350 TYPE parameter value. Empty means emit no TYPE at all —
+   * 'Other' and 'Custom' have no registered token, and inventing one risks a
+   * strict parser rejecting the property.
+   */
   vcard: string
+  /**
+   * An Apple X-ABLabel to emit alongside, for meanings TYPE cannot carry.
+   * The `_$!<Name>!$_` forms are Apple's built-ins and display localised;
+   * anything else shows verbatim. Other address books ignore the line.
+   */
+  abLabel?: string
+  /** The label comes from the row's own `customLabel`, not from `abLabel`. */
+  custom?: true
 }
 
+/**
+ * 'Main' is deliberately plain `voice` plus a label: RFC 6350 4.5.2 lists
+ * text, voice, fax, cell, video, pager and textphone, and has no 'main'. Same
+ * reasoning for 'Other' on email — a made-up TYPE token is worse than none.
+ */
 export const CONTACT_TYPES: Record<ContactTypeGroup, readonly ContactType[]> = {
   phone: [
     { label: 'Mobile', vcard: 'voice,cell' },
-    { label: 'Office', vcard: 'voice,work' },
     { label: 'Home', vcard: 'voice,home' },
+    { label: 'Work', vcard: 'voice,work' },
+    { label: 'Main', vcard: 'voice', abLabel: '_$!<Main>!$_' },
+    { label: 'Custom', vcard: 'voice', custom: true },
+  ],
+  fax: [
+    { label: 'Work fax', vcard: 'fax,work' },
+    { label: 'Home fax', vcard: 'fax,home' },
+    { label: 'Custom', vcard: 'fax', custom: true },
   ],
   email: [
     { label: 'Work', vcard: 'work' },
-    { label: 'Personal', vcard: 'home' },
+    { label: 'Home', vcard: 'home' },
+    { label: 'Other', vcard: '', abLabel: '_$!<Other>!$_' },
+    { label: 'Custom', vcard: '', custom: true },
+  ],
+  address: [
+    { label: 'Work', vcard: 'work' },
+    { label: 'Home', vcard: 'home' },
+    { label: 'Other', vcard: '', abLabel: '_$!<Other>!$_' },
+    { label: 'Custom', vcard: '', custom: true },
   ],
 }
 
-/** The vCard token for a label, or the group's first entry as a fallback. */
-export function vcardTypeFor(
+/** The chosen type, or the group's first entry as a fallback. */
+export function contactTypeFor(
   group: ContactTypeGroup,
-  label: string | undefined,
-): string {
+  label: string | null | undefined,
+): ContactType {
   const types = CONTACT_TYPES[group]
-  return types.find((t) => t.label === label)?.vcard ?? types[0]!.vcard
+  return types.find((t) => t.label === label) ?? types[0]!
+}
+
+/**
+ * The X-ABLabel to emit for a row, or null when TYPE already says everything.
+ * A 'Custom' row with nothing typed in falls back to no label rather than an
+ * empty one, which some readers render as a blank field name.
+ */
+export function abLabelFor(
+  type: ContactType,
+  customLabel: string | null | undefined,
+): string | null {
+  if (type.custom) return customLabel?.trim() || null
+  return type.abLabel ?? null
 }
 
 /** Contact rows: phone, email, website. Sorted by `order`. */
@@ -135,6 +215,8 @@ export interface PrimaryAction extends ActionBase {
   typeGroup?: ContactTypeGroup
   /** The currently selected `ContactType.label` within `typeGroup`. */
   contactType?: string
+  /** What the user typed when `contactType` is the group's 'Custom' entry. */
+  customLabel?: string | null
 }
 
 /** Browsing groups used by the primary action picker in the editor. */
@@ -299,20 +381,42 @@ export interface VCardUrl {
 
 /**
  * One TEL or EMAIL line. `type` is already the RFC 6350 TYPE parameter value,
- * not the editor's label, so buildVCard() needs no further lookup.
+ * not the editor's label, so buildVCard() needs no further lookup. An empty
+ * `type` emits no TYPE parameter; a non-null `label` adds an X-ABLabel, which
+ * means the property has to be emitted inside a group.
  */
 export interface VCardTyped {
   type: string
+  label: string | null
   value: string
+}
+
+/** ADR's components, already resolved from `CardAddress`. */
+export interface VCardAddress {
+  type: string
+  label: string | null
+  street: string | null
+  city: string | null
+  region: string | null
+  postcode: string | null
+  country: string | null
 }
 
 /** Flattened contact data, assembled by index.vue's `vCard` computed. */
 export interface VCardData {
+  prefix: string | null
   fn: string | null
+  mn: string | null
   ln: string | null
+  suffix: string | null
+  phoneticFirst: string | null
+  phoneticLast: string | null
+  nickname: string | null
   title: string | null
   org: string | null
-  addr: string | null
+  dept: string | null
+  /** Null when the user has filled in none of the five components. */
+  address: VCardAddress | null
   /** Carried as `X-PRONOUNS`; RFC 6350 registers no property for these. */
   pronouns: string | null
   /**

@@ -38,6 +38,17 @@
         {{ option.label }}
       </option>
     </select>
+    <!-- Only for the 'Custom' type, which is the one case where the label is
+         the user's own words rather than a fixed vCard TYPE. -->
+    <input
+      v-if="isCustom"
+      class="px-3 w-32 h-12 shrink-0 bg-black placeholder-gray-600 border-y border-transparent text-sm focus:outline-none focus:border-gray-600 hover:border-gray-600 transition-colors duration-200"
+      type="text"
+      :aria-label="'Custom label for ' + item.label"
+      title="Label"
+      v-model="type[index].customLabel"
+      placeholder="Label"
+    />
     <!-- // TODO show title content when input is focused. -->
     <div class="w-full">
       <input
@@ -63,8 +74,8 @@
 
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue'
-import type { CardAction, ContactType } from '~/types/card'
-import { CONTACT_TYPES } from '~/types/card'
+import type { CardAction, ContactType, ContactTypeGroup } from '~/types/card'
+import { CONTACT_TYPES, contactTypeFor } from '~/types/card'
 
 export default defineComponent({
   props: {
@@ -87,9 +98,17 @@ export default defineComponent({
     },
   },
   computed: {
+    /** Undefined on every secondary action and on untyped primary rows. */
+    group(): ContactTypeGroup | undefined {
+      return (this.item as { typeGroup?: ContactTypeGroup }).typeGroup
+    },
     contactTypes(): readonly ContactType[] {
-      const group = (this.item as { typeGroup?: 'phone' | 'email' }).typeGroup
-      return group ? CONTACT_TYPES[group] : []
+      return this.group ? CONTACT_TYPES[this.group] : []
+    },
+    isCustom(): boolean {
+      if (!this.group) return false
+      const selected = (this.item as { contactType?: string }).contactType
+      return Boolean(contactTypeFor(this.group, selected).custom)
     },
   },
   mounted() {

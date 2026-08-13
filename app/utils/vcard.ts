@@ -8,7 +8,7 @@
  * a DOM round-trip silently normalises all three. Putting it here also means
  * `tsc --noEmit` actually checks it — annotations inside an SFC never are.
  */
-import type { VCardData, VCardTyped } from '~/types/card'
+import type { VCardAddress, VCardData, VCardTyped } from '~/types/card'
 
 /** RFC 6350 3.2: content lines are delimited by CRLF, not LF. */
 const CRLF = '\r\n'
@@ -70,9 +70,13 @@ function fold(line: string): string {
  */
 function param(name: string, value: string): string {
   const needsQuotes = /[",:;\s]/.test(value)
-  // RFC 6350 3.3 gives no escape for a DQUOTE inside a quoted parameter, so
-  // the only safe handling is to drop it.
-  const safe = value.replaceAll('"', '')
+  // RFC 6350 3.3 gives no escape for a DQUOTE or a newline inside a parameter
+  // value; RFC 6868, which 4.0 normatively references, supplies one. Caret
+  // first, or it would escape the carets the later passes introduce.
+  const safe = value
+    .replaceAll('^', '^^')
+    .replaceAll(/\r\n|[\r\n]/g, '^n')
+    .replaceAll('"', "^'")
   return `;${name}=${needsQuotes ? `"${safe}"` : safe}`
 }
 
@@ -84,6 +88,32 @@ function text(
 ): string[] {
   if (!value) return []
   return [fold(`${name}${params}:${escapeText(value)}`)]
+}
+
+/**
+ * Hands out `item1`, `item2`, … — the group names that tie a property to its
+ * X-ABLabel. One counter is shared by every labelled property in the card,
+ * because a group name reused across two properties merges them: a TEL and a
+ * URL both in `item1` would take whichever label came last.
+ */
+function groups() {
+  let next = 1
+  return () => `item${next++}.`
+}
+
+/**
+ * Emit a property, plus an X-ABLabel line when it needs a name TYPE cannot
+ * express. `render` gets the group prefix because the label and the property
+ * it names must both carry it.
+ */
+function labelled(
+  label: string | null,
+  group: () => string,
+  render: (prefix: string) => string[],
+): string[] {
+  if (!label) return render('')
+  const prefix = group()
+  return [...render(prefix), fold(`${prefix}X-ABLabel:${escapeText(label)}`)]
 }
 
 /**
@@ -107,12 +137,12 @@ function uri(
  * the grammar, and Apple's X-ABLabel is what makes the label actually appear
  * on iOS and macOS; everything else ignores the second line and keeps the URL.
  */
-function labelledUrl(group: number, url: string, label: string): string[] {
-  const tag = `item${group}`
-  return [
-    fold(`${tag}.URL:${url}`),
-    fold(`${tag}.X-ABLabel:${escapeText(label)}`),
-  ]
+function labelledUrl(
+  group: () => string,
+  url: string,
+  label: string,
+): string[] {
+  return labelled(label, group, (prefix) => [fold(`${prefix}URL:${url}`)])
 }
 
 /** RFC 6350 4.3.5 timestamp: basic ISO 8601, UTC, no separators. */
@@ -123,11 +153,45 @@ function timestamp(date: Date): string {
 function typedLines(
   name: string,
   entries: VCardTyped[],
+  group: () => string,
   toValue: (value: string) => string,
 ): string[] {
   return entries.flatMap((entry) =>
-    uri(name, toValue(entry.value), param('TYPE', entry.type)),
+    labelled(entry.label, group, (prefix) =>
+      uri(
+        `${prefix}${name}`,
+        toValue(entry.value),
+        entry.type ? param('TYPE', entry.type) : '',
+      ),
+    ),
   )
+}
+
+/**
+ * ADR's seven components, in order: po box, extended address, street,
+ * locality, region, postal code, country. The first two are deprecated by
+ * RFC 6350 6.3.1 and left empty.
+ *
+ * The LABEL parameter carries the same address formatted for a mailing label;
+ * it is what a reader prints when it does not want to reassemble the parts
+ * itself. param() applies the RFC 6868 escaping its newlines need.
+ */
+function address(addr: VCardAddress, group: () => string): string[] {
+  const parts = [
+    addr.street,
+    addr.city,
+    addr.region,
+    addr.postcode,
+    addr.country,
+  ]
+  const params =
+    (addr.type ? param('TYPE', addr.type) : '') +
+    param('LABEL', parts.filter(Boolean).join('\n'))
+  return labelled(addr.label, group, (prefix) => [
+    fold(
+      `${prefix}ADR${params}:;;${parts.map((p) => escapeText(p ?? '')).join(';')}`,
+    ),
+  ])
 }
 
 /**
@@ -138,7 +202,11 @@ function typedLines(
  * had not filled them in, which some address books import as empty entries.
  */
 export function buildVCard(data: VCardData): string {
-  const full = [data.fn, data.ln].filter(Boolean).join(' ').trim()
+  const full = [data.prefix, data.fn, data.mn, data.ln, data.suffix]
+    .filter(Boolean)
+    .join(' ')
+    .trim()
+  const group = groups()
   const lines: string[] = [
     'BEGIN:VCARD',
     // RFC 6350 6.7.9: VERSION is mandatory and MUST come directly after BEGIN.
@@ -146,40 +214,55 @@ export function buildVCard(data: VCardData): string {
     'KIND:individual',
   ]
 
+  // N is a structured value — family, given, additional, prefixes, suffixes —
+  // so each component is escaped separately and the semicolons between them
+  // stay literal.
   lines.push(
-    // N is a structured value, so each component is escaped separately and
-    // the semicolons between them are literal.
-    `N:${escapeText(data.ln ?? '')};${escapeText(data.fn ?? '')};;;`,
+    fold(
+      `N:${[data.ln, data.fn, data.mn, data.prefix, data.suffix]
+        .map((part) => escapeText(part ?? ''))
+        .join(';')}`,
+    ),
   )
   // RFC 6350 6.2.1: FN MUST be present, so it is emitted even when empty —
   // falling back to the organisation gives business-only cards a display name.
   lines.push(fold(`FN:${escapeText(full || data.org || '')}`))
+  // NICKNAME is comma-separated, and escapeText() escapes commas, so a value
+  // with one in it stays a single nickname rather than splitting in two.
+  lines.push(...text('NICKNAME', data.nickname))
+  lines.push(...text('X-PHONETIC-FIRST-NAME', data.phoneticFirst))
+  lines.push(...text('X-PHONETIC-LAST-NAME', data.phoneticLast))
 
   lines.push(...text('TITLE', data.title))
-  lines.push(...text('ORG', data.org))
+  // ORG is structured: company, then units from broadest to narrowest. A
+  // department with no company still needs the separator to sit in slot two.
+  if (data.org || data.dept)
+    lines.push(
+      fold(
+        `ORG:${[data.org, data.dept]
+          .filter((part, i) => i === 0 || part)
+          .map((part) => escapeText(part ?? ''))
+          .join(';')}`,
+      ),
+    )
 
-  // ADR is seven components: po box, extended, street, locality, region,
-  // postcode, country. The editor collects one free-text address, which
-  // belongs in `street` — the old template put it in the po-box slot.
-  if (data.addr)
-    lines.push(fold(`ADR;TYPE=work:;;${escapeText(data.addr)};;;;`))
+  if (data.address) lines.push(...address(data.address, group))
 
-  lines.push(...typedLines('TEL', data.phones, (v) => `tel:${v}`))
+  lines.push(...typedLines('TEL', data.phones, group, (v) => `tel:${v}`))
   if (data.sms)
     lines.push(...uri('TEL', `tel:${data.sms}`, param('TYPE', 'text,cell')))
-  lines.push(...typedLines('EMAIL', data.emails, (v) => v))
+  lines.push(...typedLines('EMAIL', data.emails, group, (v) => v))
 
   // Photos are data URIs so the contact card carries its own picture rather
   // than a link that breaks when the site moves.
   lines.push(...uri('PHOTO', data.photo))
   lines.push(...uri('LOGO', data.logo))
 
-  let group = 1
   if (data.hostedURL)
-    lines.push(...labelledUrl(group++, data.hostedURL, 'Digital Business Card'))
+    lines.push(...labelledUrl(group, data.hostedURL, 'Digital Business Card'))
   if (data.website) lines.push(...uri('URL', data.website))
   for (const entry of data.urls)
-    lines.push(...labelledUrl(group++, entry.url, entry.title))
+    lines.push(...labelledUrl(group, entry.url, entry.title))
 
   // RFC 6350 6.8.1: a key is a URI. The 3.0 `KEY;TYPE=PGP;ENCODING=b` form is
   // not valid 4.0.

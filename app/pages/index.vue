@@ -134,8 +134,22 @@
             Recommended profile photo size is 320 x 320 pixels, with an aspect
             ratio of 1:1
           </p>
-          <div class="stepC mt-6 grid grid-cols-2 gap-4">
-            <div>
+          <!-- Six columns of 2/4, not five fields across: the editor column is
+               448px at desktop width, which would leave "Last name" 61px wide. -->
+          <div class="stepC mt-6 grid grid-cols-6 gap-4">
+            <div class="col-span-2">
+              <label for="prefix" class="ml-4">Prefix</label>
+              <input
+                id="prefix"
+                spellcheck="false"
+                type="text"
+                v-model="genInfo.prefix"
+                placeholder="Dr"
+                autocapitalize="words"
+                class="mt-2 px-4 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
+            <div class="col-span-4">
               <label for="firstname" class="ml-4">First name</label>
               <input
                 id="firstname"
@@ -146,7 +160,18 @@
                 class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
               />
             </div>
-            <div>
+            <div class="col-span-2">
+              <label for="middlename" class="ml-4">Middle</label>
+              <input
+                id="middlename"
+                spellcheck="false"
+                type="text"
+                v-model="genInfo.mname"
+                autocapitalize="words"
+                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
+            <div class="col-span-4">
               <label for="lastname" class="ml-4">Last name</label>
               <input
                 id="lastname"
@@ -155,6 +180,53 @@
                 v-model="genInfo.lname"
                 autocapitalize="words"
                 class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
+            <div class="col-span-2">
+              <label for="suffix" class="ml-4">Suffix</label>
+              <input
+                id="suffix"
+                spellcheck="false"
+                type="text"
+                v-model="genInfo.suffix"
+                placeholder="PhD"
+                autocapitalize="words"
+                class="mt-2 px-4 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
+            <div class="col-span-4">
+              <label for="nickname" class="ml-4">Nickname</label>
+              <input
+                id="nickname"
+                spellcheck="false"
+                type="text"
+                v-model="genInfo.nickname"
+                autocapitalize="words"
+                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
+          </div>
+          <div class="stepC mt-6 grid grid-cols-2 gap-4">
+            <div>
+              <label for="phonetic-first" class="ml-4">Phonetic first</label>
+              <input
+                id="phonetic-first"
+                spellcheck="false"
+                type="text"
+                v-model="genInfo.phoneticFirst"
+                placeholder="how it sounds"
+                class="mt-2 px-4 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
+            <div>
+              <label for="phonetic-last" class="ml-4">Phonetic last</label>
+              <input
+                id="phonetic-last"
+                spellcheck="false"
+                type="text"
+                v-model="genInfo.phoneticLast"
+                placeholder="how it sounds"
+                class="mt-2 px-4 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
               />
             </div>
           </div>
@@ -170,37 +242,128 @@
               class="mt-2 px-4 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
             />
           </div>
-          <div class="stepC mt-6">
-            <label for="job-title" class="ml-4">Job title</label>
+          <h3 class="mt-10 font-bold text-lg">Work</h3>
+          <div class="stepC mt-4 grid grid-cols-2 gap-4">
+            <div class="col-span-2">
+              <label for="job-title" class="ml-4">Job title</label>
+              <input
+                id="job-title"
+                type="text"
+                spellcheck="true"
+                autocapitalize="words"
+                v-model="genInfo.title"
+                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
+            <div>
+              <label for="department" class="ml-4">Department</label>
+              <input
+                id="department"
+                type="text"
+                spellcheck="true"
+                autocapitalize="words"
+                v-model="genInfo.dept"
+                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
+            <div>
+              <label for="business-name" class="ml-4">Company</label>
+              <input
+                id="business-name"
+                spellcheck="false"
+                type="text"
+                v-model="genInfo.biz"
+                autocapitalize="words"
+                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
+          </div>
+          <h3 class="mt-10 font-bold text-lg">Address</h3>
+          <div class="stepC mt-4 grid grid-cols-2 gap-4">
+            <div>
+              <label for="address-type" class="ml-4">Type</label>
+              <select
+                id="address-type"
+                v-model="genInfo.address.type"
+                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              >
+                <option
+                  v-for="option in addressTypes"
+                  :key="option.label"
+                  :value="option.label"
+                >
+                  {{ option.label }}
+                </option>
+              </select>
+            </div>
+            <div v-if="addressIsCustom">
+              <label for="address-label" class="ml-4">Label</label>
+              <input
+                id="address-label"
+                type="text"
+                v-model="genInfo.address.label"
+                placeholder="Studio"
+                autocapitalize="words"
+                class="mt-2 px-4 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
+          </div>
+          <div class="stepC mt-4">
+            <label for="address-street" class="ml-4">Street</label>
             <input
-              id="job-title"
+              id="address-street"
               type="text"
-              spellcheck="true"
+              v-model="genInfo.address.street"
               autocapitalize="words"
-              v-model="genInfo.title"
+              autocomplete="street-address"
               class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
             />
           </div>
-          <div class="stepC mt-6">
-            <label for="business-name" class="ml-4">Business name</label>
-            <input
-              id="business-name"
-              spellcheck="false"
-              type="text"
-              v-model="genInfo.biz"
-              autocapitalize="words"
-              class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
-            />
-          </div>
-          <div class="stepC mt-6">
-            <label for="business-address" class="ml-4">Business address</label>
-            <textarea
-              id="business-address"
-              :value="genInfo.addr"
-              @input="genInfo.addr = $event.target.value"
-              class="block mt-2 px-4 py-3 w-full bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 resize-none hover:border-gray-600"
-              rows="4"
-            ></textarea>
+          <div class="stepC mt-4 grid grid-cols-2 gap-4">
+            <div>
+              <label for="address-city" class="ml-4">City</label>
+              <input
+                id="address-city"
+                type="text"
+                v-model="genInfo.address.city"
+                autocapitalize="words"
+                autocomplete="address-level2"
+                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
+            <div>
+              <label for="address-region" class="ml-4">State</label>
+              <input
+                id="address-region"
+                type="text"
+                v-model="genInfo.address.region"
+                autocapitalize="words"
+                autocomplete="address-level1"
+                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
+            <div>
+              <label for="address-postcode" class="ml-4">Zip code</label>
+              <input
+                id="address-postcode"
+                type="text"
+                spellcheck="false"
+                v-model="genInfo.address.postcode"
+                autocomplete="postal-code"
+                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
+            <div>
+              <label for="address-country" class="ml-4">Country</label>
+              <input
+                id="address-country"
+                type="text"
+                v-model="genInfo.address.country"
+                autocapitalize="words"
+                autocomplete="country-name"
+                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
           </div>
           <div class="stepC mt-6">
             <label for="business-description" class="ml-4"
@@ -781,8 +944,9 @@ import type {
   ResizeTarget,
   VCardData,
 } from '~/types/card'
-import { vcardTypeFor } from '~/types/card'
+import { abLabelFor, contactTypeFor, CONTACT_TYPES } from '~/types/card'
 import { buildVCard } from '~/utils/vcard'
+import { hasAddress } from '~/utils/address'
 import { errorText } from '~/utils/errors'
 import JSZip from 'jszip'
 // vuedraggable@4 is unmaintained and breaks on Vue 3.3+ (its slot vnodes have a
@@ -855,7 +1019,7 @@ const PRIMARY_ACTION_CATEGORIES: ReadonlyArray<{
 
 const PRIMARY_ACTION_GROUPS: Record<PrimaryActionCategory, readonly string[]> =
   {
-    contact: ['Phone', 'SMS', 'Email'],
+    contact: ['Phone', 'Fax', 'SMS', 'Email'],
     messaging: [
       'WhatsApp',
       'Telegram',
@@ -1119,12 +1283,27 @@ export default defineComponent({
         },
       } as CardColours,
       genInfo: {
+        prefix: null,
         fname: null,
+        mname: null,
         lname: null,
+        suffix: null,
+        phoneticFirst: null,
+        phoneticLast: null,
+        nickname: null,
         pronouns: null,
         title: null,
+        dept: null,
         biz: null,
-        addr: null,
+        address: {
+          type: 'Work',
+          label: null,
+          street: null,
+          city: null,
+          region: null,
+          postcode: null,
+          country: null,
+        },
         desc: null,
         key: null,
         tracker: null,
@@ -1163,6 +1342,24 @@ export default defineComponent({
             repeatable: 1,
             typeGroup: 'phone',
             contactType: 'Mobile',
+            customLabel: null,
+          },
+          // Its own action rather than another Phone type, because its type
+          // list is a different one: a fax is work or home, never mobile, and
+          // offering 'Mobile fax' in the same dropdown would be nonsense.
+          {
+            name: 'Fax',
+            icon: 'fax',
+            href: 'tel:',
+            placeholder: '+XX XXXXX XXXXX',
+            value: null,
+            label: 'Fax number',
+            order: 1,
+            isURL: 0,
+            repeatable: 1,
+            typeGroup: 'fax',
+            contactType: 'Work fax',
+            customLabel: null,
           },
           {
             name: 'SMS',
@@ -1171,7 +1368,7 @@ export default defineComponent({
             placeholder: '+XX XXXXX XXXXX',
             value: null,
             label: 'SMS mobile number',
-            order: 1,
+            order: 2,
             isURL: 0,
           },
           {
@@ -1181,10 +1378,11 @@ export default defineComponent({
             placeholder: 'info@example.com',
             value: null,
             label: 'Email address',
-            order: 2,
+            order: 3,
             repeatable: 1,
             typeGroup: 'email',
             contactType: 'Work',
+            customLabel: null,
           },
           {
             name: 'Website',
@@ -1192,7 +1390,7 @@ export default defineComponent({
             placeholder: 'https://example.com',
             value: null,
             label: 'Website URL',
-            order: 3,
+            order: 4,
             isURL: 1,
           },
           {
@@ -1201,7 +1399,7 @@ export default defineComponent({
             placeholder: 'https://example.com/storeID',
             value: null,
             label: 'Online Store URL',
-            order: 4,
+            order: 5,
             isURL: 1,
           },
           {
@@ -1210,7 +1408,7 @@ export default defineComponent({
             placeholder: 'https://osm.org/go/location',
             value: null,
             label: 'Map location URL',
-            order: 5,
+            order: 6,
             isURL: 1,
           },
 
@@ -1221,7 +1419,7 @@ export default defineComponent({
             placeholder: '+XXXXXXXXXXXX',
             value: null,
             label: 'Signal number with country code (no spaces)',
-            order: 9,
+            order: 10,
             isURL: 1,
           },
           {
@@ -1231,7 +1429,7 @@ export default defineComponent({
             placeholder: 'username',
             value: null,
             label: 'Telegram username',
-            order: 8,
+            order: 9,
             isURL: 1,
           },
           {
@@ -1241,7 +1439,7 @@ export default defineComponent({
             placeholder: '@username:matrix.org',
             value: null,
             label: 'Matrix userID',
-            order: 14,
+            order: 15,
             isURL: 1,
           },
           {
@@ -1250,7 +1448,7 @@ export default defineComponent({
             placeholder: 'https://wa.me/profileID',
             value: null,
             label: 'WhatsApp profile URL',
-            order: 7,
+            order: 8,
             isURL: 1,
           },
           {
@@ -1260,7 +1458,7 @@ export default defineComponent({
             placeholder: 'username',
             value: null,
             label: 'Messenger username',
-            order: 10,
+            order: 11,
             isURL: 1,
           },
           {
@@ -1270,7 +1468,7 @@ export default defineComponent({
             placeholder: 'LINE ID',
             value: null,
             label: 'Line profile ID',
-            order: 11,
+            order: 12,
             isURL: 1,
           },
           {
@@ -1280,7 +1478,7 @@ export default defineComponent({
             placeholder: 'XX XXXXX XXXXX',
             value: null,
             label: 'Viber mobile number',
-            order: 12,
+            order: 13,
             isURL: 1,
           },
           {
@@ -1290,7 +1488,7 @@ export default defineComponent({
             placeholder: 'WeChat ID',
             value: null,
             label: 'WeChat profile ID',
-            order: 13,
+            order: 14,
             isURL: 1,
           },
           {
@@ -1299,7 +1497,7 @@ export default defineComponent({
             placeholder: 'https://example.com/calendarID',
             value: null,
             label: 'Calendar URL',
-            order: 6,
+            order: 7,
             isURL: 1,
           },
           {
@@ -1309,7 +1507,7 @@ export default defineComponent({
             placeholder: 'XMPP ID',
             value: null,
             label: 'XMPP ID',
-            order: 15,
+            order: 16,
             isURL: 1,
           },
           {
@@ -1318,7 +1516,7 @@ export default defineComponent({
             placeholder: 'https://imo.im/...',
             value: null,
             label: 'imo invite link',
-            order: 16,
+            order: 17,
             isURL: 1,
           },
           // {
@@ -1328,7 +1526,7 @@ export default defineComponent({
           //   placeholder: 'IRC ID',
           //   value: null,
           //   label: 'IRC ID',
-          //   order: 17,
+          //   order: 18,
           //   isURL: 1,
           // },
         ],
@@ -1871,11 +2069,25 @@ export default defineComponent({
   },
   computed: {
     getFullname() {
-      let fn = this.genInfo.fname
-      let ln = this.genInfo.lname
-      return (fn + ln).length > 0
-        ? `${fn ? fn : ''}${ln ? ' ' + ln : ''}`
-        : null
+      const parts = [
+        this.genInfo.prefix,
+        this.genInfo.fname,
+        this.genInfo.mname,
+        this.genInfo.lname,
+        this.genInfo.suffix,
+      ].filter(Boolean)
+      return parts.length > 0 ? parts.join(' ') : null
+    },
+    addressTypes() {
+      return CONTACT_TYPES.address
+    },
+    addressIsCustom() {
+      return Boolean(
+        contactTypeFor('address', this.genInfo.address.type).custom,
+      )
+    },
+    hasAddress() {
+      return hasAddress(this.genInfo.address)
     },
     pubKeyIsValid() {
       if (this.genInfo.key) {
@@ -1893,9 +2105,13 @@ export default defineComponent({
       return this.downloadCheckList.filter((e) => e.checked).length === 3
     },
     username() {
-      return this.getFullname
-        ? this.getFullname.toLowerCase().replaceAll(/\W+/g, '')
-        : 'username'
+      // First and last only, deliberately: this names the export folder and
+      // the .vcf inside it, and honorifics would put "dr" and "phd" in a
+      // filename the user has to type into a hosting panel.
+      const name = [this.genInfo.fname, this.genInfo.lname]
+        .filter(Boolean)
+        .join('')
+      return name ? name.toLowerCase().replaceAll(/\W+/g, '') : 'username'
     },
     orderedPrimaryActions() {
       return this.actions.primaryActions.toSorted((a, b) =>
@@ -1982,13 +2198,19 @@ export default defineComponent({
       const typedRows = (group: ContactTypeGroup, strip: boolean) =>
         this.primaryActions
           .filter((e) => e.typeGroup === group && e.value)
-          .map((e) => ({
-            type: vcardTypeFor(group, e.contactType),
-            value: strip
-              ? (e.value as string).replaceAll(/\s/g, '')
-              : (e.value as string),
-          }))
-      const phones = typedRows('phone', true)
+          .map((e) => {
+            const type = contactTypeFor(group, e.contactType)
+            return {
+              type: type.vcard,
+              label: abLabelFor(type, e.customLabel),
+              value: strip
+                ? (e.value as string).replaceAll(/\s/g, '')
+                : (e.value as string),
+            }
+          })
+      // Faxes are TEL properties too — only their TYPE differs — so they join
+      // the same list rather than needing a second one in the serialiser.
+      const phones = [...typedRows('phone', true), ...typedRows('fax', true)]
       const emails = typedRows('email', false)
       let website = findValue('Website')
       let actions = [
@@ -1999,6 +2221,10 @@ export default defineComponent({
       ]
       let urls = actions
         .map((e) => {
+          // Website already goes out as the bare URL property above. Without
+          // this it also landed in the labelled list, so every card with a
+          // website imported the same link twice.
+          if (e.name === 'Website') return false
           if (e.isURL && e.value) {
             return {
               title: e.name,
@@ -2014,12 +2240,31 @@ export default defineComponent({
         ? this.genInfo.desc.replaceAll(/[\r\n]+/gm, '')
         : null
       let key = this.pubKeyIsValid ? window.btoa(this.genInfo.key) : null
+      const addr = this.genInfo.address
+      const addressType = contactTypeFor('address', addr.type)
       return {
+        prefix: this.genInfo.prefix,
         fn: this.genInfo.fname,
+        mn: this.genInfo.mname,
         ln: this.genInfo.lname,
+        suffix: this.genInfo.suffix,
+        phoneticFirst: this.genInfo.phoneticFirst,
+        phoneticLast: this.genInfo.phoneticLast,
+        nickname: this.genInfo.nickname,
         title: this.genInfo.title,
         org: this.genInfo.biz,
-        addr: this.genInfo.addr,
+        dept: this.genInfo.dept,
+        address: this.hasAddress
+          ? {
+              type: addressType.vcard,
+              label: abLabelFor(addressType, addr.label),
+              street: addr.street,
+              city: addr.city,
+              region: addr.region,
+              postcode: addr.postcode,
+              country: addr.country,
+            }
+          : null,
         pronouns: this.genInfo.pronouns,
         phones,
         emails,

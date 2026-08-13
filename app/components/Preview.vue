@@ -199,12 +199,29 @@
               <p class="jobtitle">
                 {{ genInfo.title }}
               </p>
+              <!-- Reuses .jobtitle rather than adding a class, which would
+                   mean editing three SCSS sources, three prebuilt .min.css
+                   files and the three inline theme blocks in this file. -->
+              <p v-if="genInfo.dept" class="jobtitle">
+                {{ genInfo.dept }}
+              </p>
               <p class="bizname">
                 {{ genInfo.biz }}
               </p>
-              <p class="bizaddr" v-if="genInfo.addr">
-                {{ genInfo.addr }}
-              </p>
+              <!-- A link, not text: `id` is what main.ts looks up in the
+                   exported card to swap this OpenStreetMap URL for a `geo:`
+                   or Apple Maps one, so the address opens the phone's own map
+                   app. Without JS the href still resolves. -->
+              <a
+                v-if="hasAddress"
+                id="bizaddr"
+                class="bizaddr textColor"
+                :href="mapURL"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {{ formattedAddress }}
+              </a>
             </div>
             <p class="sub textColor" v-if="genInfo.desc">
               {{ genInfo.desc }}
@@ -247,7 +264,9 @@
                        Repeatable rows show their type instead, so a card with
                        two numbers reads "Mobile" and "Office" rather than
                        "Phone" twice. -->
-                  <p class="textColor">{{ item.contactType || item.name }}</p>
+                  <p class="textColor">
+                    {{ item.customLabel || item.contactType || item.name }}
+                  </p>
                 </div>
               </div>
             </div>
@@ -380,6 +399,7 @@ import type {
   PrimaryAction,
   SecondaryAction,
 } from '~/types/card'
+import { formatAddress, hasAddress, mapSearchURL } from '~/utils/address'
 
 export default defineComponent({
   props: {
@@ -427,11 +447,23 @@ export default defineComponent({
   },
   computed: {
     getFullname(): string | null {
-      let fn = this.genInfo.fname
-      let ln = this.genInfo.lname
-      return (fn + ln).length > 0
-        ? `${fn ? fn : ''}${ln ? ' ' + ln : ''}`
-        : null
+      const parts = [
+        this.genInfo.prefix,
+        this.genInfo.fname,
+        this.genInfo.mname,
+        this.genInfo.lname,
+        this.genInfo.suffix,
+      ].filter(Boolean)
+      return parts.length > 0 ? parts.join(' ') : null
+    },
+    hasAddress(): boolean {
+      return hasAddress(this.genInfo.address)
+    },
+    formattedAddress(): string {
+      return formatAddress(this.genInfo.address)
+    },
+    mapURL(): string {
+      return mapSearchURL(this.genInfo.address)
     },
     hasOnlyProfilePic(): boolean {
       return !(this.images.cover.url || this.images.logo.url)
@@ -735,6 +767,10 @@ export default defineComponent({
     opacity: 0.8;
   }
   .bizaddr {
+    display: block;
+    color: inherit;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
     font-size: 0.8rem;
     opacity: 0.6;
   }
@@ -1101,6 +1137,10 @@ export default defineComponent({
     opacity: 0.8;
   }
   .bizaddr {
+    display: block;
+    color: inherit;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
     font-size: 0.8rem;
     opacity: 0.6;
   }
@@ -1467,6 +1507,10 @@ export default defineComponent({
     opacity: 0.8;
   }
   .bizaddr {
+    display: block;
+    color: inherit;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
     font-size: 0.8rem;
     opacity: 0.6;
   }

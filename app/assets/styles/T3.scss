@@ -177,6 +177,10 @@ main {
   opacity: 0.8;
 }
 .bizaddr {
+  display: block;
+  color: inherit;
+  text-decoration: underline dotted;
+  text-underline-offset: 2px;
   font-size: 0.8rem;
   opacity: 0.6;
 }

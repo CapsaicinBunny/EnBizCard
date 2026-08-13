@@ -41,6 +41,32 @@ const sk = document.getElementById('showKey')
 // null-checked so it stays correct if it ever gains a v-if of its own.
 const ki = document.getElementById('keyView')
 
+/**
+ * Point the address at the map application the device actually has.
+ *
+ * Preview.vue writes an OpenStreetMap search URL, which is the only thing that
+ * works with no JavaScript and no app installed. Where a native handler does
+ * exist it is better: `geo:` is the IETF scheme (RFC 5870) Android hands to
+ * whichever map app the user chose, and Apple platforms have no `geo:` handler
+ * at all but claim maps.apple.com as a universal link. Desktop browsers get
+ * neither and keep the OSM link.
+ *
+ * Rewritten rather than resolved at click time so the status bar and "copy
+ * link address" show where the link really goes.
+ */
+const addr = document.getElementById('bizaddr')
+if (addr) {
+  const q = encodeURIComponent((addr.textContent ?? '').trim())
+  const ua = navigator.userAgent
+  if (/iPhone|iPad|iPod|Macintosh/.test(ua)) {
+    addr.setAttribute('href', `https://maps.apple.com/?q=${q}`)
+  } else if (/Android/.test(ua)) {
+    // `geo:0,0?q=` is the free-text search form: no coordinates are known
+    // here, and 0,0 is the documented placeholder for that case.
+    addr.setAttribute('href', `geo:0,0?q=${q}`)
+  }
+}
+
 /** Toggle the modal in or out of view. */
 function tC(e: HTMLElement) {
   if (e.style.top === '2rem') {
