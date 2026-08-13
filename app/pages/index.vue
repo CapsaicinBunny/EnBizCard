@@ -826,7 +826,7 @@ import type {
   ResizeTarget,
   VCardData,
 } from '~/types/card'
-import { abLabelFor, contactTypeFor } from '~/types/card'
+import { abLabelFor, contactTypeFor, slideFileName } from '~/types/card'
 import { buildVCard } from '~/utils/vcard'
 import { hasAddress } from '~/utils/address'
 import { errorText } from '~/utils/errors'
@@ -849,6 +849,7 @@ import Theme3 from '~/assets/styles/T3.min.css?raw'
 // TypeScript: the export needs runnable JS, not the annotated source.
 import modalScript from '~/assets/scripts/main.ts?minified'
 import mediaScript from '~/assets/scripts/media.ts?minified'
+import carouselScript from '~/assets/scripts/carousel.ts?minified'
 
 /**
  * A `urn:uuid:` for the vCard's UID.
@@ -2170,6 +2171,17 @@ export default defineComponent({
         .map((name) => available.get(name))
         .filter(Boolean) as SecondaryAction[]
     },
+    /** Whether any section holds a carousel with something in it. */
+    hasCarousel(): boolean {
+      return this.featured.some((section) =>
+        section.content.some(
+          (item) =>
+            typeof item !== 'string' &&
+            item.contentType === 'carousel' &&
+            item.slides.length > 0,
+        ),
+      )
+    },
     vCard() {
       // The `&& e.value` is not redundant: the original mapped to the value and
       // then filtered on truthiness, so an action of the right name carrying an
@@ -2422,6 +2434,7 @@ export default defineComponent({
       mime: string,
       index1?: number,
       index2?: number,
+      index3?: number,
     ) {
       let reader = new FileReader()
       let file
@@ -2432,6 +2445,8 @@ export default defineComponent({
           file = await this.featured[index1].content[index2].cover
         } else if (type === 'product') {
           file = await this.featured[index1].content[index2].image.file
+        } else if (type === 'carousel') {
+          file = await this.featured[index1].content[index2].slides[index3].file
         }
       } else {
         file = await this.images[type].blob
@@ -2489,6 +2504,9 @@ export default defineComponent({
                   this.featured[index1].content[index2].cover = image
                 } else if (type === 'product') {
                   this.featured[index1].content[index2].image.file = image
+                } else if (type === 'carousel') {
+                  this.featured[index1].content[index2].slides[index3].file =
+                    image
                 }
               } else {
                 this.images[type].resized = image
@@ -2589,6 +2607,13 @@ export default defineComponent({
       if (this.featured.length > 0)
         el.querySelector('body').append(mediaHandler)
 
+      // Inject carousel script, only when there is a carousel to enhance.
+      if (this.hasCarousel) {
+        let carouselHandler = document.createElement('script')
+        carouselHandler.innerText = carouselScript
+        el.querySelector('body').append(carouselHandler)
+      }
+
       // Inject tracking scripts. getTrackingCode() returns false/0 or a
       // detached <div> holding the user's snippet. Spreading childNodes takes a
       // static copy first, because append() moves each node out of that div.
@@ -2663,9 +2688,26 @@ export default defineComponent({
         (e) => e.content.length,
       ).length
       if (hasFeaturedContent) {
-        this.featured.forEach((section) => {
-          section.content.forEach((item) => {
-            if (item.contentType === 'media') {
+        this.featured.forEach((section, sectionIndex) => {
+          section.content.forEach((item, itemIndex) => {
+            if (item.contentType === 'carousel') {
+              // Named positionally, matching Preview.vue's <img src>. See
+              // slideFileName() for why these are not title-derived.
+              item.slides.forEach((slide, slideIndex) => {
+                zip
+                  .folder(username)
+                  .folder('media')
+                  .file(
+                    slideFileName(
+                      sectionIndex,
+                      itemIndex,
+                      slideIndex,
+                      slide.ext,
+                    ),
+                    slide.file,
+                  )
+              })
+            } else if (item.contentType === 'media') {
               zip
                 .folder(username)
                 .folder('media')

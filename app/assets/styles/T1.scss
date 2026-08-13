@@ -272,6 +272,94 @@ main {
     width: 100%;
   }
 }
+.carousel {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  margin-top: 1rem;
+  // The strip itself. Scroll-snap does the paging, so the card still works
+  // with no JavaScript; carousel.ts only adds the arrows and the dots.
+  .track {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+  .slide {
+    flex: 0 0 100%;
+    // Without this a wide image forces the flex item past 100% and two
+    // slides end up visible at once, which breaks the snap points.
+    min-width: 0;
+    scroll-snap-align: center;
+    img {
+      display: block;
+      width: 100%;
+      user-select: none;
+    }
+  }
+  .caption {
+    margin: 0;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    opacity: 0.8;
+  }
+  .cNav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 0;
+    border-radius: 50%;
+    padding: 0.25rem 0.6rem 0.4rem;
+    background: rgba(0, 0, 0, 0.45);
+    color: #fff;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    &.prev {
+      left: 0.5rem;
+    }
+    &.next {
+      right: 0.5rem;
+    }
+  }
+  .cDots {
+    display: flex;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.5rem 0;
+  }
+  .cDot {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.3;
+    &.on {
+      opacity: 0.9;
+    }
+  }
+}
+.review {
+  padding: 1rem;
+  .stars {
+    margin: 0;
+    font-size: 1.1rem;
+    letter-spacing: 0.1em;
+  }
+  // Beats the global `.textC { margin: 1rem }` on specificity.
+  .textC {
+    margin: 0.5rem 0 0;
+  }
+  .attribution {
+    margin: 0.75rem 0 0;
+    font-size: 0.85rem;
+    opacity: 0.75;
+  }
+}
 .embedded {
   position: relative;
   padding-top: 100%;

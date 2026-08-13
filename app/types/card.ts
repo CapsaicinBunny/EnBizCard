@@ -328,18 +328,25 @@ export type MediaKind = 'image' | 'music' | 'video' | 'document'
  * here: those paths build their own covers, and resizeImage() has no branch
  * for them — passing one leaves `file` undefined and throws in FileReader.
  */
-export type ResizeTarget = ImageSlot | 'image' | 'music' | 'product'
+export type ResizeTarget =
+  | ImageSlot
+  | 'image'
+  | 'music'
+  | 'product'
+  | 'carousel'
 
 /**
- * resizeImage()'s signature, shared so the four components that receive it as
- * a prop cannot each guess a different one. `index1`/`index2` are the featured
- * section and content indices, omitted for the ImageSlot targets.
+ * resizeImage()'s signature, shared so the components that receive it as a
+ * prop cannot each guess a different one. `index1`/`index2` are the featured
+ * section and content indices, omitted for the ImageSlot targets; `index3` is
+ * the slide within a carousel, and only 'carousel' uses it.
  */
 export type ResizeImage = (
   target: ResizeTarget,
   mime: string,
   index1?: number,
   index2?: number,
+  index3?: number,
 ) => void
 
 /**
@@ -420,11 +427,100 @@ export interface TextContent {
  * `addLink()` pushes and what the `!e.contentType` filters key off. Narrow with
  * a `typeof x === 'string'` check before touching any property.
  */
+/**
+ * A horizontal strip of photos and clips, held as one item in a section.
+ *
+ * Slides are ordinary `MediaContent`, so the attach path, the cover handling
+ * and the export packaging all work unchanged — only 'image' and 'video' are
+ * ever produced, because Carousel.vue accepts nothing else. Music and PDFs are
+ * deliberately excluded: a document tile has no meaningful "next slide".
+ */
+export interface CarouselContent {
+  contentType: 'carousel'
+  slides: MediaContent[]
+}
+
+/** What a carousel slide may be. Narrower than MediaKind by design. */
+export type CarouselSlideKind = Extract<MediaKind, 'image' | 'video'>
+
+export function isCarouselSlideKind(
+  kind: MediaKind | undefined,
+): kind is CarouselSlideKind {
+  return kind === 'image' || kind === 'video'
+}
+
+/**
+ * The file name a carousel slide gets inside the export's media/ folder.
+ *
+ * Positional rather than title-derived, unlike the other media entries. Those
+ * name the file after the user's title, which collides the moment two of them
+ * match — and a carousel invites attaching eight photos at once, where
+ * duplicate or empty titles are the norm rather than the exception. JSZip
+ * silently keeps only the last entry written to a given path, so a collision
+ * costs slides with no error anywhere.
+ *
+ * Preview.vue builds the <img src> from this and downloadPackage() writes the
+ * file with it; they must not drift, which is why it lives in one function.
+ */
+export function slideFileName(
+  section: number,
+  item: number,
+  slide: number,
+  ext: string,
+): string {
+  return `carousel_${section}_${item}_${slide}.${ext}`
+}
+
+/**
+ * A customer review or testimonial the card owner has transcribed.
+ *
+ * `source` and `link` exist so a review can point at where it came from —
+ * "Google" with a link to the listing is a checkable claim, an unattributed
+ * quote is not, and the difference is most of why a visitor believes it.
+ * Neither is required; a testimonial given directly to the owner has no URL.
+ */
+export interface ReviewContent {
+  contentType: 'review'
+  author: string | null
+  /** Whole stars, 1-5. Null renders no stars at all, for a bare quote. */
+  rating: number | null
+  body: string | null
+  /** Where it was left — Google, Yelp, Angi. Free text, shown as given. */
+  source: string | null
+  link: string | null
+  date: string | null
+}
+
+/** The star range a review may carry. Out-of-range values render no stars. */
+export const MAX_RATING = 5
+
+/**
+ * A review worth rendering. The body is what carries it — a star rating with
+ * no words is not a testimonial, and an author alone is nothing at all.
+ */
+export function hasReviewContent(review: ReviewContent): boolean {
+  return Boolean(review.body?.trim())
+}
+
+/**
+ * Filled stars for a rating, clamped to 0-5 and rounded to a whole star.
+ *
+ * Returns 0 for null, NaN or anything out of range, which renders no stars
+ * rather than a broken row: the rating comes from a number input the user can
+ * type anything into.
+ */
+export function starCount(rating: number | null): number {
+  if (rating === null || !Number.isFinite(rating)) return 0
+  return Math.min(MAX_RATING, Math.max(0, Math.round(rating)))
+}
+
 export type FeaturedContent =
   | string
   | MediaContent
   | ProductContent
   | TextContent
+  | CarouselContent
+  | ReviewContent
 
 export interface FeaturedSection {
   title: string

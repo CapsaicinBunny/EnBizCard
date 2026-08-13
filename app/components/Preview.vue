@@ -350,6 +350,96 @@
                   :colors="colors"
                   :PreviewMode="PreviewMode"
                 />
+                <!--
+                  A scrolling strip, not a JS slideshow. Scroll-snap gives
+                  swipe and trackpad panning with no script at all, so a card
+                  whose inline JS never runs still shows every slide; carousel
+                  arrows and dots are added on top by carousel.ts.
+                -->
+                <div
+                  v-else-if="
+                    item.contentType == 'carousel' && item.slides.length
+                  "
+                  class="carousel"
+                  :style="{ backgroundColor: `${colors.cardBg.color}` }"
+                >
+                  <div class="track">
+                    <div
+                      class="slide"
+                      v-for="(slide, s) in item.slides"
+                      :key="'s' + s"
+                    >
+                      <img
+                        v-if="slide.type == 'image'"
+                        :src="
+                          PreviewMode
+                            ? slide.dataURI
+                            : `./media/${slideFileName(index, i, s, slide.ext)}`
+                        "
+                        :alt="slide.title ?? ''"
+                      />
+                      <MediaPlayer
+                        v-else
+                        ref="mediaPlayer"
+                        :media="slide"
+                        type="video"
+                        :colors="colors"
+                        :togglePlay="togglePlay"
+                        :PreviewMode="PreviewMode"
+                        :exportName="slideFileName(index, i, s, slide.ext)"
+                      />
+                      <p
+                        v-if="slide.type == 'image' && slide.title"
+                        class="caption cardColor"
+                      >
+                        {{ slide.title }}
+                      </p>
+                    </div>
+                  </div>
+                  <div class="cDots" :aria-hidden="true">
+                    <span
+                      v-for="(slide, s) in item.slides"
+                      :key="'d' + s"
+                      class="cDot"
+                    ></span>
+                  </div>
+                </div>
+                <div
+                  v-else-if="
+                    item.contentType == 'review' && hasReviewContent(item)
+                  "
+                  class="media review"
+                  :style="{ backgroundColor: `${colors.cardBg.color}` }"
+                >
+                  <!--
+                    Text stars rather than SVG: they inherit colour and size
+                    from the theme with no CSS, and add nothing to the export.
+                  -->
+                  <p
+                    v-if="starCount(item.rating)"
+                    class="stars"
+                    :aria-label="`${starCount(item.rating)} out of 5`"
+                  >
+                    <span aria-hidden="true">{{ stars(item.rating) }}</span>
+                  </p>
+                  <p class="textC cardColor">{{ item.body }}</p>
+                  <p class="attribution cardColor">
+                    <span v-if="item.author">{{ item.author }}</span>
+                    <span v-if="item.source">
+                      {{ item.author ? ' · ' : '' }}
+                      <a
+                        v-if="item.link"
+                        class="cardColor"
+                        :href="item.link"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >{{ item.source }}</a
+                      >
+                      <template v-else>{{ item.source }}</template>
+                    </span>
+                    <span v-if="item.date"> · {{ item.date }}</span>
+                  </p>
+                </div>
                 <div
                   v-else-if="item.contentType == 'text' && item.value"
                   class="media"
@@ -406,7 +496,13 @@ import type {
   PrimaryAction,
   SecondaryAction,
 } from '~/types/card'
-import { hasProductContent } from '~/types/card'
+import {
+  hasProductContent,
+  hasReviewContent,
+  MAX_RATING,
+  slideFileName,
+  starCount,
+} from '~/types/card'
 import { formatAddress, hasAddress, mapSearchURL } from '~/utils/address'
 import { resolveEmbed } from '~/utils/embed'
 
@@ -533,8 +629,16 @@ export default defineComponent({
     getTitle(e: string): string {
       return e.toLowerCase().split(' ').join('_')
     },
-    /** Options API templates cannot see imports; re-expose it as a method. */
+    /** Options API templates cannot see imports; re-expose them as methods. */
     hasProductContent,
+    hasReviewContent,
+    slideFileName,
+    starCount,
+    /** The filled/empty star row for a rating, as text. */
+    stars(rating: number | null): string {
+      const filled = starCount(rating)
+      return '★'.repeat(filled) + '☆'.repeat(MAX_RATING - filled)
+    },
     /**
      * The embeddable src for a link entry, or null if it resolves to nothing.
      *
@@ -888,6 +992,94 @@ export default defineComponent({
       pointer-events: none;
       user-select: none;
       width: 100%;
+    }
+  }
+  .carousel {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+    margin-top: 1rem;
+    // The strip itself. Scroll-snap does the paging, so the card still works
+    // with no JavaScript; carousel.ts only adds the arrows and the dots.
+    .track {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+    .slide {
+      flex: 0 0 100%;
+      // Without this a wide image forces the flex item past 100% and two
+      // slides end up visible at once, which breaks the snap points.
+      min-width: 0;
+      scroll-snap-align: center;
+      img {
+        display: block;
+        width: 100%;
+        user-select: none;
+      }
+    }
+    .caption {
+      margin: 0;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    .cNav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0;
+      border-radius: 50%;
+      padding: 0.25rem 0.6rem 0.4rem;
+      background: rgba(0, 0, 0, 0.45);
+      color: #fff;
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+      &.prev {
+        left: 0.5rem;
+      }
+      &.next {
+        right: 0.5rem;
+      }
+    }
+    .cDots {
+      display: flex;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.5rem 0;
+    }
+    .cDot {
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.3;
+      &.on {
+        opacity: 0.9;
+      }
+    }
+  }
+  .review {
+    padding: 1rem;
+    .stars {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 0.1em;
+    }
+    // Beats the global `.textC { margin: 1rem }` on specificity.
+    .textC {
+      margin: 0.5rem 0 0;
+    }
+    .attribution {
+      margin: 0.75rem 0 0;
+      font-size: 0.85rem;
+      opacity: 0.75;
     }
   }
   .embedded {
@@ -1260,6 +1452,94 @@ export default defineComponent({
       width: 100%;
     }
   }
+  .carousel {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+    margin-top: 1rem;
+    // The strip itself. Scroll-snap does the paging, so the card still works
+    // with no JavaScript; carousel.ts only adds the arrows and the dots.
+    .track {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+    .slide {
+      flex: 0 0 100%;
+      // Without this a wide image forces the flex item past 100% and two
+      // slides end up visible at once, which breaks the snap points.
+      min-width: 0;
+      scroll-snap-align: center;
+      img {
+        display: block;
+        width: 100%;
+        user-select: none;
+      }
+    }
+    .caption {
+      margin: 0;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    .cNav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0;
+      border-radius: 50%;
+      padding: 0.25rem 0.6rem 0.4rem;
+      background: rgba(0, 0, 0, 0.45);
+      color: #fff;
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+      &.prev {
+        left: 0.5rem;
+      }
+      &.next {
+        right: 0.5rem;
+      }
+    }
+    .cDots {
+      display: flex;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.5rem 0;
+    }
+    .cDot {
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.3;
+      &.on {
+        opacity: 0.9;
+      }
+    }
+  }
+  .review {
+    padding: 1rem;
+    .stars {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 0.1em;
+    }
+    // Beats the global `.textC { margin: 1rem }` on specificity.
+    .textC {
+      margin: 0.5rem 0 0;
+    }
+    .attribution {
+      margin: 0.75rem 0 0;
+      font-size: 0.85rem;
+      opacity: 0.75;
+    }
+  }
   .embedded {
     position: relative;
     padding-top: 100%;
@@ -1624,6 +1904,94 @@ export default defineComponent({
       pointer-events: none;
       user-select: none;
       width: 100%;
+    }
+  }
+  .carousel {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+    margin-top: 1rem;
+    // The strip itself. Scroll-snap does the paging, so the card still works
+    // with no JavaScript; carousel.ts only adds the arrows and the dots.
+    .track {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+    .slide {
+      flex: 0 0 100%;
+      // Without this a wide image forces the flex item past 100% and two
+      // slides end up visible at once, which breaks the snap points.
+      min-width: 0;
+      scroll-snap-align: center;
+      img {
+        display: block;
+        width: 100%;
+        user-select: none;
+      }
+    }
+    .caption {
+      margin: 0;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    .cNav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0;
+      border-radius: 50%;
+      padding: 0.25rem 0.6rem 0.4rem;
+      background: rgba(0, 0, 0, 0.45);
+      color: #fff;
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+      &.prev {
+        left: 0.5rem;
+      }
+      &.next {
+        right: 0.5rem;
+      }
+    }
+    .cDots {
+      display: flex;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.5rem 0;
+    }
+    .cDot {
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.3;
+      &.on {
+        opacity: 0.9;
+      }
+    }
+  }
+  .review {
+    padding: 1rem;
+    .stars {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 0.1em;
+    }
+    // Beats the global `.textC { margin: 1rem }` on specificity.
+    .textC {
+      margin: 0.5rem 0 0;
+    }
+    .attribution {
+      margin: 0.75rem 0 0;
+      font-size: 0.85rem;
+      opacity: 0.75;
     }
   }
   .embedded {
