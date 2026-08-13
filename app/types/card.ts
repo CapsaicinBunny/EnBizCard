@@ -248,7 +248,7 @@ export interface ActionField {
 }
 
 /** Browsing groups used by the primary action picker in the editor. */
-export type PrimaryActionCategory = 'contact' | 'messaging' | 'web'
+export type PrimaryActionCategory = 'contact' | 'messaging' | 'meetings' | 'web'
 
 /** Social rows. Sorted by name, and rendered as coloured chips. */
 export interface SecondaryAction extends ActionBase {

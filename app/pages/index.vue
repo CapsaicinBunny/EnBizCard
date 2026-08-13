@@ -893,6 +893,7 @@ const PRIMARY_ACTION_CATEGORIES: ReadonlyArray<{
 }> = [
   { id: 'contact', label: 'Phone & email' },
   { id: 'messaging', label: 'Messaging' },
+  { id: 'meetings', label: 'Meetings' },
   { id: 'web', label: 'Web & places' },
 ]
 
@@ -911,6 +912,7 @@ const PRIMARY_ACTION_GROUPS: Record<PrimaryActionCategory, readonly string[]> =
       'XMPP',
       'imo',
     ],
+    meetings: ['Google Meet', 'Microsoft Teams', 'Zoom'],
     web: ['Website', 'Store', 'Location', 'Calendar'],
   }
 
@@ -1450,6 +1452,38 @@ export default defineComponent({
             order: 19,
             isURL: 1,
           },
+          // Standing meeting rooms, not scheduled calls. Each takes a whole
+          // URL rather than an id behind a fixed prefix: Teams and Zoom links
+          // are tenant-specific (`acme.zoom.us`, a `meetup-join` blob), and
+          // Meet has two forms, so any prefix would lock someone out of
+          // pasting the link their own account gave them.
+          {
+            name: 'Google Meet',
+            icon: 'meet',
+            placeholder: 'https://meet.google.com/abc-defg-hij',
+            value: null,
+            label: 'Google Meet link',
+            order: 20,
+            isURL: 1,
+          },
+          {
+            name: 'Microsoft Teams',
+            icon: 'teams',
+            placeholder: 'https://teams.microsoft.com/l/meetup-join/...',
+            value: null,
+            label: 'Microsoft Teams link',
+            order: 21,
+            isURL: 1,
+          },
+          {
+            name: 'Zoom',
+            icon: 'zoom',
+            placeholder: 'https://zoom.us/my/username',
+            value: null,
+            label: 'Zoom personal meeting link',
+            order: 22,
+            isURL: 1,
+          },
           // {
           //   name: 'IRC',
           //   icon: 'irc',
@@ -1457,7 +1491,7 @@ export default defineComponent({
           //   placeholder: 'IRC ID',
           //   value: null,
           //   label: 'IRC ID',
-          //   order: 20,
+          //   order: 23,
           //   isURL: 1,
           // },
         ],
@@ -1467,7 +1501,7 @@ export default defineComponent({
           // own name, link, colour and uploaded icon.
           {
             name: 'Custom',
-            icon: 'add',
+            icon: 'website',
             placeholder: 'https://example.com/your-profile',
             value: null,
             color: '#334155',
