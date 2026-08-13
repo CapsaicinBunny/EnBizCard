@@ -1425,6 +1425,7 @@ export default defineComponent({
             label: 'Calendar URL',
             order: 9,
             isURL: 1,
+            vcardProperty: 'CALURI',
           },
           {
             name: 'XMPP',
@@ -1435,6 +1436,7 @@ export default defineComponent({
             label: 'XMPP ID',
             order: 18,
             isURL: 1,
+            vcardProperty: 'IMPP',
           },
           {
             name: 'imo',
@@ -2159,6 +2161,7 @@ export default defineComponent({
               title: e.name,
               url:
                 (e.href ? e.href : '') + e.value + (e.hrefEnd ? e.hrefEnd : ''),
+              property: (e as PrimaryAction).vcardProperty,
             }
           }
           return false

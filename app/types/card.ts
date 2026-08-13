@@ -108,9 +108,15 @@ export interface ContactType {
    */
   vcard: string
   /**
-   * An Apple X-ABLabel to emit alongside, for meanings TYPE cannot carry.
-   * The `_$!<Name>!$_` forms are Apple's built-ins and display localised;
-   * anything else shows verbatim. Other address books ignore the line.
+   * An X-ABLabel to emit alongside, for meanings TYPE cannot carry.
+   *
+   * Plain words, deliberately. Apple also recognises `_$!<Main>!$_`-style
+   * tokens and localises them, but every reader that does not know the
+   * convention prints the token verbatim — an Android contact showing
+   * `_$!<Main>!$_` as a field name is worse than an unlocalised "Main".
+   *
+   * 'Other' carries no label at all: it has no TYPE either, and a property
+   * with neither is exactly what readers already display as "other".
    */
   abLabel?: string
   /** The label comes from the row's own `customLabel`, not from `abLabel`. */
@@ -127,7 +133,7 @@ export const CONTACT_TYPES: Record<ContactTypeGroup, readonly ContactType[]> = {
     { label: 'Mobile', vcard: 'voice,cell' },
     { label: 'Home', vcard: 'voice,home' },
     { label: 'Work', vcard: 'voice,work' },
-    { label: 'Main', vcard: 'voice', abLabel: '_$!<Main>!$_' },
+    { label: 'Main', vcard: 'voice', abLabel: 'Main' },
     { label: 'Custom', vcard: 'voice', custom: true },
   ],
   fax: [
@@ -138,13 +144,13 @@ export const CONTACT_TYPES: Record<ContactTypeGroup, readonly ContactType[]> = {
   email: [
     { label: 'Work', vcard: 'work' },
     { label: 'Home', vcard: 'home' },
-    { label: 'Other', vcard: '', abLabel: '_$!<Other>!$_' },
+    { label: 'Other', vcard: '' },
     { label: 'Custom', vcard: '', custom: true },
   ],
   address: [
     { label: 'Work', vcard: 'work' },
     { label: 'Home', vcard: 'home' },
-    { label: 'Other', vcard: '', abLabel: '_$!<Other>!$_' },
+    { label: 'Other', vcard: '' },
     { label: 'Custom', vcard: '', custom: true },
   ],
 }
@@ -200,6 +206,17 @@ export interface PrimaryAction extends ActionBase {
    * `value` stays null on these; the data lives in `values`.
    */
   fields?: readonly ActionField[]
+  /**
+   * The vCard property this action's link belongs in, when RFC 6350 defines
+   * one for it. Unset means URL.
+   *
+   * `CALURI` (6.9.3) is the calendar, `IMPP` (6.4.3) an instant-messaging
+   * URI. XMPP qualifies and the other messengers do not: `xmpp:` is a real IM
+   * URI scheme, whereas t.me and wa.me links are ordinary web pages, and a
+   * reader that skips IMPP values it cannot parse would drop them entirely —
+   * a URL at least always shows.
+   */
+  vcardProperty?: string
   /**
    * Values for `fields`, keyed by `ActionField.key`. Always cloned when a
    * repeatable row is added: sharing the template's object would make every
@@ -377,6 +394,14 @@ export interface FeaturedSection {
 export interface VCardUrl {
   title: string
   url: string
+  /**
+   * The property to emit this under. Defaults to URL, which is right for a
+   * link to a page; the two exceptions are properties RFC 6350 defines for
+   * exactly this content, and a reader that knows them can act on them
+   * (offer to message, subscribe to the calendar) instead of just opening a
+   * browser. See `PrimaryAction.vcardProperty`.
+   */
+  property?: string
 }
 
 /**

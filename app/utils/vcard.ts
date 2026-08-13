@@ -141,7 +141,12 @@ function labelledUrl(
   group: () => string,
   url: string,
   label: string,
+  property = 'URL',
 ): string[] {
+  // A property that is not URL names its own meaning — CALURI is the
+  // calendar, IMPP is the chat address — so a label would only repeat it,
+  // and repeating it costs a group and a second line.
+  if (property !== 'URL') return [fold(`${property}:${url}`)]
   return labelled(label, group, (prefix) => [fold(`${prefix}URL:${url}`)])
 }
 
@@ -262,7 +267,7 @@ export function buildVCard(data: VCardData): string {
     lines.push(...labelledUrl(group, data.hostedURL, 'Digital Business Card'))
   if (data.website) lines.push(...uri('URL', data.website))
   for (const entry of data.urls)
-    lines.push(...labelledUrl(group, entry.url, entry.title))
+    lines.push(...labelledUrl(group, entry.url, entry.title, entry.property))
 
   // RFC 6350 6.8.1: a key is a URI. The 3.0 `KEY;TYPE=PGP;ENCODING=b` form is
   // not valid 4.0.
