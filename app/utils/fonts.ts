@@ -45,9 +45,10 @@ export function stylesheetHrefs(markup: string | null | undefined): string[] {
  *
  * Returns just that one declaration, never the whole string. The result is
  * interpolated into a `<style>` block, so a paste containing `}` could
- * otherwise close the rule early and restyle the rest of the card — which is
- * why anything with a brace, a semicolon-separated tail or a tag is dropped
- * rather than cleaned up.
+ * otherwise close the rule early and restyle the rest of the card. The match
+ * therefore stops dead at the first `;`, brace or angle bracket rather than
+ * rejecting the paste outright: someone who pastes a whole rule still gets
+ * their font, and the tail that would have escaped is simply not carried over.
  */
 export function fontFamilyRule(css: string | null | undefined): string | null {
   if (!css?.trim()) return null
