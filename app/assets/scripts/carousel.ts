@@ -89,9 +89,15 @@ document.querySelectorAll<HTMLElement>('.carousel').forEach((carousel) => {
   const ROTATE_MS = 5000
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
-  let paused = false
+  // Held while the visitor is reading or reaching for a control. Whether the
+  // tab is hidden is read straight off the document each tick instead of being
+  // mirrored into this flag — a mirror would let a return to the tab clear a
+  // hold that the pointer or keyboard focus still owns.
+  let held = false
   const advance = () => {
-    if (paused) return
+    // Nothing to rotate while the tab is hidden, and browsers throttle the
+    // timer there anyway, which would make the catch-up a jump.
+    if (held || document.hidden) return
     // Don't yank a clip away from someone watching it.
     for (const video of track.querySelectorAll('video')) {
       if (!video.paused) return
@@ -104,13 +110,12 @@ document.querySelectorAll<HTMLElement>('.carousel').forEach((carousel) => {
 
   const timer = window.setInterval(advance, ROTATE_MS)
 
-  // Pause while the visitor is reading or reaching for a control. `focusin`
-  // covers the keyboard path, which hover alone would leave rotating.
+  // `focusin` covers the keyboard path, which hover alone would leave rotating.
   const hold = () => {
-    paused = true
+    held = true
   }
   const release = () => {
-    paused = false
+    held = false
   }
   carousel.addEventListener('pointerenter', hold)
   carousel.addEventListener('pointerleave', release)
@@ -119,10 +124,5 @@ document.querySelectorAll<HTMLElement>('.carousel').forEach((carousel) => {
   // A touch swipe is a deliberate choice of slide; stop competing with it.
   carousel.addEventListener('touchstart', () => window.clearInterval(timer), {
     passive: true,
-  })
-  // Nothing to rotate while the tab is hidden, and browsers throttle the
-  // timer there anyway, which makes the first slide back a jump.
-  document.addEventListener('visibilitychange', () => {
-    paused = document.hidden
   })
 })
