@@ -318,7 +318,7 @@
                       :src="
                         PreviewMode
                           ? item.dataURI
-                          : `./media/${getTitle(item.title)}.${item.ext}`
+                          : `./media/${mediaFileName(item.title, item.ext)}`
                       "
                       alt="Product image"
                     />
@@ -554,6 +554,7 @@ import {
   hasReviewContent,
   hasSlideContent,
   HEADING_SELECTORS,
+  mediaFileName,
   MAX_RATING,
   slideFileName,
   starCount,
@@ -693,14 +694,12 @@ export default defineComponent({
         ? e.href + (value || e.value) + (e.hrefEnd ? e.hrefEnd : '')
         : value || e.value
     },
-    getTitle(e: string): string {
-      return e.toLowerCase().split(' ').join('_')
-    },
     /** Options API templates cannot see imports; re-expose them as methods. */
     hasCarouselContent,
     hasProductContent,
     hasReviewContent,
     hasSlideContent,
+    mediaFileName,
     slideFileName,
     starCount,
     /** The filled/empty star row for a rating, as text. */

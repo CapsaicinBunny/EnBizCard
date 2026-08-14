@@ -871,8 +871,11 @@ import {
   abLabelFor,
   contactTypeFor,
   hasCarouselContent,
+  hasCoverFile,
+  mediaFileName,
   slideFileName,
 } from '~/types/card'
+import { MANIFEST_FILE, serialiseManifest } from '~/utils/manifest'
 import { buildVCard } from '~/utils/vcard'
 import { hasAddress } from '~/utils/address'
 import { errorText } from '~/utils/errors'
@@ -2448,9 +2451,6 @@ export default defineComponent({
     create() {
       this.$refs.create.scrollIntoView({ behavior: 'smooth' })
     },
-    getTitle(e) {
-      return e.toLowerCase().split(' ').join('_')
-    },
     addFeature() {
       this.featured.push({
         title: 'Section title',
@@ -2825,24 +2825,19 @@ export default defineComponent({
               zip
                 .folder(username)
                 .folder('media')
-                .file(`${this.getTitle(item.title)}.${item.ext}`, item.file)
-              if (/music|document/gi.test(item.type)) {
-                if (!item.info) {
-                  zip
-                    .folder(username)
-                    .folder('media')
-                    .file(
-                      `${this.getTitle(item.title)}.${item.coverExt}`,
-                      item.cover,
-                    )
-                }
+                .file(mediaFileName(item.title, item.ext), item.file)
+              if (hasCoverFile(item) && item.coverExt) {
+                zip
+                  .folder(username)
+                  .folder('media')
+                  .file(mediaFileName(item.title, item.coverExt), item.cover)
               }
             } else if (item.contentType === 'product' && item.image) {
               zip
                 .folder(username)
                 .folder('media')
                 .file(
-                  `${this.getTitle(item.image.title)}.${item.image.ext}`,
+                  mediaFileName(item.image.title, item.image.ext),
                   item.image.file,
                 )
             }
@@ -2858,6 +2853,26 @@ export default defineComponent({
 
       // VCARD
       zip.folder(username).file(`${username}.vcf`, vCard)
+
+      // The machine-readable card. Written on every export, because a zip that
+      // leaves without one can never be re-imported — see manifest.ts.
+      zip.folder(username).file(
+        MANIFEST_FILE,
+        serialiseManifest({
+          theme: this.theme,
+          cardUid: this.cardUid,
+          colors: this.colors,
+          genInfo: this.genInfo,
+          fontPreset: this.fontPreset,
+          headingFontPreset: this.headingFontPreset,
+          images: this.images,
+          primaryActions: this.primaryActions,
+          secondaryActions: this.secondaryActions,
+          featured: this.featured,
+          hostedURL: this.hostedURL,
+          footerCredit: this.footerCredit,
+        }),
+      )
 
       // Final ZIP file. JSZip defers reading every file it was handed until
       // generateAsync(), so this is where an unreadable blob surfaces — and

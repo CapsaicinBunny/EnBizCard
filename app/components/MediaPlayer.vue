@@ -65,6 +65,7 @@
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue'
 import type { CardColours, MediaContent, MediaKind } from '~/types/card'
+import { mediaFileName } from '~/types/card'
 
 export default defineComponent({
   props: {
@@ -99,11 +100,7 @@ export default defineComponent({
     /** The export file name for this entry, honouring `exportName`. */
     mediaFile(ext: string): string {
       if (this.exportName) return this.exportName
-      // Titles are optional; a missing one would otherwise throw on toLowerCase.
-      return `${this.getTitle(this.media.title ?? '')}.${ext}`
-    },
-    getTitle(e: string): string {
-      return e.toLowerCase().split(' ').join('_')
+      return mediaFileName(this.media.title, ext)
     },
     setProgress(e: Event): void {
       const mediaSource = this.$refs.mediaSource as HTMLMediaElement

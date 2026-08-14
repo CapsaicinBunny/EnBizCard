@@ -541,6 +541,41 @@ export function slideFileName(
 }
 
 /**
+ * The file name a non-carousel media entry or product image gets in media/.
+ *
+ * Title-derived, and kept that way: these names are visible in the exported
+ * folder and `song.mp3` is worth more to someone editing their own card by
+ * hand than `media_0_3.mp3`. Carousel slides are the exception — see
+ * `slideFileName()` for why they are positional instead.
+ *
+ * The rule itself was copied into four components and downloadPackage(), each
+ * as a private `getTitle()`; the manifest would have made six. They must all
+ * agree, because Preview.vue writes the `<img src>`, downloadPackage() writes
+ * the file and the manifest records the path. A null title is tolerated here
+ * rather than thrown on, which is what the inline copies in index.vue did.
+ */
+export function mediaFileName(
+  title: string | null | undefined,
+  ext: string,
+): string {
+  return `${(title ?? '').toLowerCase().split(' ').join('_')}.${ext}`
+}
+
+/**
+ * Whether a media entry ships a separate cover image in the export.
+ *
+ * Music and documents get one; video does not, because its poster frame is
+ * captured into the entry itself. `info` marks an entry whose cover could not
+ * be produced — 'No Thumb' or 'No ID3 Tag' — and those have no file to write.
+ *
+ * Shared so the manifest cannot claim a cover the zip never wrote: the two
+ * used to be one inline regex in downloadPackage() with no second reader.
+ */
+export function hasCoverFile(media: MediaContent): boolean {
+  return /music|document/i.test(media.type) && !media.info
+}
+
+/**
  * A customer review or testimonial the card owner has transcribed.
  *
  * `source` and `link` exist so a review can point at where it came from —

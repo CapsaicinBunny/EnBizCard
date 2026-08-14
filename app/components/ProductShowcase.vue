@@ -29,6 +29,7 @@
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue'
 import type { CardColours, ProductContent } from '~/types/card'
+import { mediaFileName } from '~/types/card'
 
 export default defineComponent({
   props: {
@@ -48,14 +49,8 @@ export default defineComponent({
       const image = this.product.image
       if (!image) return ''
       if (this.PreviewMode) return image.dataURI
-      const name =
-        this.exportName ?? `${this.getTitle(image.title ?? '')}.${image.ext}`
+      const name = this.exportName ?? mediaFileName(image.title, image.ext)
       return `./media/${name}`
-    },
-  },
-  methods: {
-    getTitle(e: string): string {
-      return e.toLowerCase().split(' ').join('_')
     },
   },
 })
