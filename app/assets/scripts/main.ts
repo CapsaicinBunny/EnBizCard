@@ -41,6 +41,75 @@ const sk = document.getElementById('showKey')
 // null-checked so it stays correct if it ever gains a v-if of its own.
 const ki = document.getElementById('keyView')
 
+const ua = navigator.userAgent
+/**
+ * iPadOS 13+ reports itself as `Macintosh`, so the user agent alone cannot
+ * tell an iPad from a desktop Mac; touch points are what separate them. The
+ * distinction matters below: a Mac wants the Save Contact download, an iPad
+ * wants the contact sheet.
+ */
+const iOS =
+  /iPhone|iPad|iPod/.test(ua) ||
+  (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)
+const apple = iOS || /Macintosh/.test(ua)
+const android = /Android/.test(ua)
+
+/**
+ * On a phone, let Save Contact hand the .vcf straight to the address book.
+ *
+ * Preview.vue marks the link `download`, which is right on a desktop and is
+ * also the only thing that saves the visitor from a host that mislabels .vcf
+ * as text/plain and would otherwise dump the raw card into the window.
+ *
+ * But `download` explicitly tells the browser *not* to act on the content
+ * type, and that is exactly the behaviour a phone needs: without it, iOS
+ * Safari sees text/vcard and offers "Add to Contacts" in one tap, where the
+ * downloaded file costs a trip through the Files app. `target` goes with it —
+ * it is ignored while `download` is set, and once it is not, `_blank` would
+ * strand the visitor on a blank tab behind the contact sheet.
+ *
+ * Desktop keeps the download, and so keeps the mislabelled-host protection.
+ */
+if (iOS || android) {
+  const cta = document.getElementById('cta')
+  if (cta) {
+    cta.removeAttribute('download')
+    cta.removeAttribute('target')
+  }
+}
+
+/**
+ * Point the address at the map application the device actually has.
+ *
+ * Preview.vue writes an OpenStreetMap search URL, which is the only thing that
+ * works with no JavaScript and no app installed. Where a native handler does
+ * exist it is better: `geo:` is the IETF scheme (RFC 5870) Android hands to
+ * whichever map app the user chose, and Apple platforms have no `geo:` handler
+ * at all but claim maps.apple.com as a universal link. Desktop browsers get
+ * neither and keep the OSM link.
+ *
+ * Rewritten rather than resolved at click time so the status bar and "copy
+ * link address" show where the link really goes.
+ *
+ * `apple`, not `iOS`: a desktop Mac has Apple Maps too, and unlike the Save
+ * Contact case above there is nothing better for it to fall back to.
+ */
+if (apple || android) {
+  // A class, not an id: a card can list several addresses.
+  for (const addr of document.querySelectorAll('.bizaddr')) {
+    // From the attribute, not the text: the visible text is prefixed with the
+    // address's label when the card lists more than one, and feeding "Work:"
+    // to a geocoder is how you end up somewhere else entirely.
+    const q = encodeURIComponent(addr.getAttribute('data-address') ?? '')
+    // `geo:0,0?q=` is the free-text search form: no coordinates are known
+    // here, and 0,0 is the documented placeholder for that case.
+    addr.setAttribute(
+      'href',
+      apple ? `https://maps.apple.com/?q=${q}` : `geo:0,0?q=${q}`,
+    )
+  }
+}
+
 /** Toggle the modal in or out of view. */
 function tC(e: HTMLElement) {
   if (e.style.top === '2rem') {

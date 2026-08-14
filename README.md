@@ -74,6 +74,22 @@ cp env.example .env
 3. Run `docker-compose up -d`
 4. Access the app at http://localhost:22212 (or a different port, in case you edited the .env file).
 
+## Icon credits
+
+The brand icons in `app/assets/icons/` come from the sources below, plus
+brand artwork supplied by contributors. They are inlined into generated cards,
+so these terms travel with anything you export.
+
+| Source                                    | Licence   | Attribution                  |
+| ----------------------------------------- | --------- | ---------------------------- |
+| [Simple Icons](https://simpleicons.org/)  | CC0 1.0   | not required                 |
+| [CoreUI Brands](https://icons.coreui.io/) | CC0 1.0   | not required                 |
+| [SVG Stack](https://svgstack.com)         | CC BY 4.0 | **required** — credited here |
+
+Currently only `amazon.svg` comes from <a href="https://svgstack.com" target="_blank">SVG Stack</a>;
+the file carries a comment saying so. Brand names and logos are trademarks of
+their respective owners, used here to identify the services they link to.
+
 ## License
 
 ```

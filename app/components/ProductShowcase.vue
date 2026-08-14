@@ -1,16 +1,8 @@
 <template>
   <div class="media" :style="{ backgroundColor: `${colors.cardBg.color}` }">
-    <img
-      v-if="product.image"
-      :src="
-        PreviewMode
-          ? product.image.dataURI
-          : `./media/${getTitle(product.image.title)}.${product.image.ext}`
-      "
-      alt="Product image"
-    />
+    <img v-if="product.image" :src="imageSrc" alt="Product image" />
     <div class="controls cardColor prodInfo">
-      <p class="title">
+      <p v-if="product.title" class="title">
         {{ product.title }}
       </p>
       <p v-if="product.description" class="sub">
@@ -20,7 +12,7 @@
         {{ product.price }}
       </p>
       <a
-        v-if="product.label"
+        v-if="product.label && product.link"
         class="label"
         :style="{
           backgroundColor: `${colors.buttonBg.color}`,
@@ -44,6 +36,22 @@ export default defineComponent({
     colors: { type: Object as PropType<CardColours>, required: true },
     /** False while downloadPackage() serialises the DOM for export. */
     PreviewMode: { type: Boolean, default: true },
+    /**
+     * Export file name for the product image, when it is not the
+     * title-derived one. Carousel slides are named positionally — see
+     * slideFileName() in types/card.ts.
+     */
+    exportName: { type: String as PropType<string | null>, default: null },
+  },
+  computed: {
+    imageSrc(): string {
+      const image = this.product.image
+      if (!image) return ''
+      if (this.PreviewMode) return image.dataURI
+      const name =
+        this.exportName ?? `${this.getTitle(image.title ?? '')}.${image.ext}`
+      return `./media/${name}`
+    },
   },
   methods: {
     getTitle(e: string): string {

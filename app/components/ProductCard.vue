@@ -1,7 +1,8 @@
 <template>
   <div class="flex items-center mt-2">
     <button
-      class="p-1 shrink-0 focus:outline-none drag cursor-move"
+      class="p-1 shrink-0 focus:outline-none cursor-move"
+      :class="dragClass"
       tabindex="-1"
     >
       <div class="w-6 h-6" v-html="$icon('drag')"></div>
@@ -119,15 +120,28 @@ import type {
 } from '~/types/card'
 
 export default defineComponent({
+  emits: ['remove'],
   props: {
     /** Position of this product within its section's content list. */
     i: { type: Number, required: true },
     /** Position of the owning section within `featured`. */
     index: { type: Number, required: true },
     item: { type: Object as PropType<ProductContent>, required: true },
+    /**
+     * Which drag handle this row belongs to. A row nested in a carousel must
+     * not answer to the section list's handle, or dragging a slide reorders
+     * the section instead.
+     */
+    dragClass: { type: String, default: 'drag' },
+    /**
+     * Set when this product is a carousel slide rather than a section item.
+     * It changes where the image is addressed for resizing, and it means the
+     * owner removes the row, so `featured` is not needed at all.
+     */
+    s: { type: Number as PropType<number | null>, default: null },
     featured: {
-      type: Array as PropType<FeaturedSection[]>,
-      required: true,
+      type: Array as PropType<FeaturedSection[] | null>,
+      default: null,
     },
     showAlert: {
       type: Function as PropType<(message: string) => void>,
@@ -144,15 +158,21 @@ export default defineComponent({
     }
   },
   methods: {
-    /** Narrow a content entry to a product; the list is a union. */
+    /**
+     * The product this row edits. A carousel slide is addressed by the `item`
+     * prop directly; a section item is narrowed out of the content union.
+     */
     productAt(i: number): ProductContent {
-      return this.featured[this.index].content[i] as ProductContent
+      if (this.s !== null) return this.item
+      return this.featured![this.index].content[i] as ProductContent
     },
     removeImage(i: number): void {
       this.productAt(i).image = null
     },
     removeItem(i: number): void {
-      this.featured[this.index].content.splice(i, 1)
+      // A slide's owner holds the list, so it does the splicing.
+      if (this.s !== null) return this.$emit('remove')
+      this.featured![this.index].content.splice(i, 1)
     },
     loadFile(): void {
       ;(this.$refs.import as HTMLInputElement).click()
@@ -201,7 +221,8 @@ export default defineComponent({
         // `content.length - 1` before, which only happened to be right when the
         // product was the last item in its section — otherwise it resized a
         // different entry, or threw on one with no `.image`.
-        this.resizeImage('product', mime, this.index, i)
+        if (this.s === null) this.resizeImage('product', mime, this.index, i)
+        else this.resizeImage('carousel', mime, this.index, this.i, this.s)
       }
       reader.onerror = () => {
         this.showAlert(

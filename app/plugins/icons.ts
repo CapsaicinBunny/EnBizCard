@@ -5,6 +5,8 @@ import type { Flag } from '~/types/card'
 export interface IconBearing {
   icon: string
   gradientIcon?: Flag
+  /** Set on custom social rows, whose icon the user uploaded. */
+  customIcon?: string | null
 }
 
 // Vue 2 exposed these through a mixin (mixins/utils.js). Vue 3's equivalent for
@@ -22,7 +24,10 @@ export default defineNuxtPlugin(() => ({
       getIcon(name, gradient),
     // gradientIcon is 0 | 1 in the action tables, so coerce rather than widen
     // getIcon()'s parameter to accept numbers.
+    // An uploaded icon wins over the named one, which is the placeholder a
+    // custom row shows until the user picks a file. Already sanitised by
+    // sanitiseSVG() at upload time — see app/utils/svg.ts.
     getSVG: (item: IconBearing): string =>
-      getIcon(item.icon, Boolean(item.gradientIcon)),
+      item.customIcon || getIcon(item.icon, Boolean(item.gradientIcon)),
   },
 }))

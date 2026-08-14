@@ -36,7 +36,12 @@
             It is injected into the exported card's <head> by downloadPackage(),
             alongside the qrcode/modal/media scripts.
           -->
-          <link v-if="getCssHref" :href="getCssHref" rel="stylesheet" />
+          <link
+            v-for="href in getCssHrefs"
+            :key="href"
+            :href="href"
+            rel="stylesheet"
+          />
           <title>{{ getFullname }}'s Digital Business Card</title>
           <!-- `<component :is="'style'">` renders a real <style> element while
                sidestepping Vue 3's ban on <style> tags in templates. -->
@@ -69,11 +74,9 @@
             #info{ border-left: 0.25rem dashed {{ colors.buttonBg.color }} }
             .section{border-left: 0.25rem solid {{ colors.buttonBg.color }}}
           </component>
-          <component :is="'style'" v-if="getCssHref">
-            #body{
-            {{ genInfo.fontCss && getFontFamily }}
-            }
-          </component>
+          <component :is="'style'" v-if="getFontRules">{{
+            getFontRules
+          }}</component>
         </head>
         <body id="body">
           <div
@@ -197,14 +200,36 @@
                 ({{ genInfo.pronouns }})
               </p>
               <p class="jobtitle">
-                {{ genInfo.title }}
+                {{ workValues.title }}
+              </p>
+              <!-- Reuses .jobtitle rather than adding a class, which would
+                   mean editing three SCSS sources, three prebuilt .min.css
+                   files and the three inline theme blocks in this file. -->
+              <p v-if="workValues.dept" class="jobtitle">
+                {{ workValues.dept }}
               </p>
               <p class="bizname">
-                {{ genInfo.biz }}
+                {{ workValues.org }}
               </p>
-              <p class="bizaddr" v-if="genInfo.addr">
-                {{ genInfo.addr }}
-              </p>
+              <!-- Links, not text: the class is what main.ts looks up in the
+                   exported card to swap these OpenStreetMap URLs for `geo:`
+                   or Apple Maps ones, so an address opens the phone's own map
+                   app. Without JS the href still resolves. A card can carry
+                   several addresses, so each is labelled once there is more
+                   than one to tell apart. -->
+              <a
+                v-for="(addr, i) in addressRows"
+                :key="'ad' + i"
+                class="bizaddr textColor"
+                :data-address="addr.text"
+                :href="addr.url"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <template v-if="addressRows.length > 1"
+                  >{{ addr.label }}: </template
+                >{{ addr.text }}
+              </a>
             </div>
             <p class="sub textColor" v-if="genInfo.desc">
               {{ genInfo.desc }}
@@ -225,7 +250,7 @@
             <div class="actions">
               <div
                 class="actionsC"
-                v-for="(item, index) in primaryActions"
+                v-for="(item, index) in buttonActions"
                 :key="'pa' + index"
               >
                 <div class="actionBtn">
@@ -240,10 +265,15 @@
                   >
                     <div class="icon iconColor" v-html="$icon(item.icon)"></div>
                   </a>
+                  <!-- Printed verbatim. The names in the action table are
+                       already cased the way each service spells itself, so the
+                       capitalise-first-letter this used to do was a no-op for
+                       all of them but one — and wrong for that one (imo).
+                       Repeatable rows show their type instead, so a card with
+                       two numbers reads "Mobile" and "Office" rather than
+                       "Phone" twice. -->
                   <p class="textColor">
-                    {{
-                      item.name.substr(0, 1).toUpperCase() + item.name.slice(1)
-                    }}
+                    {{ item.customLabel || item.contactType || item.name }}
                   </p>
                 </div>
               </div>
@@ -260,7 +290,7 @@
                     target="_blank"
                     rel="noopener noreferrer"
                     :style="{ background: item.color }"
-                    :aria-label="item.name"
+                    :aria-label="item.customLabel || item.name"
                   >
                     <div class="icon" v-html="$getSVG(item)"></div>
                   </a>
@@ -316,11 +346,152 @@
                   />
                 </div>
                 <ProductShowcase
-                  v-else-if="item.contentType == 'product' && item.title"
+                  v-else-if="
+                    item.contentType == 'product' && hasProductContent(item)
+                  "
                   :product="item"
                   :colors="colors"
                   :PreviewMode="PreviewMode"
                 />
+                <!--
+                  A scrolling strip, not a JS slideshow. Scroll-snap gives
+                  swipe and trackpad panning with no script at all, so a card
+                  whose inline JS never runs still shows every slide. The dots
+                  below are rendered here; carousel.ts adds the arrows and
+                  marks the active dot.
+                -->
+                <div
+                  v-else-if="
+                    item.contentType == 'carousel' && hasCarouselContent(item)
+                  "
+                  class="carousel"
+                  :style="{ backgroundColor: `${colors.cardBg.color}` }"
+                >
+                  <div class="track">
+                    <!--
+                      `v-if` rather than a filtered list on purpose: `s` stays
+                      the slide's index in item.slides, which is what
+                      downloadPackage() names its file after. Filtering here
+                      would shift the indices and point every <img> at the
+                      wrong file.
+                    -->
+                    <template v-for="(slide, s) in item.slides" :key="'s' + s">
+                      <div class="slide" v-if="hasSlideContent(slide)">
+                        <template v-if="slide.contentType == 'media'">
+                          <img
+                            v-if="slide.type == 'image'"
+                            :src="
+                              PreviewMode
+                                ? slide.dataURI
+                                : `./media/${slideFileName(index, i, s, slide.ext)}`
+                            "
+                            :alt="slide.title ?? ''"
+                          />
+                          <MediaPlayer
+                            v-else
+                            ref="mediaPlayer"
+                            :media="slide"
+                            type="video"
+                            :colors="colors"
+                            :togglePlay="togglePlay"
+                            :PreviewMode="PreviewMode"
+                            :exportName="slideFileName(index, i, s, slide.ext)"
+                          />
+                          <p
+                            v-if="slide.type == 'image' && slide.title"
+                            class="caption cardColor"
+                          >
+                            {{ slide.title }}
+                          </p>
+                        </template>
+                        <ProductShowcase
+                          v-else-if="slide.contentType == 'product'"
+                          :product="slide"
+                          :colors="colors"
+                          :PreviewMode="PreviewMode"
+                          :exportName="
+                            slide.image
+                              ? slideFileName(index, i, s, slide.image.ext)
+                              : null
+                          "
+                        />
+                        <div
+                          v-else-if="slide.contentType == 'review'"
+                          class="review"
+                        >
+                          <p
+                            v-if="starCount(slide.rating)"
+                            class="stars"
+                            :aria-label="`${starCount(slide.rating)} out of 5`"
+                          >
+                            <span aria-hidden="true">{{
+                              stars(slide.rating)
+                            }}</span>
+                          </p>
+                          <p class="textC cardColor">{{ slide.body }}</p>
+                          <p class="attribution cardColor">
+                            <span v-if="slide.author">{{ slide.author }}</span>
+                            <span v-if="slide.source">
+                              {{ slide.author ? ' · ' : '' }}
+                              <a
+                                v-if="slide.link"
+                                class="cardColor"
+                                :href="slide.link"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >{{ slide.source }}</a
+                              >
+                              <template v-else>{{ slide.source }}</template>
+                            </span>
+                            <span v-if="slide.date"> · {{ slide.date }}</span>
+                          </p>
+                        </div>
+                        <p v-else class="textC cardColor">{{ slide.value }}</p>
+                      </div>
+                    </template>
+                  </div>
+                  <div class="cDots" :aria-hidden="true">
+                    <template v-for="(slide, s) in item.slides" :key="'d' + s">
+                      <span v-if="hasSlideContent(slide)" class="cDot"></span>
+                    </template>
+                  </div>
+                </div>
+                <div
+                  v-else-if="
+                    item.contentType == 'review' && hasReviewContent(item)
+                  "
+                  class="media review"
+                  :style="{ backgroundColor: `${colors.cardBg.color}` }"
+                >
+                  <!--
+                    Text stars rather than SVG: they inherit colour and size
+                    from the theme with no CSS, and add nothing to the export.
+                  -->
+                  <p
+                    v-if="starCount(item.rating)"
+                    class="stars"
+                    :aria-label="`${starCount(item.rating)} out of 5`"
+                  >
+                    <span aria-hidden="true">{{ stars(item.rating) }}</span>
+                  </p>
+                  <p class="textC cardColor">{{ item.body }}</p>
+                  <p class="attribution cardColor">
+                    <span v-if="item.author">{{ item.author }}</span>
+                    <span v-if="item.source">
+                      {{ item.author ? ' · ' : '' }}
+                      <a
+                        v-if="item.link"
+                        class="cardColor"
+                        :href="item.link"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        >{{ item.source }}</a
+                      >
+                      <template v-else>{{ item.source }}</template>
+                    </span>
+                    <span v-if="item.date"> · {{ item.date }}</span>
+                  </p>
+                </div>
                 <div
                   v-else-if="item.contentType == 'text' && item.value"
                   class="media"
@@ -377,6 +548,19 @@ import type {
   PrimaryAction,
   SecondaryAction,
 } from '~/types/card'
+import {
+  hasCarouselContent,
+  hasProductContent,
+  hasReviewContent,
+  hasSlideContent,
+  HEADING_SELECTORS,
+  MAX_RATING,
+  slideFileName,
+  starCount,
+} from '~/types/card'
+import { formatAddress, hasAddress, mapSearchURL } from '~/utils/address'
+import { resolveEmbed } from '~/utils/embed'
+import { fontFamilyRule, stylesheetHrefs } from '~/utils/fonts'
 
 export default defineComponent({
   props: {
@@ -424,11 +608,45 @@ export default defineComponent({
   },
   computed: {
     getFullname(): string | null {
-      let fn = this.genInfo.fname
-      let ln = this.genInfo.lname
-      return (fn + ln).length > 0
-        ? `${fn ? fn : ''}${ln ? ' ' + ln : ''}`
-        : null
+      const parts = [
+        this.genInfo.prefix,
+        this.genInfo.fname,
+        this.genInfo.mname,
+        this.genInfo.lname,
+        this.genInfo.suffix,
+      ].filter(Boolean)
+      return parts.length > 0 ? parts.join(' ') : null
+    },
+    /**
+     * The Work row's three values, or empty ones until a Work row is added.
+     * These were fixed genInfo fields before Work became a primary action.
+     */
+    workValues(): Record<string, string | null> {
+      return (
+        this.primaryActions.find((a) => a.name === 'Work')?.values ?? {
+          title: null,
+          dept: null,
+          org: null,
+        }
+      )
+    },
+    /** One entry per Address row with anything filled in. */
+    addressRows(): { label: string; text: string; url: string }[] {
+      return this.primaryActions
+        .filter((a) => a.name === 'Address' && hasAddress(a.values))
+        .map((a) => ({
+          label: a.customLabel || a.contactType || 'Address',
+          text: formatAddress(a.values),
+          url: mapSearchURL(a.values),
+        }))
+    },
+    /**
+     * Only the rows that render as a tappable circle. Address and Work carry
+     * several values and are drawn in the header instead, so leaving them in
+     * would put an icon with no single link under the Save Contact button.
+     */
+    buttonActions(): PrimaryAction[] {
+      return this.primaryActions.filter((a) => !a.fields)
     },
     hasOnlyProfilePic(): boolean {
       return !(this.images.cover.url || this.images.logo.url)
@@ -437,22 +655,33 @@ export default defineComponent({
     // along with a watcher between them. `featured` is a list of sections, so
     // `featured.music` was always undefined: the watcher never fired and
     // nothing read `paused`. Removed rather than typed.
-    getCssHref(): string | false | null {
-      if (this.genInfo.fontLink) {
-        let html = new DOMParser().parseFromString(
-          this.genInfo.fontLink,
-          'text/html',
-        )
-        let link = Array.from(html.getElementsByTagName('link')).filter(
-          (e) => e.getAttribute('rel') === 'stylesheet',
-        )
-        return link.length > 0 && link[0].getAttribute('href')
+    /** Every font stylesheet the card needs, body and heading together. */
+    getCssHrefs(): string[] {
+      const hrefs = stylesheetHrefs(this.genInfo.fontLink)
+      for (const href of stylesheetHrefs(this.genInfo.headingLink)) {
+        // The two roles frequently share one request — the same preset picked
+        // for both, or one Google URL carrying two families.
+        if (!hrefs.includes(href)) hrefs.push(href)
       }
-      return false
+      return hrefs
     },
-    getFontFamily(): string | undefined {
-      const css = (this.genInfo.fontCss ?? '').replace(/\s+/, '')
-      return css.match(/^font-family[^;]*/)?.[0]
+    /**
+     * The font rules for the card, or '' when neither role has one.
+     *
+     * Built here rather than interpolated in the template so the selectors and
+     * the braces are in one place; a `<style>` assembled across template lines
+     * is where an unbalanced brace hides.
+     */
+    getFontRules(): string {
+      const rules: string[] = []
+      const body = fontFamilyRule(this.genInfo.fontCss)
+      const heading = fontFamilyRule(this.genInfo.headingCss)
+      if (body) rules.push(`#body{${body};}`)
+      // Emitted second so it wins over #body on equal specificity, and only
+      // when set — otherwise headings inherit the body font, which is the
+      // behaviour every card had before headings could differ.
+      if (heading) rules.push(`${HEADING_SELECTORS}{${heading};}`)
+      return rules.join('\n')
     },
   },
   methods: {
@@ -467,18 +696,26 @@ export default defineComponent({
     getTitle(e: string): string {
       return e.toLowerCase().split(' ').join('_')
     },
-    /** Pulls the embeddable src out of a pasted iframe or Instagram blockquote. */
+    /** Options API templates cannot see imports; re-expose them as methods. */
+    hasCarouselContent,
+    hasProductContent,
+    hasReviewContent,
+    hasSlideContent,
+    slideFileName,
+    starCount,
+    /** The filled/empty star row for a rating, as text. */
+    stars(rating: number | null): string {
+      const filled = starCount(rating)
+      return '★'.repeat(filled) + '☆'.repeat(MAX_RATING - filled)
+    },
+    /**
+     * The embeddable src for a link entry, or null if it resolves to nothing.
+     *
+     * Bare strings are the link entries; everything else carries a
+     * contentType. See app/utils/embed.ts for what is accepted.
+     */
     stripAttr(val: FeaturedContent): string | null {
-      if (typeof val !== 'string') return null
-      if (/<iframe(.*)\/iframe>/.test(val)) {
-        const iframe = val.match(/<iframe(.*)\/iframe>/)![0]
-        return iframe.match(/src="?([^"\s]+)"/)![1]
-      } else if (/\/\/www\.instagram\.com\/embed\.js/.test(val)) {
-        return `${
-          val.match(/data-instgrm-permalink="(.*?)\/\?/)![1]
-        }/embed/captioned`
-      }
-      return null
+      return typeof val === 'string' ? resolveEmbed(val) : null
     },
     toggleContainer(e: HTMLElement): void {
       if (e.style.top === '2rem') {
@@ -732,6 +969,10 @@ export default defineComponent({
     opacity: 0.8;
   }
   .bizaddr {
+    display: block;
+    color: inherit;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
     font-size: 0.8rem;
     opacity: 0.6;
   }
@@ -820,6 +1061,94 @@ export default defineComponent({
       pointer-events: none;
       user-select: none;
       width: 100%;
+    }
+  }
+  .carousel {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+    margin-top: 1rem;
+    // The strip itself. Scroll-snap does the paging, so the card still works
+    // with no JavaScript; carousel.ts only adds the arrows.
+    .track {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+    .slide {
+      flex: 0 0 100%;
+      // Without this a wide image forces the flex item past 100% and two
+      // slides end up visible at once, which breaks the snap points.
+      min-width: 0;
+      scroll-snap-align: center;
+      img {
+        display: block;
+        width: 100%;
+        user-select: none;
+      }
+    }
+    .caption {
+      margin: 0;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    .cNav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0;
+      border-radius: 50%;
+      padding: 0.25rem 0.6rem 0.4rem;
+      background: rgba(0, 0, 0, 0.45);
+      color: #fff;
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+      &.prev {
+        left: 0.5rem;
+      }
+      &.next {
+        right: 0.5rem;
+      }
+    }
+    .cDots {
+      display: flex;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.5rem 0;
+    }
+    .cDot {
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.3;
+      &.on {
+        opacity: 0.9;
+      }
+    }
+  }
+  .review {
+    padding: 1rem;
+    .stars {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 0.1em;
+    }
+    // Beats the global `.textC { margin: 1rem }` on specificity.
+    .textC {
+      margin: 0.5rem 0 0;
+    }
+    .attribution {
+      margin: 0.75rem 0 0;
+      font-size: 0.85rem;
+      opacity: 0.75;
     }
   }
   .embedded {
@@ -1098,6 +1427,10 @@ export default defineComponent({
     opacity: 0.8;
   }
   .bizaddr {
+    display: block;
+    color: inherit;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
     font-size: 0.8rem;
     opacity: 0.6;
   }
@@ -1186,6 +1519,94 @@ export default defineComponent({
       pointer-events: none;
       user-select: none;
       width: 100%;
+    }
+  }
+  .carousel {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+    margin-top: 1rem;
+    // The strip itself. Scroll-snap does the paging, so the card still works
+    // with no JavaScript; carousel.ts only adds the arrows.
+    .track {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+    .slide {
+      flex: 0 0 100%;
+      // Without this a wide image forces the flex item past 100% and two
+      // slides end up visible at once, which breaks the snap points.
+      min-width: 0;
+      scroll-snap-align: center;
+      img {
+        display: block;
+        width: 100%;
+        user-select: none;
+      }
+    }
+    .caption {
+      margin: 0;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    .cNav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0;
+      border-radius: 50%;
+      padding: 0.25rem 0.6rem 0.4rem;
+      background: rgba(0, 0, 0, 0.45);
+      color: #fff;
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+      &.prev {
+        left: 0.5rem;
+      }
+      &.next {
+        right: 0.5rem;
+      }
+    }
+    .cDots {
+      display: flex;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.5rem 0;
+    }
+    .cDot {
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.3;
+      &.on {
+        opacity: 0.9;
+      }
+    }
+  }
+  .review {
+    padding: 1rem;
+    .stars {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 0.1em;
+    }
+    // Beats the global `.textC { margin: 1rem }` on specificity.
+    .textC {
+      margin: 0.5rem 0 0;
+    }
+    .attribution {
+      margin: 0.75rem 0 0;
+      font-size: 0.85rem;
+      opacity: 0.75;
     }
   }
   .embedded {
@@ -1464,6 +1885,10 @@ export default defineComponent({
     opacity: 0.8;
   }
   .bizaddr {
+    display: block;
+    color: inherit;
+    text-decoration: underline dotted;
+    text-underline-offset: 2px;
     font-size: 0.8rem;
     opacity: 0.6;
   }
@@ -1548,6 +1973,94 @@ export default defineComponent({
       pointer-events: none;
       user-select: none;
       width: 100%;
+    }
+  }
+  .carousel {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+    margin-top: 1rem;
+    // The strip itself. Scroll-snap does the paging, so the card still works
+    // with no JavaScript; carousel.ts only adds the arrows.
+    .track {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      &::-webkit-scrollbar {
+        display: none;
+      }
+    }
+    .slide {
+      flex: 0 0 100%;
+      // Without this a wide image forces the flex item past 100% and two
+      // slides end up visible at once, which breaks the snap points.
+      min-width: 0;
+      scroll-snap-align: center;
+      img {
+        display: block;
+        width: 100%;
+        user-select: none;
+      }
+    }
+    .caption {
+      margin: 0;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    .cNav {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      border: 0;
+      border-radius: 50%;
+      padding: 0.25rem 0.6rem 0.4rem;
+      background: rgba(0, 0, 0, 0.45);
+      color: #fff;
+      font-size: 1.5rem;
+      line-height: 1;
+      cursor: pointer;
+      &.prev {
+        left: 0.5rem;
+      }
+      &.next {
+        right: 0.5rem;
+      }
+    }
+    .cDots {
+      display: flex;
+      justify-content: center;
+      gap: 0.35rem;
+      padding: 0.5rem 0;
+    }
+    .cDot {
+      width: 0.4rem;
+      height: 0.4rem;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.3;
+      &.on {
+        opacity: 0.9;
+      }
+    }
+  }
+  .review {
+    padding: 1rem;
+    .stars {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 0.1em;
+    }
+    // Beats the global `.textC { margin: 1rem }` on specificity.
+    .textC {
+      margin: 0.5rem 0 0;
+    }
+    .attribution {
+      margin: 0.75rem 0 0;
+      font-size: 0.85rem;
+      opacity: 0.75;
     }
   }
   .embedded {

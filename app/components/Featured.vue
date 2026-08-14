@@ -99,6 +99,20 @@
             :resizeImage="resizeImage"
             :showAlert="showAlert"
           />
+          <Carousel
+            v-else-if="item.contentType == 'carousel'"
+            :item="item"
+            :index="index"
+            :i="i"
+            :resizeImage="resizeImage"
+            :showAlert="showAlert"
+            @remove="removeItem(i)"
+          />
+          <Review
+            v-else-if="item.contentType == 'review'"
+            :item="item"
+            @remove="removeItem(i)"
+          />
           <div
             class="flex items-center mt-2"
             v-else-if="item.contentType == 'text'"
@@ -129,32 +143,41 @@
               <div class="w-6 h-6" v-html="$icon('x')"></div>
             </button>
           </div>
-          <div class="flex items-center mt-2" v-else>
-            <button
-              class="p-1 shrink-0 focus:outline-none drag cursor-move"
-              tabindex="-1"
-            >
-              <div class="w-6 h-6" v-html="$icon('drag')"></div>
-            </button>
-            <div class="w-full">
-              <input
-                class="px-4 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-500 hover:border-gray-500"
-                ref="link"
-                type="text"
-                aria-label="Paste embed code here"
-                title="Paste embed code here"
-                v-model="featured[index].content[i]"
-                placeholder="Paste embed code here"
-              />
+          <div class="mt-2" v-else>
+            <div class="flex items-center">
+              <button
+                class="p-1 shrink-0 focus:outline-none drag cursor-move"
+                tabindex="-1"
+              >
+                <div class="w-6 h-6" v-html="$icon('drag')"></div>
+              </button>
+              <div class="w-full">
+                <input
+                  class="px-4 w-full h-12 bg-black placeholder-gray-600 rounded border transition-colors duration-200 focus:outline-none focus:border-gray-500 hover:border-gray-500"
+                  :class="
+                    unresolved(item) ? 'border-amber-600' : 'border-transparent'
+                  "
+                  ref="link"
+                  type="text"
+                  aria-label="Paste a link or embed code"
+                  title="Paste a link or embed code"
+                  v-model="featured[index].content[i]"
+                  placeholder="Paste a link or embed code"
+                />
+              </div>
+              <button
+                class="p-1 m-2 shrink-0 focus:outline-none rounded hover:bg-gray-700 focus:bg-gray-700 transition-colors duration-200"
+                @click="removeItem(i)"
+                aria-label="Remove field"
+                title="Remove field"
+              >
+                <div class="w-6 h-6" v-html="$icon('x')"></div>
+              </button>
             </div>
-            <button
-              class="p-1 m-2 shrink-0 focus:outline-none rounded hover:bg-gray-700 focus:bg-gray-700 transition-colors duration-200"
-              @click="removeItem(i)"
-              aria-label="Remove field"
-              title="Remove field"
-            >
-              <div class="w-6 h-6" v-html="$icon('x')"></div>
-            </button>
+            <!-- Without this the card just renders nothing and never says why. -->
+            <p v-if="unresolved(item)" class="ml-8 mt-1 text-sm text-amber-500">
+              {{ EMBED_HINT }}
+            </p>
           </div>
         </div>
       </transition-group>
@@ -209,6 +232,22 @@
         <div class="w-6 h-6 mr-3" v-html="$icon('text')"></div>
         <p class="leading-none text-left">Add text</p>
       </button>
+      <button
+        class="flex items-center p-3 rounded cursor-pointer bg-gray-700 hover:bg-gray-600 focus:bg-gray-600 transition-colors duration-200 focus:outline-none"
+        @click="addCarousel()"
+        aria-label="Add carousel"
+      >
+        <div class="w-6 h-6 mr-3" v-html="$icon('carousel')"></div>
+        <p class="leading-none text-left">Add carousel</p>
+      </button>
+      <button
+        class="flex items-center p-3 rounded cursor-pointer bg-gray-700 hover:bg-gray-600 focus:bg-gray-600 transition-colors duration-200 focus:outline-none"
+        @click="addReview()"
+        aria-label="Add review"
+      >
+        <div class="w-6 h-6 mr-3" v-html="$icon('review')"></div>
+        <p class="leading-none text-left">Add review</p>
+      </button>
     </div>
   </div>
 </template>
@@ -216,10 +255,13 @@
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue'
 import type {
+  CarouselContent,
+  FeaturedContent,
   FeaturedSection,
   MediaContent,
   MediaKind,
   ResizeImage,
+  ReviewContent,
   TextContent,
 } from '~/types/card'
 
@@ -231,6 +273,8 @@ import type {
 import { convertFileToBuffer } from 'id3-parser/lib/util.js'
 import id3 from 'id3-parser'
 import { errorText } from '~/utils/errors'
+import { EMBED_HINT, resolveEmbed } from '~/utils/embed'
+import { captureVideoEntry, fileTitle, readImageEntry } from '~/utils/media'
 
 const parse = typeof id3 === 'function' ? id3 : id3.default
 // pdf.js used to be vendored under assets/scripts and pulled in with CommonJS
@@ -259,6 +303,8 @@ function loadPdfjs(): Promise<Pdfjs> {
 import { VueDraggable } from 'vue-draggable-plus'
 
 import ProductCard from './ProductCard.vue'
+import Carousel from './Carousel.vue'
+import Review from './Review.vue'
 
 export default defineComponent({
   props: {
@@ -279,10 +325,14 @@ export default defineComponent({
   data() {
     return {
       dragOver: false,
+      // Constant, but the template can only read it through the instance.
+      EMBED_HINT,
     }
   },
   components: {
+    Carousel,
     ProductCard,
+    Review,
     VueDraggable,
   },
   computed: {
@@ -291,6 +341,16 @@ export default defineComponent({
     },
   },
   methods: {
+    /**
+     * A link entry the user has typed into that the card cannot embed.
+     *
+     * Empty is not unresolved — a freshly added row should not scold you
+     * before you have typed anything.
+     */
+    unresolved(item: FeaturedContent): boolean {
+      if (typeof item !== 'string' || !item.trim()) return false
+      return resolveEmbed(item) === null
+    },
     mediaType(t: string): MediaKind | undefined {
       switch (true) {
         case t === 'image/jpeg' || t === 'image/png':
@@ -343,6 +403,22 @@ export default defineComponent({
         50,
       )
     },
+    addCarousel(): void {
+      const entry: CarouselContent = { contentType: 'carousel', slides: [] }
+      this.featured[this.index].content.push(entry)
+    },
+    addReview(): void {
+      const entry: ReviewContent = {
+        contentType: 'review',
+        author: null,
+        rating: null,
+        body: null,
+        source: null,
+        link: null,
+        date: null,
+      }
+      this.featured[this.index].content.push(entry)
+    },
     fileLoaded(e: Event, dropped: boolean): void {
       const dt = (e as DragEvent).dataTransfer
       const input = e.target as HTMLInputElement
@@ -363,7 +439,7 @@ export default defineComponent({
               this.musicLoaded(file, type)
               break
             case 'video':
-              this.videoLoaded(file, type)
+              this.videoLoaded(file)
               break
             case 'document':
               this.documentLoaded(file, type)
@@ -377,47 +453,26 @@ export default defineComponent({
         }
       } else this.dragOver = false
     },
-    getFileName(file: File): string {
-      return file.name.replace(/(?:\.([^.]+))?$/, '')
-    },
     removeItem(i: number): void {
       this.featured[this.index].content.splice(i, 1)
     },
     // Images
-    imageLoaded(file: File, type: MediaKind, mime: string): void {
-      const title = this.getFileName(file)
-      const reader = new FileReader()
-      reader.onload = (f) => {
-        const dataURI = f.target!.result as string
-        const ext = dataURI
-          .split(',')[0]
-          .split(':')[1]
-          .split('/')[1]
-          .match(/^\w+/g)![0]
-        const entry: MediaContent = {
-          name: file.name,
-          title,
-          dataURI,
-          file,
-          type,
-          contentType: 'media',
-          ext,
-          mime,
-        }
-        this.featured[this.index].content.push(entry)
+    async imageLoaded(
+      file: File,
+      type: MediaKind,
+      mime: string,
+    ): Promise<void> {
+      try {
+        this.featured[this.index].content.push(await readImageEntry(file, mime))
         this.resizeImage(
           type,
           mime,
           this.index,
           this.featured[this.index].content.length - 1,
         )
+      } catch (err) {
+        this.showAlert(errorText(err))
       }
-      reader.onerror = () => {
-        this.showAlert(
-          `Could not read ${file.name}. The file may be unreadable.`,
-        )
-      }
-      reader.readAsDataURL(file)
     },
 
     // Music
@@ -454,7 +509,7 @@ export default defineComponent({
       if (!tag) {
         this.featured[this.index].content.push({
           ...base,
-          title: this.getFileName(file),
+          title: fileTitle(file),
           info: 'No ID3 Tag',
         })
         return false
@@ -463,7 +518,7 @@ export default defineComponent({
       // still yields `undefined` here. getTitle() lowercases it on the export
       // path, so fall back to the filename rather than crashing the download.
       const tags = {
-        title: tag.title || this.getFileName(file),
+        title: tag.title || fileTitle(file),
         artist: tag.artist,
         album: tag.album,
       }
@@ -488,75 +543,12 @@ export default defineComponent({
     },
 
     // Videos
-    videoLoaded(file: File, type: MediaKind): void {
-      const title = this.getFileName(file)
-      const canvas = document.createElement('canvas')
-      const ctx = canvas.getContext('2d')!
-      const video = document.createElement('video')
-      let videoFile: Blob
-      let dataURI: string
-      const maxWidth = 80
-      const maxHeight = 80
-      const reader = new FileReader()
-      const uA = navigator.userAgent.match(/firefox|android/gi)
-      const videoProcessor = (): void => {
-        let width = video.videoWidth
-        let height = video.videoHeight
-
-        if (width > maxWidth) {
-          height *= maxWidth / width
-          width = maxWidth
-        }
-        if (height > maxHeight) {
-          width *= maxHeight / height
-          height = maxHeight
-        }
-        canvas.width = width
-        canvas.height = height
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
-        const coverDataURI = canvas.toDataURL('image/jpeg', 0.8)
-        const entry: MediaContent = {
-          name: file.name,
-          coverDataURI,
-          coverExt: 'jpeg',
-          dataURI,
-          file,
-          title,
-          type,
-          contentType: 'media',
-          ext: 'mp4',
-        }
-        this.featured[this.index].content.push(entry)
+    async videoLoaded(file: File): Promise<void> {
+      try {
+        this.featured[this.index].content.push(await captureVideoEntry(file))
+      } catch (err) {
+        this.showAlert(errorText(err))
       }
-      if (uA && uA.length === 2) {
-        video.addEventListener('loadstart', videoProcessor)
-      } else {
-        video.addEventListener('seeked', videoProcessor)
-      }
-
-      // The entry is only pushed from videoProcessor, which runs on 'seeked'.
-      // A container the browser accepts by MIME but cannot decode (H.265 in
-      // Chrome, say) fires 'error' and never 'seeked', so without this the
-      // attachment simply never appears and nothing is reported.
-      video.addEventListener('error', () => {
-        this.showAlert(
-          `Could not read that video.\n\nThe file may use a codec your browser cannot decode.`,
-        )
-      })
-
-      reader.onload = (f) => {
-        videoFile = new Blob([f.target!.result as ArrayBuffer], {
-          type: 'video/mp4',
-        })
-        dataURI = URL.createObjectURL(videoFile)
-        video.src = dataURI + '#t=0.2'
-      }
-      reader.onerror = () => {
-        this.showAlert(
-          `Could not read ${file.name}. The file may be unreadable.`,
-        )
-      }
-      reader.readAsArrayBuffer(file)
     },
 
     // PDFs
@@ -588,7 +580,7 @@ export default defineComponent({
     },
     documentLoaded(file: File, type: MediaKind): void {
       const filesize = this.formatBytes(file.size)
-      const title = this.getFileName(file)
+      const title = fileTitle(file)
       const reader = new FileReader()
       let data: Uint8Array
       const maxWidth = 1296

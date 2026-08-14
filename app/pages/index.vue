@@ -134,8 +134,22 @@
             Recommended profile photo size is 320 x 320 pixels, with an aspect
             ratio of 1:1
           </p>
-          <div class="stepC mt-6 grid grid-cols-2 gap-4">
-            <div>
+          <!-- Six columns of 2/4, not five fields across: the editor column is
+               448px at desktop width, which would leave "Last name" 61px wide. -->
+          <div class="stepC mt-6 grid grid-cols-6 gap-4">
+            <div class="col-span-2">
+              <label for="prefix" class="ml-4">Prefix</label>
+              <input
+                id="prefix"
+                spellcheck="false"
+                type="text"
+                v-model="genInfo.prefix"
+                placeholder="Dr"
+                autocapitalize="words"
+                class="mt-2 px-4 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
+            <div class="col-span-4">
               <label for="firstname" class="ml-4">First name</label>
               <input
                 id="firstname"
@@ -146,7 +160,18 @@
                 class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
               />
             </div>
-            <div>
+            <div class="col-span-2">
+              <label for="middlename" class="ml-4">Middle</label>
+              <input
+                id="middlename"
+                spellcheck="false"
+                type="text"
+                v-model="genInfo.mname"
+                autocapitalize="words"
+                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
+            <div class="col-span-4">
               <label for="lastname" class="ml-4">Last name</label>
               <input
                 id="lastname"
@@ -155,6 +180,53 @@
                 v-model="genInfo.lname"
                 autocapitalize="words"
                 class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
+            <div class="col-span-2">
+              <label for="suffix" class="ml-4">Suffix</label>
+              <input
+                id="suffix"
+                spellcheck="false"
+                type="text"
+                v-model="genInfo.suffix"
+                placeholder="PhD"
+                autocapitalize="words"
+                class="mt-2 px-4 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
+            <div class="col-span-4">
+              <label for="nickname" class="ml-4">Nickname</label>
+              <input
+                id="nickname"
+                spellcheck="false"
+                type="text"
+                v-model="genInfo.nickname"
+                autocapitalize="words"
+                class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
+          </div>
+          <div class="stepC mt-6 grid grid-cols-2 gap-4">
+            <div>
+              <label for="phonetic-first" class="ml-4">Phonetic first</label>
+              <input
+                id="phonetic-first"
+                spellcheck="false"
+                type="text"
+                v-model="genInfo.phoneticFirst"
+                placeholder="how it sounds"
+                class="mt-2 px-4 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              />
+            </div>
+            <div>
+              <label for="phonetic-last" class="ml-4">Phonetic last</label>
+              <input
+                id="phonetic-last"
+                spellcheck="false"
+                type="text"
+                v-model="genInfo.phoneticLast"
+                placeholder="how it sounds"
+                class="mt-2 px-4 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
               />
             </div>
           </div>
@@ -169,38 +241,6 @@
               autocapitalize="words"
               class="mt-2 px-4 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
             />
-          </div>
-          <div class="stepC mt-6">
-            <label for="job-title" class="ml-4">Job title</label>
-            <input
-              id="job-title"
-              type="text"
-              spellcheck="true"
-              autocapitalize="words"
-              v-model="genInfo.title"
-              class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
-            />
-          </div>
-          <div class="stepC mt-6">
-            <label for="business-name" class="ml-4">Business name</label>
-            <input
-              id="business-name"
-              spellcheck="false"
-              type="text"
-              v-model="genInfo.biz"
-              autocapitalize="words"
-              class="mt-2 px-4 w-full h-12 bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
-            />
-          </div>
-          <div class="stepC mt-6">
-            <label for="business-address" class="ml-4">Business address</label>
-            <textarea
-              id="business-address"
-              :value="genInfo.addr"
-              @input="genInfo.addr = $event.target.value"
-              class="block mt-2 px-4 py-3 w-full bg-black rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 resize-none hover:border-gray-600"
-              rows="4"
-            ></textarea>
           </div>
           <div class="stepC mt-6">
             <label for="business-description" class="ml-4"
@@ -250,13 +290,14 @@
             >
               <Action
                 v-for="(item, index) in primaryActions"
-                :key="item.name"
+                :key="item.rowId"
                 name="primaryActions"
                 :type="primaryActions"
                 :item="item"
                 :index="index"
                 :buttonBg="colors.buttonBg.color"
                 :removeAction="removeAction"
+                :showAlert="showAlert"
               />
             </transition-group>
           </VueDraggable>
@@ -275,6 +316,35 @@
                 filteredAction('filteredPrimaryActions', 'primaryActions')
               "
             />
+            <div
+              v-if="!filterPrimary"
+              class="mt-3 flex flex-wrap gap-2"
+              aria-label="Action categories"
+            >
+              <button
+                v-for="category in primaryActionCategories"
+                :key="category.id"
+                type="button"
+                :aria-pressed="primaryCategory === category.id"
+                @click="primaryCategory = category.id"
+                class="px-3 py-2 rounded-full shrink-0 text-sm font-extrabold border transition-colors duration-200 focus:outline-none focus:ring-3 ring-gray-100"
+                :class="
+                  primaryCategory === category.id
+                    ? 'bg-emerald-600 border-emerald-500 text-white'
+                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
+                "
+              >
+                {{ category.label }}
+              </button>
+            </div>
+            <div class="mt-2 mb-3 flex items-baseline justify-between gap-3">
+              <p class="text-sm font-extrabold text-gray-300">
+                {{ primaryResultsLabel }}
+              </p>
+              <p class="text-xs text-gray-500">
+                {{ filteredPrimaryActions.length }} available
+              </p>
+            </div>
             <p class="p-3" v-if="filteredPrimaryActions.length < 1">
               Can't find an action? Please
               <a
@@ -290,27 +360,24 @@
                 :key="index"
                 @click="addAction('primaryActions', action.name)"
                 class="p-3 flex items-center shrink-0 rounded hover:bg-gray-600 focus:bg-gray-600 transition-colors duration-200 focus:outline-none bg-gray-700"
-                :title="
-                  action.name.substr(0, 1).toUpperCase() + action.name.slice(1)
-                "
+                :title="action.name"
                 :aria-label="action.name"
               >
                 <div
                   class="w-6 h-6 mr-3 shrink-0"
                   v-html="$icon(action.icon)"
                 ></div>
-                <p class="whitespace-nowrap">
-                  {{
-                    action.name.substr(0, 1).toUpperCase() +
-                    action.name.slice(1)
-                  }}
-                </p>
+                <p class="whitespace-nowrap">{{ action.name }}</p>
               </button>
             </div>
           </div>
         </div>
         <div id="step-4" class="mt-16">
-          <h2 class="font-extrabold text-2xl">Secondary actions</h2>
+          <h2 class="font-extrabold text-2xl">Social &amp; online profiles</h2>
+          <p class="mt-2 text-sm text-gray-400">
+            Add the places where people can follow, support, or explore your
+            work.
+          </p>
           <VueDraggable
             v-model="secondaryActions"
             handle=".drag"
@@ -326,12 +393,13 @@
             >
               <Action
                 v-for="(item, index) in secondaryActions"
-                :key="item.name"
+                :key="item.rowId"
                 name="secondaryActions"
                 :type="secondaryActions"
                 :item="item"
                 :index="index"
                 :removeAction="removeAction"
+                :showAlert="showAlert"
               />
             </transition-group>
           </VueDraggable>
@@ -343,45 +411,69 @@
               spellcheck="false"
               type="text"
               v-model="filterSecondary"
-              placeholder="Search an action"
-              class="px-4 mb-2 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
+              placeholder="Search profiles"
+              aria-label="Search social and online profiles"
+              class="px-4 w-full h-12 bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 hover:border-gray-600"
               @keydown.esc="clearFilterActions"
               @keypress.enter="
                 filteredAction('filteredSecondaryActions', 'secondaryActions')
               "
             />
-            <p class="p-3" v-if="filteredSecondaryActions.length < 1">
-              Can't find an action? Please
-              <a
-                href="#help"
-                class="cursor-pointer underline font-extrabold text-emerald-600 hover:text-emerald-500 focus:text-emerald-500 transition-colors duration-200"
-                >leave your suggestion</a
-              >
-              on Telegram
-            </p>
-            <div class="stepC actions">
+            <div
+              v-if="!filterSecondary"
+              class="mt-3 flex flex-wrap gap-2"
+              aria-label="Profile categories"
+            >
               <button
-                v-for="(action, index) in filteredSecondaryActions"
-                :key="index"
-                @click="addAction('secondaryActions', action.name)"
-                class="p-3 flex items-center shrink-0 rounded hover:brightness-125 focus:brightness-125 transition-all duration-200 focus:outline-none"
-                :style="{ background: action.color }"
-                :title="
-                  action.name.substr(0, 1).toUpperCase() + action.name.slice(1)
+                v-for="category in secondaryActionCategories"
+                :key="category.id"
+                type="button"
+                :aria-pressed="secondaryCategory === category.id"
+                @click="secondaryCategory = category.id"
+                class="px-3 py-2 rounded-full shrink-0 text-sm font-extrabold border transition-colors duration-200 focus:outline-none focus:ring-3 ring-gray-100"
+                :class="
+                  secondaryCategory === category.id
+                    ? 'bg-emerald-600 border-emerald-500 text-white'
+                    : 'bg-gray-800 border-gray-700 text-gray-300 hover:bg-gray-700'
                 "
+              >
+                {{ category.label }}
+              </button>
+            </div>
+            <div class="mt-2 mb-3 flex items-baseline justify-between gap-3">
+              <p class="text-sm font-extrabold text-gray-300">
+                {{ secondaryResultsLabel }}
+              </p>
+              <p class="text-xs text-gray-500">
+                {{ filteredSecondaryActions.length }} available
+              </p>
+            </div>
+            <p class="p-3" v-if="filteredSecondaryActions.length < 1">
+              Can't find a profile? Please
+              <a
+                href="https://github.com/CapsaicinBunny/EnBizCard/issues"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="cursor-pointer underline font-extrabold text-emerald-600 hover:text-emerald-500 focus:text-emerald-500 transition-colors duration-200"
+                >suggest one on GitHub</a
+              >
+            </p>
+            <div class="profile-grid grid grid-cols-2 gap-2">
+              <button
+                v-for="action in filteredSecondaryActions"
+                :key="action.name"
+                @click="addAction('secondaryActions', action.name)"
+                class="profile-card min-w-0 p-3 flex items-center rounded hover:brightness-125 focus:brightness-125 transition-all duration-200 focus:outline-none focus:ring-3 ring-white"
+                :style="{ background: action.color }"
+                :title="action.name"
+                :aria-label="`Add ${action.name}`"
               >
                 <div
                   class="w-6 h-6 mr-3 shrink-0"
                   v-html="$icon(action.icon)"
                 ></div>
-                <p
-                  class="whitespace-nowrap"
-                  :class="{ 'text-gray-900': action.light }"
-                >
-                  {{
-                    action.name.substr(0, 1).toUpperCase() +
-                    action.name.slice(1)
-                  }}
+                <p class="truncate" :class="{ 'text-gray-900': action.light }">
+                  {{ action.name }}
                 </p>
               </button>
             </div>
@@ -430,7 +522,10 @@
               </div>
             </div>
             <p class="mt-6 border p-4 rounded border-gray-700 text-gray-400">
-              Supported media formats: jpeg, png, mp3, mp4, webm and pdf
+              Sections hold anything that is not a contact detail — photos of
+              your work, a price list, a certificate, a short video. Media
+              formats: jpeg, png, mp3, mp4, webm and pdf. Embeds accept a
+              YouTube, Vimeo or Instagram link.
             </p>
           </div>
         </div>
@@ -525,32 +620,118 @@
         </div>
         <div id="step-9" class="mt-16">
           <h2 class="font-extrabold text-2xl">Fonts</h2>
-          <div class="stepC mt-6">
-            <label for="font-link" class="ml-4">Web font embed code</label>
-            <textarea
-              id="font-link"
-              v-model="genInfo.fontLink"
-              class="block mt-2 px-4 py-3 w-full bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 resize-none hover:border-gray-600"
-              rows="4"
-              spellcheck="false"
-              :placeholder="`<link href=&quot;https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap&quot; rel=&quot;stylesheet&quot;>`"
-            ></textarea>
-          </div>
-          <div class="stepC mt-6">
-            <label for="font-css" class="ml-4">Web font CSS rule</label>
-            <input
-              spellcheck="false"
-              type="text"
-              id="font-css"
-              v-model="genInfo.fontCss"
-              class="block mt-2 px-4 py-3 w-full bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 resize-none hover:border-gray-600"
-              :placeholder="`font-family: 'Poppins', sans-serif;`"
-            />
+          <p class="mt-2 text-gray-400">
+            Headings and body text can use different fonts. Leave headings on
+            Default and they simply inherit the body font.
+          </p>
+          <!--
+            One block per role, same preset list. `role.key` drives both the
+            selected-preset field and which half of genInfo is written, so
+            adding a third role would not need new markup.
+          -->
+          <div v-for="role in fontRoles" :key="role.key" class="mt-8">
+            <h3 class="font-extrabold text-lg">{{ role.label }}</h3>
+            <p class="mt-1 text-sm text-gray-500">{{ role.note }}</p>
+            <div
+              class="mt-3 grid grid-cols-2 sm:grid-cols-3 gap-2"
+              :aria-label="`${role.label} font`"
+            >
+              <button
+                v-for="preset in fontPresets"
+                :key="preset.id"
+                type="button"
+                :aria-pressed="selectedFont(role.key) === preset.id"
+                :title="`${preset.name} — ${preset.note}`"
+                @click="selectFontPreset(role.key, preset.id)"
+                class="px-3 py-2 text-left rounded border transition-colors duration-200 focus:outline-none focus:ring-3 ring-gray-100"
+                :class="
+                  selectedFont(role.key) === preset.id
+                    ? 'bg-emerald-600 border-emerald-500 text-white'
+                    : 'bg-gray-800 border-gray-700 hover:bg-gray-700'
+                "
+              >
+                <span class="block font-extrabold truncate">{{
+                  preset.name
+                }}</span>
+                <span
+                  class="block text-xs truncate"
+                  :class="
+                    selectedFont(role.key) === preset.id
+                      ? 'text-emerald-100'
+                      : 'text-gray-500'
+                  "
+                  >{{ preset.note }}</span
+                >
+              </button>
+            </div>
+            <p
+              v-if="
+                selectedFont(role.key) !== 'default' &&
+                selectedFont(role.key) !== 'custom'
+              "
+              class="mt-4 text-sm text-gray-500"
+            >
+              Loaded from Google Fonts. Your card stays self-hosted, but
+              readers' browsers will fetch the font file from Google when they
+              open it.
+            </p>
+            <div
+              v-show="selectedFont(role.key) === 'custom'"
+              class="stepC mt-4"
+            >
+              <label :for="`font-link-${role.key}`" class="ml-4"
+                >Web font embed code</label
+              >
+              <textarea
+                :id="`font-link-${role.key}`"
+                :value="
+                  role.key === 'heading'
+                    ? genInfo.headingLink
+                    : genInfo.fontLink
+                "
+                @input="
+                  setFontField(
+                    role.key,
+                    'link',
+                    ($event.target as HTMLTextAreaElement).value,
+                  )
+                "
+                class="block mt-2 px-4 py-3 w-full bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 resize-none hover:border-gray-600"
+                rows="4"
+                spellcheck="false"
+                :placeholder="`<link href=&quot;https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap&quot; rel=&quot;stylesheet&quot;>`"
+              ></textarea>
+            </div>
+            <div
+              v-show="selectedFont(role.key) === 'custom'"
+              class="stepC mt-4"
+            >
+              <label :for="`font-css-${role.key}`" class="ml-4"
+                >Web font CSS rule</label
+              >
+              <input
+                spellcheck="false"
+                type="text"
+                :id="`font-css-${role.key}`"
+                :value="
+                  role.key === 'heading' ? genInfo.headingCss : genInfo.fontCss
+                "
+                @input="
+                  setFontField(
+                    role.key,
+                    'css',
+                    ($event.target as HTMLInputElement).value,
+                  )
+                "
+                class="block mt-2 px-4 py-3 w-full bg-black placeholder-gray-600 rounded border border-transparent transition-colors duration-200 focus:outline-none focus:border-gray-600 resize-none hover:border-gray-600"
+                :placeholder="`font-family: 'Poppins', sans-serif;`"
+              />
+            </div>
           </div>
           <p class="mt-6 border p-4 rounded border-gray-700 text-gray-400">
-            Supports services such as Google Fonts, Adobe Typekit, etc. Make
-            sure to get the embed code for both regular and bold font variants
-            from the same font family.
+            Custom fonts support services such as Google Fonts, Adobe Typekit
+            and others. Get the embed code for both the regular and bold
+            variants from the same family — the card uses both.
           </p>
         </div>
         <div id="step-10" class="mt-16">
@@ -648,7 +829,6 @@
         </div>
       </div>
     </div>
-    <Vcard ref="vCard" :vCard="vCard" />
     <SiteFooter />
   </div>
 </template>
@@ -665,7 +845,6 @@ import Download from '@/components/Download.vue'
 import SiteFooter from '@/components/SiteFooter.vue'
 import Cropper from '@/components/Cropper.vue'
 
-import Vcard from '@/components/Vcard.vue'
 import type {
   CardActions,
   CardColours,
@@ -674,15 +853,28 @@ import type {
   ColourSlot,
   DownloadCheckItem,
   FeaturedSection,
+  FontPreset,
+  FontRole,
+  ContactTypeGroup,
   GenInfo,
+  PrimaryActionCategory,
   ImageSlot,
   MediaKind,
   PrimaryAction,
   ProductContent,
   SecondaryAction,
+  SecondaryActionCategory,
   ResizeTarget,
   VCardData,
 } from '~/types/card'
+import {
+  abLabelFor,
+  contactTypeFor,
+  hasCarouselContent,
+  slideFileName,
+} from '~/types/card'
+import { buildVCard } from '~/utils/vcard'
+import { hasAddress } from '~/utils/address'
 import { errorText } from '~/utils/errors'
 import JSZip from 'jszip'
 // vuedraggable@4 is unmaintained and breaks on Vue 3.3+ (its slot vnodes have a
@@ -703,6 +895,249 @@ import Theme3 from '~/assets/styles/T3.min.css?raw'
 // TypeScript: the export needs runnable JS, not the annotated source.
 import modalScript from '~/assets/scripts/main.ts?minified'
 import mediaScript from '~/assets/scripts/media.ts?minified'
+import carouselScript from '~/assets/scripts/carousel.ts?minified'
+
+/**
+ * A `urn:uuid:` for the vCard's UID.
+ *
+ * `crypto.randomUUID` needs a secure context, which self-hosting does not
+ * guarantee — the Docker guide points people at a plain-HTTP port, and over a
+ * LAN IP rather than localhost the method is simply absent. Calling it
+ * unguarded would throw inside data() and leave the whole editor blank, so
+ * fall back to random bytes shaped as a v4 UUID.
+ */
+function randomHex(length: number): string {
+  return Array.from({ length }, () =>
+    Math.floor(Math.random() * 16).toString(16),
+  ).join('')
+}
+
+function cardUuid(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID)
+    return `urn:uuid:${crypto.randomUUID()}`
+  // Version nibble 4, variant nibble 8-b, per RFC 4122.
+  const variant = '89ab'[Math.floor(Math.random() * 4)]
+  return `urn:uuid:${randomHex(8)}-${randomHex(4)}-4${randomHex(3)}-${variant}${randomHex(3)}-${randomHex(12)}`
+}
+
+/**
+ * Blob to `data:` URI, for embedding the photo and logo in the .vcf.
+ *
+ * Resolves to null rather than rejecting on a read error: a picture that will
+ * not encode should not sink the whole download, since the rest of the contact
+ * is still worth saving.
+ */
+function blobToDataURI(blob: Blob | null): Promise<string | null> {
+  if (!blob) return Promise.resolve(null)
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = () => resolve(null)
+    reader.readAsDataURL(blob)
+  })
+}
+
+const PRIMARY_ACTION_CATEGORIES: ReadonlyArray<{
+  id: PrimaryActionCategory
+  label: string
+}> = [
+  { id: 'contact', label: 'Phone & email' },
+  { id: 'messaging', label: 'Messaging' },
+  { id: 'meetings', label: 'Meetings' },
+  { id: 'web', label: 'Web & places' },
+]
+
+const PRIMARY_ACTION_GROUPS: Record<PrimaryActionCategory, readonly string[]> =
+  {
+    contact: ['Phone', 'Fax', 'SMS', 'Email', 'Address', 'Work'],
+    messaging: [
+      'WhatsApp',
+      'Telegram',
+      'Signal',
+      'Messenger',
+      'Line',
+      'Viber',
+      'WeChat',
+      'Matrix',
+      'XMPP',
+      'imo',
+    ],
+    meetings: ['Google Meet', 'Microsoft Teams', 'Zoom'],
+    web: ['Website', 'Store', 'Location', 'Calendar'],
+  }
+
+type ProfilePickerCategory = 'popular' | SecondaryActionCategory
+
+const SECONDARY_ACTION_CATEGORIES: ReadonlyArray<{
+  id: ProfilePickerCategory
+  label: string
+}> = [
+  { id: 'popular', label: 'Popular' },
+  { id: 'social', label: 'Social' },
+  { id: 'creative', label: 'Creative' },
+  { id: 'media', label: 'Video & audio' },
+  { id: 'developer', label: 'Developer' },
+  { id: 'publishing', label: 'Publishing' },
+  { id: 'support', label: 'Support & payments' },
+  { id: 'community', label: 'Communities' },
+  { id: 'apps', label: 'Apps & reviews' },
+  { id: 'shops', label: 'Shops' },
+]
+
+/**
+ * Google Fonts embed tag for a family, at the regular and bold weights the
+ * card actually uses.
+ *
+ * One request per family is a convenience, not a constraint: Preview.vue
+ * collects every stylesheet link it finds across both roles, so a heading
+ * font and a body font load side by side.
+ */
+function googleFontLink(family: string): string {
+  const name = family.replaceAll(' ', '+')
+  return `<link href="https://fonts.googleapis.com/css2?family=${name}:wght@400;700&display=swap" rel="stylesheet">`
+}
+
+const FONT_PRESETS: readonly FontPreset[] = [
+  {
+    id: 'default',
+    name: 'Default',
+    note: 'The reader’s own sans',
+    link: '',
+    css: '',
+  },
+  {
+    id: 'poppins',
+    name: 'Poppins',
+    note: 'Geometric sans',
+    link: googleFontLink('Poppins'),
+    css: "font-family: 'Poppins', sans-serif;",
+  },
+  {
+    id: 'inter',
+    name: 'Inter',
+    note: 'Neutral UI sans',
+    link: googleFontLink('Inter'),
+    css: "font-family: 'Inter', sans-serif;",
+  },
+  {
+    id: 'dm-sans',
+    name: 'DM Sans',
+    note: 'Soft low-contrast sans',
+    link: googleFontLink('DM Sans'),
+    css: "font-family: 'DM Sans', sans-serif;",
+  },
+  {
+    id: 'montserrat',
+    name: 'Montserrat',
+    note: 'Wide display sans',
+    link: googleFontLink('Montserrat'),
+    css: "font-family: 'Montserrat', sans-serif;",
+  },
+  {
+    id: 'space-grotesk',
+    name: 'Space Grotesk',
+    note: 'Technical sans',
+    link: googleFontLink('Space Grotesk'),
+    css: "font-family: 'Space Grotesk', sans-serif;",
+  },
+  {
+    id: 'playfair-display',
+    name: 'Playfair Display',
+    note: 'High-contrast serif',
+    link: googleFontLink('Playfair Display'),
+    css: "font-family: 'Playfair Display', serif;",
+  },
+  {
+    id: 'lora',
+    name: 'Lora',
+    note: 'Readable text serif',
+    link: googleFontLink('Lora'),
+    css: "font-family: 'Lora', serif;",
+  },
+  {
+    id: 'custom',
+    name: 'Custom',
+    note: 'Paste your own embed',
+    link: '',
+    css: '',
+  },
+]
+
+const POPULAR_SECONDARY_ACTIONS: readonly string[] = [
+  'Instagram',
+  'LinkedIn',
+  'Facebook',
+  'YouTube',
+  'TikTok',
+  'X',
+  'Bluesky',
+  'GitHub',
+  'Discord',
+  'Spotify',
+  'PayPal',
+  'Threads',
+  'Custom',
+]
+
+const SECONDARY_ACTION_GROUPS: Record<
+  SecondaryActionCategory,
+  readonly string[]
+> = {
+  social: [
+    'Instagram',
+    'Threads',
+    'Bluesky',
+    'X',
+    'Facebook',
+    'LinkedIn',
+    'TikTok',
+    'Snapchat',
+    'Pinterest',
+    'Mastodon',
+    'Pixelfed',
+    'Friendica',
+    'Diaspora',
+    'VK',
+  ],
+  creative: ['Behance', 'Dribbble', 'ArtStation'],
+  media: [
+    'YouTube',
+    'Twitch',
+    'Spotify',
+    'SoundCloud',
+    'Vimeo',
+    'PeerTube',
+    'Funkwhale',
+  ],
+  developer: ['GitHub', 'GitLab', 'Codeberg'],
+  publishing: ['Substack', 'Medium', 'Tumblr', 'Quora'],
+  support: [
+    'PayPal',
+    'Cash App',
+    'Patreon',
+    'Ko-fi',
+    'Buy me a coffee',
+    'Open Collective',
+    'Bitcoin',
+    'Monero',
+  ],
+  community: ['Discord', 'Reddit', 'Siilo'],
+  apps: [
+    'App Store',
+    'Play Store',
+    'Angi',
+    'Bark',
+    'BuildZoom',
+    'HomeAdvisor',
+    'Houzz',
+    'Networx',
+    'Nextdoor',
+    'Porch',
+    'Thumbtack',
+    'Yelp',
+  ],
+  shops: ['Amazon', 'Etsy', 'eBay'],
+}
 
 export default defineComponent({
   components: {
@@ -715,7 +1150,6 @@ export default defineComponent({
     Preview,
     Download,
     SiteFooter,
-    Vcard,
     VueDraggable,
   },
 
@@ -783,54 +1217,74 @@ export default defineComponent({
         },
       } as CardColours,
       genInfo: {
+        prefix: null,
         fname: null,
+        mname: null,
         lname: null,
+        suffix: null,
+        phoneticFirst: null,
+        phoneticLast: null,
+        nickname: null,
         pronouns: null,
-        title: null,
-        biz: null,
-        addr: null,
         desc: null,
         key: null,
         tracker: null,
         fontLink: null,
         fontCss: null,
+        headingLink: null,
+        headingCss: null,
       } as GenInfo,
       // The subsets currently shown in the card, filled by addAction().
       primaryActions: [] as PrimaryAction[],
       filterPrimary: '',
+      primaryCategory: 'contact' as PrimaryActionCategory,
+      // Generated once, not per recompute: the UID identifies the contact, so
+      // a value that changed on every keystroke made each re-import land as a
+      // new entry in the reader's address book rather than updating the old.
+      cardUid: cardUuid(),
       secondaryActions: [] as SecondaryAction[],
       filterSecondary: '',
+      secondaryCategory: 'popular' as ProfilePickerCategory,
+      // Which font card is lit. Only ever set by selectFontPreset(), which
+      // also writes genInfo.fontLink/fontCss — the two fields stay the single
+      // source of truth for what the card actually renders.
+      fontPreset: 'default',
+      headingFontPreset: 'default',
       actions: {
         primaryActions: [
+          // One Phone entry, added as many times as the card needs. Each row
+          // picks its own type, which used to be encoded in three separate
+          // actions named Mobile, Office and Home.
           {
-            name: 'Mobile',
+            name: 'Phone',
             icon: 'call',
             href: 'tel:',
             placeholder: '+XX XXXXX XXXXX',
             value: null,
-            label: 'Mobile number',
+            label: 'Phone number',
             order: 0,
             isURL: 0,
+            repeatable: 1,
+            typeGroup: 'phone',
+            contactType: 'Mobile',
+            customLabel: null,
           },
+          // Its own action rather than another Phone type, because its type
+          // list is a different one: a fax is work or home, never mobile, and
+          // offering 'Mobile fax' in the same dropdown would be nonsense.
           {
-            name: 'Office',
-            icon: 'call',
+            name: 'Fax',
+            icon: 'fax',
             href: 'tel:',
             placeholder: '+XX XXXXX XXXXX',
             value: null,
-            label: 'Office number',
+            label: 'Fax number',
             order: 1,
             isURL: 0,
-          },
-          {
-            name: 'Home',
-            icon: 'call',
-            href: 'tel:',
-            placeholder: '+XX XXXXX XXXXX',
-            value: null,
-            label: 'Home number',
-            order: 2,
-            isURL: 0,
+            repeatable: 1,
+            typeGroup: 'fax',
+            contactType: 'Work fax',
+            customLabel: null,
           },
           {
             name: 'SMS',
@@ -839,7 +1293,7 @@ export default defineComponent({
             placeholder: '+XX XXXXX XXXXX',
             value: null,
             label: 'SMS mobile number',
-            order: 3,
+            order: 2,
             isURL: 0,
           },
           {
@@ -849,7 +1303,72 @@ export default defineComponent({
             placeholder: 'info@example.com',
             value: null,
             label: 'Email address',
+            order: 3,
+            repeatable: 1,
+            typeGroup: 'email',
+            contactType: 'Work',
+            customLabel: null,
+          },
+          // Address and Work are multi-field rows, which is what let them
+          // leave the fixed Contact-information block: an address is only
+          // repeatable once it is an action that can be added like any other.
+          {
+            name: 'Address',
+            icon: 'location',
+            placeholder: '',
+            value: null,
+            label: 'Address',
             order: 4,
+            isURL: 0,
+            repeatable: 1,
+            typeGroup: 'address',
+            contactType: 'Work',
+            customLabel: null,
+            fields: [
+              {
+                key: 'street',
+                label: 'Street',
+                autocomplete: 'street-address',
+                wide: true,
+              },
+              { key: 'city', label: 'City', autocomplete: 'address-level2' },
+              { key: 'region', label: 'State', autocomplete: 'address-level1' },
+              {
+                key: 'postcode',
+                label: 'Zip code',
+                autocomplete: 'postal-code',
+              },
+              {
+                key: 'country',
+                label: 'Country',
+                autocomplete: 'country-name',
+              },
+            ],
+            values: {
+              street: null,
+              city: null,
+              region: null,
+              postcode: null,
+              country: null,
+            },
+          },
+          // Not repeatable: vCard has no way to pair a TITLE with a particular
+          // ORG, so two jobs would import as two titles and two companies with
+          // nothing saying which belongs to which.
+          {
+            name: 'Work',
+            icon: 'work',
+            placeholder: '',
+            value: null,
+            label: 'Work details',
+            order: 5,
+            isURL: 0,
+            fields: [
+              { key: 'title', label: 'Job title', wide: true },
+              { key: 'dept', label: 'Department' },
+              { key: 'org', label: 'Company' },
+            ],
+            values: { title: null, dept: null, org: null },
           },
           {
             name: 'Website',
@@ -857,7 +1376,7 @@ export default defineComponent({
             placeholder: 'https://example.com',
             value: null,
             label: 'Website URL',
-            order: 5,
+            order: 6,
             isURL: 1,
           },
           {
@@ -866,7 +1385,7 @@ export default defineComponent({
             placeholder: 'https://example.com/storeID',
             value: null,
             label: 'Online Store URL',
-            order: 6,
+            order: 7,
             isURL: 1,
           },
           {
@@ -875,7 +1394,7 @@ export default defineComponent({
             placeholder: 'https://osm.org/go/location',
             value: null,
             label: 'Map location URL',
-            order: 7,
+            order: 8,
             isURL: 1,
           },
 
@@ -886,7 +1405,7 @@ export default defineComponent({
             placeholder: '+XXXXXXXXXXXX',
             value: null,
             label: 'Signal number with country code (no spaces)',
-            order: 8,
+            order: 12,
             isURL: 1,
           },
           {
@@ -896,7 +1415,7 @@ export default defineComponent({
             placeholder: 'username',
             value: null,
             label: 'Telegram username',
-            order: 9,
+            order: 11,
             isURL: 1,
           },
           {
@@ -906,7 +1425,7 @@ export default defineComponent({
             placeholder: '@username:matrix.org',
             value: null,
             label: 'Matrix userID',
-            order: 10,
+            order: 17,
             isURL: 1,
           },
           {
@@ -915,7 +1434,7 @@ export default defineComponent({
             placeholder: 'https://wa.me/profileID',
             value: null,
             label: 'WhatsApp profile URL',
-            order: 11,
+            order: 10,
             isURL: 1,
           },
           {
@@ -925,17 +1444,6 @@ export default defineComponent({
             placeholder: 'username',
             value: null,
             label: 'Messenger username',
-            order: 12,
-            isURL: 1,
-          },
-          {
-            name: 'Skype',
-            icon: 'skype',
-            href: 'skype:',
-            hrefEnd: '?chat',
-            placeholder: 'username',
-            value: null,
-            label: 'Skype username',
             order: 13,
             isURL: 1,
           },
@@ -975,8 +1483,9 @@ export default defineComponent({
             placeholder: 'https://example.com/calendarID',
             value: null,
             label: 'Calendar URL',
-            order: 17,
+            order: 9,
             isURL: 1,
+            vcardProperty: 'CALURI',
           },
           {
             name: 'XMPP',
@@ -987,6 +1496,48 @@ export default defineComponent({
             label: 'XMPP ID',
             order: 18,
             isURL: 1,
+            vcardProperty: 'IMPP',
+          },
+          {
+            name: 'imo',
+            icon: 'imo',
+            placeholder: 'https://imo.im/...',
+            value: null,
+            label: 'imo invite link',
+            order: 19,
+            isURL: 1,
+          },
+          // Standing meeting rooms, not scheduled calls. Each takes a whole
+          // URL rather than an id behind a fixed prefix: Teams and Zoom links
+          // are tenant-specific (`acme.zoom.us`, a `meetup-join` blob), and
+          // Meet has two forms, so any prefix would lock someone out of
+          // pasting the link their own account gave them.
+          {
+            name: 'Google Meet',
+            icon: 'meet',
+            placeholder: 'https://meet.google.com/abc-defg-hij',
+            value: null,
+            label: 'Google Meet link',
+            order: 20,
+            isURL: 1,
+          },
+          {
+            name: 'Microsoft Teams',
+            icon: 'teams',
+            placeholder: 'https://teams.microsoft.com/l/meetup-join/...',
+            value: null,
+            label: 'Microsoft Teams link',
+            order: 21,
+            isURL: 1,
+          },
+          {
+            name: 'Zoom',
+            icon: 'zoom',
+            placeholder: 'https://zoom.us/my/username',
+            value: null,
+            label: 'Zoom personal meeting link',
+            order: 22,
+            isURL: 1,
           },
           // {
           //   name: 'IRC',
@@ -995,11 +1546,26 @@ export default defineComponent({
           //   placeholder: 'IRC ID',
           //   value: null,
           //   label: 'IRC ID',
-          //   order: 19,
+          //   order: 23,
           //   isURL: 1,
           // },
         ],
         secondaryActions: [
+          // For services the app has no entry for. Repeatable, because the
+          // point of it is the long tail — one row per profile, each with its
+          // own name, link, colour and uploaded icon.
+          {
+            name: 'Custom',
+            icon: 'website',
+            placeholder: 'https://example.com/your-profile',
+            value: null,
+            color: '#334155',
+            label: 'Profile URL',
+            custom: 1,
+            repeatable: 1,
+            customLabel: null,
+            customIcon: null,
+          },
           // todo: Fix Instagram gradient icon preview
           {
             name: 'Instagram',
@@ -1020,6 +1586,14 @@ export default defineComponent({
             value: null,
             color: '#000000',
             label: 'Threads username',
+          },
+          {
+            name: 'Bluesky',
+            icon: 'bluesky',
+            placeholder: 'https://bsky.app/profile/your-handle.bsky.social',
+            value: null,
+            color: '#1185fe',
+            label: 'Bluesky profile URL',
           },
           {
             name: 'Pixelfed',
@@ -1055,13 +1629,13 @@ export default defineComponent({
             label: 'Friendica profile URL',
           },
           {
-            name: 'Twitter',
-            icon: 'twitter',
-            href: 'https://twitter.com/',
+            name: 'X',
+            icon: 'x-social',
+            href: 'https://x.com/',
             placeholder: 'username',
             value: null,
-            color: '#1da1f2',
-            label: 'Twitter username',
+            color: '#000000',
+            label: 'X username',
           },
           {
             name: 'Mastodon',
@@ -1099,13 +1673,13 @@ export default defineComponent({
             label: 'Vimeo channelname',
           },
           {
-            name: 'Peertube',
+            name: 'PeerTube',
             icon: 'peertube',
             placeholder: 'https://peertube.video/channelname',
             value: null,
             color: '#ffffff',
             light: 1,
-            label: 'Peertube channel URL',
+            label: 'PeerTube channel URL',
           },
           {
             name: 'Pinterest',
@@ -1190,6 +1764,14 @@ export default defineComponent({
             label: 'Medium publication',
           },
           {
+            name: 'Substack',
+            icon: 'substack',
+            placeholder: 'https://publication.substack.com/',
+            value: null,
+            color: '#ff6719',
+            label: 'Substack publication URL',
+          },
+          {
             name: 'Discord',
             icon: 'discord',
             placeholder: 'https://discord.gg/invitecode',
@@ -1216,13 +1798,13 @@ export default defineComponent({
             label: 'Spotify username',
           },
           {
-            name: 'Soundcloud',
+            name: 'SoundCloud',
             icon: 'soundcloud',
             href: 'https://soundcloud.com/',
             placeholder: 'username',
             value: null,
             color: '#ff3300',
-            label: 'Soundcloud username',
+            label: 'SoundCloud username',
           },
           {
             name: 'Funkwhale',
@@ -1270,6 +1852,111 @@ export default defineComponent({
             light: 1,
             label: 'Yelp pagename',
           },
+          // Full profile URLs rather than href prefixes: these services do not
+          // expose one stable username-based path for every kind of listing.
+          {
+            name: 'Angi',
+            icon: 'angi',
+            placeholder: 'https://angi.com/companylist/us/...',
+            value: null,
+            color: '#fff',
+            light: 1,
+            label: 'Angi business profile URL',
+          },
+          {
+            name: 'Bark',
+            icon: 'bark',
+            placeholder: 'https://bark.com/en/us/company/...',
+            value: null,
+            color: '#121737',
+            label: 'Bark professional profile URL',
+          },
+          {
+            name: 'BuildZoom',
+            icon: 'buildzoom',
+            placeholder: 'https://buildzoom.com/contractor/...',
+            value: null,
+            color: '#03a2dd',
+            label: 'BuildZoom contractor profile URL',
+          },
+          {
+            name: 'Houzz',
+            icon: 'houzz',
+            placeholder: 'https://houzz.com/pro/username',
+            value: null,
+            color: '#4dbc15',
+            label: 'Houzz profile URL',
+          },
+          {
+            name: 'Thumbtack',
+            icon: 'thumbtack',
+            placeholder: 'https://thumbtack.com/.../service/123456',
+            value: null,
+            color: '#009fd9',
+            label: 'Thumbtack profile URL',
+          },
+          {
+            name: 'Networx',
+            icon: 'networx',
+            placeholder: 'https://networx.com/c....',
+            value: null,
+            // The Networx navy reads as near-black at chip size; its own
+            // chevrons are this blue, and it matches Thumbtack's chip.
+            color: '#009fd9',
+            label: 'Networx contractor profile URL',
+          },
+          {
+            name: 'Nextdoor',
+            icon: 'nextdoor',
+            placeholder: 'https://nextdoor.com/pages/business-name',
+            value: null,
+            color: '#fff',
+            light: 1,
+            label: 'Nextdoor page URL',
+          },
+          {
+            name: 'Porch',
+            icon: 'porch',
+            placeholder: 'https://porch.com/...',
+            value: null,
+            color: '#17313b',
+            label: 'Porch professional profile URL',
+          },
+          {
+            name: 'HomeAdvisor',
+            icon: 'homeadvisor',
+            placeholder: 'https://homeadvisor.com/rated.Business.123456',
+            value: null,
+            color: '#f68315',
+            label: 'HomeAdvisor profile URL',
+          },
+          {
+            name: 'Etsy',
+            icon: 'etsy',
+            href: 'https://etsy.com/shop/',
+            placeholder: 'shopname',
+            value: null,
+            color: '#f16521',
+            label: 'Etsy shop name',
+          },
+          {
+            name: 'Amazon',
+            icon: 'amazon',
+            placeholder: 'https://amazon.com/shop/username',
+            value: null,
+            color: '#fff',
+            light: 1,
+            label: 'Amazon shop or wish list URL',
+          },
+          {
+            name: 'eBay',
+            icon: 'ebay',
+            href: 'https://ebay.com/usr/',
+            placeholder: 'username',
+            value: null,
+            color: '#e53238',
+            label: 'eBay username',
+          },
           {
             name: 'PayPal',
             icon: 'paypal',
@@ -1289,7 +1976,7 @@ export default defineComponent({
             label: 'Patreon URL',
           },
           {
-            name: 'Open-Collective',
+            name: 'Open Collective',
             icon: 'open-collective',
             href: 'https://opencollective.com/',
             placeholder: 'projectname',
@@ -1332,7 +2019,10 @@ export default defineComponent({
             icon: 'appstore',
             placeholder: 'https://apps.apple.com/in/app/appname/id',
             value: null,
-            color: 'linear-gradient(#5fc9f8, #147efb)',
+            // The darker stop of the gradient this used to carry. Every other
+            // chip is a flat colour, and the lighter stop drops white-on-blue
+            // contrast below the 3:1 that non-text graphics need.
+            color: '#147efb',
             label: 'App Store developer/app URL',
           },
           {
@@ -1363,6 +2053,36 @@ export default defineComponent({
             light: 1,
             label: 'Buy me a coffee username',
           },
+          {
+            name: 'Ko-fi',
+            icon: 'kofi',
+            href: 'https://ko-fi.com/',
+            placeholder: 'username',
+            value: null,
+            color: '#13c3ff',
+            label: 'Ko-fi username',
+          },
+          // BIP-21 / OpenAlias URI schemes rather than a block-explorer link:
+          // they hand the address straight to whichever wallet the visitor has
+          // registered, and degrade to nothing when they have none.
+          {
+            name: 'Bitcoin',
+            icon: 'bitcoin',
+            href: 'bitcoin:',
+            placeholder: 'bc1...',
+            value: null,
+            color: '#f7931a',
+            label: 'Bitcoin address',
+          },
+          {
+            name: 'Monero',
+            icon: 'monero',
+            href: 'monero:',
+            placeholder: '4...',
+            value: null,
+            color: '#ff6600',
+            label: 'Monero address',
+          },
         ],
       } as CardActions,
       featured: [
@@ -1371,6 +2091,8 @@ export default defineComponent({
           content: [],
         },
       ] as FeaturedSection[],
+      /** Hands out `rowId`s. See `ActionBase.rowId` for why they exist. */
+      rowSeq: 0,
       hostedURL: null as string | null,
       footerCredit: true,
       PreviewMode: true,
@@ -1384,11 +2106,28 @@ export default defineComponent({
   },
   computed: {
     getFullname() {
-      let fn = this.genInfo.fname
-      let ln = this.genInfo.lname
-      return (fn + ln).length > 0
-        ? `${fn ? fn : ''}${ln ? ' ' + ln : ''}`
-        : null
+      const parts = [
+        this.genInfo.prefix,
+        this.genInfo.fname,
+        this.genInfo.mname,
+        this.genInfo.lname,
+        this.genInfo.suffix,
+      ].filter(Boolean)
+      return parts.length > 0 ? parts.join(' ') : null
+    },
+    /**
+     * The single Work row, or undefined until one is added. Its three values
+     * are the card's job title, department and company — they were fixed
+     * genInfo fields until Work became an action.
+     */
+    workValues(): Record<string, string | null> {
+      return (
+        this.primaryActions.find((a) => a.name === 'Work')?.values ?? {
+          title: null,
+          dept: null,
+          org: null,
+        }
+      )
     },
     pubKeyIsValid() {
       if (this.genInfo.key) {
@@ -1406,18 +2145,42 @@ export default defineComponent({
       return this.downloadCheckList.filter((e) => e.checked).length === 3
     },
     username() {
-      return this.getFullname
-        ? this.getFullname.toLowerCase().replaceAll(/\W+/g, '')
-        : 'username'
+      // First and last only, deliberately: this names the export folder and
+      // the .vcf inside it, and honorifics would put "dr" and "phd" in a
+      // filename the user has to type into a hosting panel.
+      const name = [this.genInfo.fname, this.genInfo.lname]
+        .filter(Boolean)
+        .join('')
+      return name ? name.toLowerCase().replaceAll(/\W+/g, '') : 'username'
     },
     orderedPrimaryActions() {
       return this.actions.primaryActions.toSorted((a, b) =>
         a.order > b.order ? 1 : a.order < b.order ? -1 : 0,
       )
     },
+    primaryActionCategories() {
+      return PRIMARY_ACTION_CATEGORIES
+    },
+    primaryResultsLabel() {
+      if (this.filterPrimary) return `Results for “${this.filterPrimary}”`
+      return (
+        PRIMARY_ACTION_CATEGORIES.find(
+          (category) => category.id === this.primaryCategory,
+        )?.label ?? 'Actions'
+      )
+    },
     filteredPrimaryActions() {
-      return this.orderedPrimaryActions.filter((e) =>
-        e.name.toLowerCase().includes(this.filterPrimary.toLowerCase()),
+      // A search looks across every category, the same way the profile picker
+      // does — otherwise typing a name that sits in another tab finds nothing.
+      const query = this.filterPrimary.trim().toLowerCase()
+      if (query)
+        return this.orderedPrimaryActions.filter((action) =>
+          action.name.toLowerCase().includes(query),
+        )
+
+      const names = PRIMARY_ACTION_GROUPS[this.primaryCategory]
+      return this.orderedPrimaryActions.filter((action) =>
+        names.includes(action.name),
       )
     },
     orderedSecondaryActions() {
@@ -1425,9 +2188,64 @@ export default defineComponent({
         a.name.localeCompare(b.name),
       )
     },
+    secondaryActionCategories() {
+      return SECONDARY_ACTION_CATEGORIES
+    },
+    /** The two text roles a font can be chosen for. */
+    fontRoles(): ReadonlyArray<{ key: FontRole; label: string; note: string }> {
+      return [
+        {
+          key: 'heading',
+          label: 'Headings',
+          note: 'Your name, section titles and card titles.',
+        },
+        {
+          key: 'body',
+          label: 'Body text',
+          note: 'Everything else — descriptions, reviews, buttons.',
+        },
+      ]
+    },
+    fontPresets() {
+      return FONT_PRESETS
+    },
+    secondaryResultsLabel() {
+      if (this.filterSecondary) return `Results for “${this.filterSecondary}”`
+      return (
+        SECONDARY_ACTION_CATEGORIES.find(
+          (category) => category.id === this.secondaryCategory,
+        )?.label ?? 'Profiles'
+      )
+    },
     filteredSecondaryActions() {
-      return this.orderedSecondaryActions.filter((e) =>
-        e.name.toLowerCase().includes(this.filterSecondary.toLowerCase()),
+      const query = this.filterSecondary.trim().toLowerCase()
+      if (query)
+        return this.orderedSecondaryActions.filter((action) =>
+          action.name.toLowerCase().includes(query),
+        )
+
+      const available = new Map(
+        this.actions.secondaryActions.map((action) => [action.name, action]),
+      )
+      const names =
+        this.secondaryCategory === 'popular'
+          ? POPULAR_SECONDARY_ACTIONS
+          : SECONDARY_ACTION_GROUPS[
+              this.secondaryCategory as SecondaryActionCategory
+            ]
+      return names
+        .map((name) => available.get(name))
+        .filter(Boolean) as SecondaryAction[]
+    },
+    /** Whether any section holds a carousel with something in it. */
+    hasCarousel(): boolean {
+      return this.featured.some((section) =>
+        section.content.some(
+          (item) =>
+            typeof item !== 'string' &&
+            item.contentType === 'carousel' &&
+            hasCarouselContent(item),
+        ),
       )
     },
     vCard() {
@@ -1440,7 +2258,26 @@ export default defineComponent({
         let no = findValue(type)
         return no ? no.replaceAll(/\s/g, '') : null
       }
-      let email = findValue('Email')
+      // Every filled Phone / Email row becomes its own line, carrying the type
+      // that row picked. Rows left blank emit nothing, where the old fixed
+      // slots always wrote `TEL;TYPE=CELL:` and `EMAIL;TYPE=WORK:` even empty.
+      const typedRows = (group: ContactTypeGroup, strip: boolean) =>
+        this.primaryActions
+          .filter((e) => e.typeGroup === group && e.value)
+          .map((e) => {
+            const type = contactTypeFor(group, e.contactType)
+            return {
+              type: type.vcard,
+              label: abLabelFor(type, e.customLabel),
+              value: strip
+                ? (e.value as string).replaceAll(/\s/g, '')
+                : (e.value as string),
+            }
+          })
+      // Faxes are TEL properties too — only their TYPE differs — so they join
+      // the same list rather than needing a second one in the serialiser.
+      const phones = [...typedRows('phone', true), ...typedRows('fax', true)]
+      const emails = typedRows('email', false)
       let website = findValue('Website')
       let actions = [
         ...this.primaryActions,
@@ -1450,11 +2287,18 @@ export default defineComponent({
       ]
       let urls = actions
         .map((e) => {
+          // Website already goes out as the bare URL property above. Without
+          // this it also landed in the labelled list, so every card with a
+          // website imported the same link twice.
+          if (e.name === 'Website') return false
           if (e.isURL && e.value) {
             return {
-              title: e.name,
+              // A custom profile is named by the user, so 'Custom' would be
+              // the X-ABLabel on every one of them.
+              title: e.customLabel || e.name,
               url:
                 (e.href ? e.href : '') + e.value + (e.hrefEnd ? e.hrefEnd : ''),
+              property: (e as PrimaryAction).vcardProperty,
             }
           }
           return false
@@ -1465,30 +2309,115 @@ export default defineComponent({
         ? this.genInfo.desc.replaceAll(/[\r\n]+/gm, '')
         : null
       let key = this.pubKeyIsValid ? window.btoa(this.genInfo.key) : null
-      let randomNumber = Math.floor(100000000 + Math.random() * 900000)
+      // One ADR per Address row that has anything in it. Rows the user added
+      // and left blank emit nothing at all.
+      const addresses = this.primaryActions
+        .filter((e) => e.name === 'Address' && hasAddress(e.values))
+        .map((e) => {
+          const type = contactTypeFor('address', e.contactType)
+          const v = e.values!
+          return {
+            type: type.vcard,
+            label: abLabelFor(type, e.customLabel),
+            street: v.street ?? null,
+            city: v.city ?? null,
+            region: v.region ?? null,
+            postcode: v.postcode ?? null,
+            country: v.country ?? null,
+          }
+        })
+      const work = this.workValues
       return {
+        prefix: this.genInfo.prefix,
         fn: this.genInfo.fname,
+        mn: this.genInfo.mname,
         ln: this.genInfo.lname,
-        title: this.genInfo.title,
-        org: this.genInfo.biz,
-        addr: this.genInfo.addr,
-        cell: getNumber('Mobile'),
-        work: getNumber('Office'),
-        home: getNumber('Home'),
+        suffix: this.genInfo.suffix,
+        phoneticFirst: this.genInfo.phoneticFirst,
+        phoneticLast: this.genInfo.phoneticLast,
+        nickname: this.genInfo.nickname,
+        title: work.title,
+        org: work.org,
+        dept: work.dept,
+        addresses,
+        pronouns: this.genInfo.pronouns,
+        phones,
+        emails,
         sms: getNumber('SMS'),
-        email,
-        hostedURL: this.hostedURL,
         website,
         urls,
         key,
         note,
-        uid: `EnBizCard-${randomNumber}`,
+        // Filled in by vCardText(), which can await the base64 encoding.
+        photo: null,
+        logo: null,
+        uid: this.cardUid,
       }
     },
   },
   methods: {
     changeTheme(value) {
       this.theme = value
+    },
+    /**
+     * The .vcf text, with the photo and logo encoded.
+     *
+     * Async because FileReader is. Both callers (the Save-Contact download and
+     * the zip) await this rather than reading a rendered `<pre>` back out of
+     * the DOM, which was the old approach and could not preserve CRLF, folded
+     * continuation lines, or leading whitespace.
+     */
+    async vCardText(): Promise<string> {
+      const [photo, logo] = await Promise.all([
+        blobToDataURI(this.images.photo.resized ?? this.images.photo.blob),
+        blobToDataURI(this.images.logo.resized ?? this.images.logo.blob),
+      ])
+      return buildVCard({ ...this.vCard, photo, logo })
+    },
+    /** Which preset card is lit for a role. */
+    selectedFont(role: FontRole): string {
+      return role === 'heading' ? this.headingFontPreset : this.fontPreset
+    },
+    /**
+     * Write one of a role's two custom fields.
+     *
+     * The inputs are :value + @input rather than v-model because which field
+     * they bind to depends on the role, and v-model cannot take an expression
+     * on the left.
+     */
+    setFontField(role: FontRole, field: 'link' | 'css', value: string) {
+      // Empty means "unset", matching what the presets store.
+      const stored = value.trim() ? value : null
+      if (role === 'heading') {
+        if (field === 'link') this.genInfo.headingLink = stored
+        else this.genInfo.headingCss = stored
+      } else if (field === 'link') {
+        this.genInfo.fontLink = stored
+      } else {
+        this.genInfo.fontCss = stored
+      }
+    },
+    selectFontPreset(role: FontRole, id: string) {
+      if (role === 'heading') this.headingFontPreset = id
+      else this.fontPreset = id
+      // 'custom' only reveals the two fields; it deliberately leaves whatever
+      // is in them alone, so switching to it after picking a preset gives the
+      // user that preset's markup to edit rather than a blank box.
+      if (id === 'custom') return
+      const preset = FONT_PRESETS.find((p) => p.id === id)
+      if (!preset) return
+      // Empty string means "no web font" — store null, which is what an
+      // untouched card carries and what Preview.vue's checks expect. For
+      // headings that also means "inherit the body font", which is why
+      // 'default' is the right resting state for the pair rather than a
+      // rule naming the reader's own sans.
+      if (role === 'heading') {
+        this.genInfo.headingLink = preset.link || null
+        this.genInfo.headingCss = preset.css || null
+      } else {
+        this.genInfo.fontLink = preset.link || null
+        this.genInfo.fontCss = preset.css || null
+      }
     },
     togglePreview() {
       this.opening = true
@@ -1555,17 +2484,37 @@ export default defineComponent({
     },
     addAction(type, name) {
       let index = this.actions[type].findIndex((e) => e.name === name)
-      this[type].push(this.actions[type][index])
-      this.actions[type].splice(index, 1)
+      const template = this.actions[type][index]
+      if (template.repeatable) {
+        // Stays in the pool so it can be picked again, and each row gets its
+        // own object — pushing the template itself would make every phone
+        // share one `value` and one `contactType`. `values` needs its own
+        // copy too: a shallow spread would leave every Address row pointing
+        // at the template's one record, so they would all read alike.
+        this[type].push({
+          ...template,
+          rowId: ++this.rowSeq,
+          ...(template.values ? { values: { ...template.values } } : {}),
+        })
+      } else {
+        template.rowId = ++this.rowSeq
+        this[type].push(template)
+        this.actions[type].splice(index, 1)
+      }
       this.clearFilterActions()
     },
     removeAction(type, index) {
-      this.actions[type].unshift(this[type][index])
+      // A repeatable action never left the pool, so returning it would add a
+      // second copy to the picker.
+      if (!this[type][index].repeatable)
+        this.actions[type].unshift(this[type][index])
       this[type].splice(index, 1)
     },
-    downloadVcard() {
-      let blob = new Blob([this.$refs.vCard.$refs.vCard.innerText], {
-        type: 'text/plain',
+    async downloadVcard() {
+      // text/vcard, not text/plain: it is what tells a phone to hand the file
+      // to the address book instead of opening it in a text viewer.
+      let blob = new Blob([await this.vCardText()], {
+        type: 'text/vcard;charset=utf-8',
       })
       saveAs(window.URL.createObjectURL(blob), `${this.username}.vcf`)
     },
@@ -1583,6 +2532,7 @@ export default defineComponent({
       mime: string,
       index1?: number,
       index2?: number,
+      index3?: number,
     ) {
       let reader = new FileReader()
       let file
@@ -1593,6 +2543,13 @@ export default defineComponent({
           file = await this.featured[index1].content[index2].cover
         } else if (type === 'product') {
           file = await this.featured[index1].content[index2].image.file
+        } else if (type === 'carousel') {
+          // A slide is either media (its own file) or a product (its image).
+          const slide = this.featured[index1].content[index2].slides[index3]
+          file =
+            slide.contentType === 'product'
+              ? await slide.image.file
+              : await slide.file
         }
       } else {
         file = await this.images[type].blob
@@ -1650,6 +2607,11 @@ export default defineComponent({
                   this.featured[index1].content[index2].cover = image
                 } else if (type === 'product') {
                   this.featured[index1].content[index2].image.file = image
+                } else if (type === 'carousel') {
+                  const slide =
+                    this.featured[index1].content[index2].slides[index3]
+                  if (slide.contentType === 'product') slide.image.file = image
+                  else slide.file = image
                 }
               } else {
                 this.images[type].resized = image
@@ -1673,15 +2635,29 @@ export default defineComponent({
       }
       return false
     },
-    downloadPackage() {
+    async downloadPackage() {
       if (!this.downloadChecked) {
         this.showAlert('Please confirm every item in the checklist first.')
+        return
+      }
+      // Built before PreviewMode drops, deliberately. buildPackage() must stay
+      // synchronous: it runs inside a PreviewMode=false window whose `finally`
+      // restores the editor, and an await in there would let that run at the
+      // first suspension point — serialising the DOM with the editor's own
+      // media paths instead of the export's relative ones.
+      let vCardText: string
+      try {
+        vCardText = await this.vCardText()
+      } catch (err) {
+        this.showAlert(
+          `Could not build your contact file.\n\n${errorText(err)}`,
+        )
         return
       }
       this.PreviewMode = false
       setTimeout(() => {
         try {
-          this.buildPackage()
+          this.buildPackage(vCardText)
         } catch (err) {
           this.showAlert(
             `Could not build your card package.\n\n${errorText(err)}`,
@@ -1697,8 +2673,11 @@ export default defineComponent({
     /**
      * Serialises the live preview into the downloadable zip. Throws on
      * failure; downloadPackage() is what reports it and restores the editor.
+     *
+     * Must stay synchronous — see the note in downloadPackage(). The .vcf text
+     * arrives already built for that reason.
      */
-    buildPackage() {
+    buildPackage(vCardText: string) {
       let el = new DOMParser().parseFromString(
         this.$refs.html.$refs.html.outerHTML,
         'text/html',
@@ -1733,6 +2712,13 @@ export default defineComponent({
       if (this.featured.length > 0)
         el.querySelector('body').append(mediaHandler)
 
+      // Inject carousel script, only when there is a carousel to enhance.
+      if (this.hasCarousel) {
+        let carouselHandler = document.createElement('script')
+        carouselHandler.innerText = carouselScript
+        el.querySelector('body').append(carouselHandler)
+      }
+
       // Inject tracking scripts. getTrackingCode() returns false/0 or a
       // detached <div> holding the user's snippet. Spreading childNodes takes a
       // static copy first, because append() moves each node out of that div.
@@ -1760,8 +2746,8 @@ export default defineComponent({
       let css = new Blob([theme], {
         type: 'text/css',
       })
-      let vCard = new Blob([this.$refs.vCard.$refs.vCard.innerText], {
-        type: 'text/plain',
+      let vCard = new Blob([vCardText], {
+        type: 'text/vcard;charset=utf-8',
       })
       let guide = new Blob(
         [
@@ -1807,9 +2793,35 @@ export default defineComponent({
         (e) => e.content.length,
       ).length
       if (hasFeaturedContent) {
-        this.featured.forEach((section) => {
-          section.content.forEach((item) => {
-            if (item.contentType === 'media') {
+        this.featured.forEach((section, sectionIndex) => {
+          section.content.forEach((item, itemIndex) => {
+            if (item.contentType === 'carousel') {
+              // Named positionally, matching Preview.vue's <img src>. See
+              // slideFileName() for why these are not title-derived.
+              item.slides.forEach((slide, slideIndex) => {
+                // Only media and product slides carry a file; text and
+                // review slides are entirely inline in the HTML.
+                const asset =
+                  slide.contentType === 'media'
+                    ? { file: slide.file, ext: slide.ext }
+                    : slide.contentType === 'product' && slide.image
+                      ? { file: slide.image.file, ext: slide.image.ext }
+                      : null
+                if (!asset) return
+                zip
+                  .folder(username)
+                  .folder('media')
+                  .file(
+                    slideFileName(
+                      sectionIndex,
+                      itemIndex,
+                      slideIndex,
+                      asset.ext,
+                    ),
+                    asset.file,
+                  )
+              })
+            } else if (item.contentType === 'media') {
               zip
                 .folder(username)
                 .folder('media')

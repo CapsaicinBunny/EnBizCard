@@ -11,21 +11,11 @@
       :controls="!PreviewMode"
       preload="metadata"
     >
-      <source
-        :src="
-          PreviewMode
-            ? media.dataURI + '#t=0.2'
-            : `./media/${getTitle(media.title)}.${media.ext}`
-        "
-      />
+      <source :src="videoSrc" />
     </video>
     <img
       v-if="type == 'music' && media.coverDataURI"
-      :src="
-        PreviewMode
-          ? media.coverDataURI
-          : `./media/${getTitle(media.title)}.${media.coverExt}`
-      "
+      :src="coverSrc"
       alt="cover"
     />
     <div class="controls cardColor">
@@ -82,12 +72,36 @@ export default defineComponent({
     type: { type: String as PropType<MediaKind>, required: true },
     colors: { type: Object as PropType<CardColours>, required: true },
     PreviewMode: { type: Boolean, default: true },
+    /**
+     * The file name this media has inside the export's media/ folder, when it
+     * is not the title-derived one. Carousel slides are named positionally,
+     * because eight photos attached at once routinely share a title and the
+     * title-derived name would collide. See slideFileName() in types/card.ts.
+     */
+    exportName: { type: String as PropType<string | null>, default: null },
     togglePlay: {
       type: Function as PropType<(el: HTMLMediaElement) => void>,
       required: true,
     },
   },
+  computed: {
+    /** Object URL in the editor, relative path in the exported card. */
+    videoSrc(): string {
+      if (this.PreviewMode) return `${this.media.dataURI}#t=0.2`
+      return `./media/${this.mediaFile(this.media.ext)}`
+    },
+    coverSrc(): string {
+      if (this.PreviewMode) return this.media.coverDataURI ?? ''
+      return `./media/${this.mediaFile(this.media.coverExt ?? 'jpeg')}`
+    },
+  },
   methods: {
+    /** The export file name for this entry, honouring `exportName`. */
+    mediaFile(ext: string): string {
+      if (this.exportName) return this.exportName
+      // Titles are optional; a missing one would otherwise throw on toLowerCase.
+      return `${this.getTitle(this.media.title ?? '')}.${ext}`
+    },
     getTitle(e: string): string {
       return e.toLowerCase().split(' ').join('_')
     },

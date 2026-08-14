@@ -38,9 +38,14 @@ export function getIcon(name: string, gradient: boolean = false): string {
     if (import.meta.dev) console.warn(`[icons] unknown icon: "${name}"`)
     return ''
   }
-  if (!gradient) return svg
+  // Icons sit inside controls that already carry a visible label or aria-label.
+  // Hide their internal titles so assistive tech does not announce names twice.
+  const hiddenSvg = svg
+    .replace('<svg ', '<svg aria-hidden="true" focusable="false" ')
+    .replace(/<title>.*?<\/title>/, '')
+  if (!gradient) return hiddenSvg
 
-  let out = svg
+  let out = hiddenSvg
   for (let i = 1; i < 10; i++) {
     const token = `gradient${i}`
     if (!out.includes(token)) break
