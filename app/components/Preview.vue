@@ -356,12 +356,13 @@
                 <!--
                   A scrolling strip, not a JS slideshow. Scroll-snap gives
                   swipe and trackpad panning with no script at all, so a card
-                  whose inline JS never runs still shows every slide; carousel
-                  arrows and dots are added on top by carousel.ts.
+                  whose inline JS never runs still shows every slide. The dots
+                  below are rendered here; carousel.ts adds the arrows and
+                  marks the active dot.
                 -->
                 <div
                   v-else-if="
-                    item.contentType == 'carousel' && item.slides.length
+                    item.contentType == 'carousel' && hasCarouselContent(item)
                   "
                   class="carousel"
                   :style="{ backgroundColor: `${colors.cardBg.color}` }"
@@ -548,6 +549,7 @@ import type {
   SecondaryAction,
 } from '~/types/card'
 import {
+  hasCarouselContent,
   hasProductContent,
   hasReviewContent,
   hasSlideContent,
@@ -695,6 +697,7 @@ export default defineComponent({
       return e.toLowerCase().split(' ').join('_')
     },
     /** Options API templates cannot see imports; re-expose them as methods. */
+    hasCarouselContent,
     hasProductContent,
     hasReviewContent,
     hasSlideContent,
@@ -1066,7 +1069,7 @@ export default defineComponent({
     border-radius: 1rem;
     margin-top: 1rem;
     // The strip itself. Scroll-snap does the paging, so the card still works
-    // with no JavaScript; carousel.ts only adds the arrows and the dots.
+    // with no JavaScript; carousel.ts only adds the arrows.
     .track {
       display: flex;
       overflow-x: auto;
@@ -1524,7 +1527,7 @@ export default defineComponent({
     border-radius: 1rem;
     margin-top: 1rem;
     // The strip itself. Scroll-snap does the paging, so the card still works
-    // with no JavaScript; carousel.ts only adds the arrows and the dots.
+    // with no JavaScript; carousel.ts only adds the arrows.
     .track {
       display: flex;
       overflow-x: auto;
@@ -1978,7 +1981,7 @@ export default defineComponent({
     border-radius: 1rem;
     margin-top: 1rem;
     // The strip itself. Scroll-snap does the paging, so the card still works
-    // with no JavaScript; carousel.ts only adds the arrows and the dots.
+    // with no JavaScript; carousel.ts only adds the arrows.
     .track {
       display: flex;
       overflow-x: auto;

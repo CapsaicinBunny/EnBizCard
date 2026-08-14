@@ -867,7 +867,12 @@ import type {
   ResizeTarget,
   VCardData,
 } from '~/types/card'
-import { abLabelFor, contactTypeFor, slideFileName } from '~/types/card'
+import {
+  abLabelFor,
+  contactTypeFor,
+  hasCarouselContent,
+  slideFileName,
+} from '~/types/card'
 import { buildVCard } from '~/utils/vcard'
 import { hasAddress } from '~/utils/address'
 import { errorText } from '~/utils/errors'
@@ -2239,7 +2244,7 @@ export default defineComponent({
           (item) =>
             typeof item !== 'string' &&
             item.contentType === 'carousel' &&
-            item.slides.length > 0,
+            hasCarouselContent(item),
         ),
       )
     },

@@ -507,6 +507,18 @@ export function hasSlideContent(slide: CarouselSlide): boolean {
 }
 
 /**
+ * Whether a carousel has at least one slide worth rendering.
+ *
+ * Not the same as `slides.length`. A carousel arrives with its first slide
+ * already in place, so gating on the count alone puts an empty bordered box on
+ * the card the moment someone adds a carousel and then types nothing into it —
+ * the trap `hasProductContent` already closes for products.
+ */
+export function hasCarouselContent(carousel: CarouselContent): boolean {
+  return carousel.slides.some(hasSlideContent)
+}
+
+/**
  * The file name a carousel slide gets inside the export's media/ folder.
  *
  * Positional rather than title-derived, unlike the other media entries. Those
