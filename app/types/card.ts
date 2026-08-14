@@ -562,6 +562,134 @@ export function mediaFileName(
 }
 
 /**
+ * The empty items a section or carousel starts from.
+ *
+ * Factories rather than shared constants: every one of these is pushed into a
+ * reactive array and then edited in place, so handing out one frozen object
+ * would make every product on the card the same product — the bug the cloning
+ * note on `PrimaryAction.values` describes.
+ *
+ * There is deliberately no `emptyMedia()`. A `MediaContent` cannot exist
+ * without its `file`, so media arrives by attachment and never as a blank row.
+ */
+export function emptyProduct(): ProductContent {
+  return {
+    contentType: 'product',
+    image: null,
+    title: null,
+    description: null,
+    price: null,
+    label: null,
+    link: null,
+  }
+}
+
+export function emptyText(): TextContent {
+  return { contentType: 'text', value: null }
+}
+
+export function emptyReview(): ReviewContent {
+  return {
+    contentType: 'review',
+    author: null,
+    rating: null,
+    body: null,
+    source: null,
+    link: null,
+    date: null,
+  }
+}
+
+export function emptyCarousel(): CarouselContent {
+  return { contentType: 'carousel', slides: [] }
+}
+
+/** What a preset drops into a new section, if anything. */
+export type FeaturedSeed = 'product' | 'text' | 'review' | 'carousel' | null
+
+/**
+ * A starting point for a new section.
+ *
+ * The old flow gave every section the title 'Section title' and no content,
+ * which left the most common cases — a price list, a gallery, testimonials —
+ * as three or four clicks of setup that every user repeated identically. A
+ * preset is only that setup: a title and one empty item. Nothing here is
+ * locked afterwards, so a section started from `services` is an ordinary
+ * section that happens to already contain a product.
+ */
+export interface FeaturedPreset {
+  id: string
+  /** Button text in the editor. */
+  label: string
+  /** The section title the card starts with; the user renames it freely. */
+  title: string
+  seed: FeaturedSeed
+  /** An icon name from `app/assets/icons`. */
+  icon: string
+}
+
+export const FEATURED_PRESETS: readonly FeaturedPreset[] = [
+  {
+    id: 'blank',
+    label: 'Blank section',
+    title: 'Section title',
+    seed: null,
+    icon: 'add',
+  },
+  {
+    id: 'services',
+    label: 'Services & pricing',
+    title: 'Services',
+    seed: 'product',
+    icon: 'product',
+  },
+  {
+    id: 'gallery',
+    label: 'Photo gallery',
+    title: 'Gallery',
+    seed: 'carousel',
+    icon: 'carousel',
+  },
+  {
+    id: 'testimonials',
+    label: 'Testimonials',
+    title: 'What clients say',
+    seed: 'review',
+    icon: 'review',
+  },
+  { id: 'about', label: 'About', title: 'About', seed: 'text', icon: 'text' },
+  { id: 'faq', label: 'FAQ', title: 'FAQ', seed: 'text', icon: 'text' },
+]
+
+/** A new section built from a preset. */
+export function newSection(preset: FeaturedPreset): FeaturedSection {
+  const content: FeaturedContent[] = []
+  switch (preset.seed) {
+    case 'product':
+      content.push(emptyProduct())
+      break
+    case 'text':
+      content.push(emptyText())
+      break
+    case 'review':
+      content.push(emptyReview())
+      break
+    case 'carousel':
+      content.push(emptyCarousel())
+      break
+    case null:
+      break
+    default: {
+      // Same guard as hasSlideContent(): a new seed kind must be handled here
+      // or the build fails, rather than silently producing an empty section.
+      const exhaustive: never = preset.seed
+      return exhaustive
+    }
+  }
+  return { title: preset.title, content }
+}
+
+/**
  * Whether a media entry ships a separate cover image in the export.
  *
  * Music and documents get one; video does not, because its poster frame is

@@ -509,16 +509,19 @@
               </transition-group>
             </VueDraggable>
 
-            <div class="flex mt-6">
-              <div class="flex flex-wrap items-center">
+            <div class="mt-6">
+              <p class="mb-3 leading-none text-gray-400">Add a section</p>
+              <div class="flex flex-wrap gap-3">
                 <button
-                  class="p-3 rounded bg-gray-700 hover:bg-gray-600 focus:bg-gray-600 transition-colors duration-200 focus:outline-none"
-                  @click="addFeature()"
-                  aria-label="Add section"
+                  v-for="preset in featuredPresets"
+                  :key="preset.id"
+                  class="flex items-center p-3 rounded cursor-pointer bg-gray-700 hover:bg-gray-600 focus:bg-gray-600 transition-colors duration-200 focus:outline-none"
+                  @click="addFeature(preset)"
+                  :aria-label="`Add ${preset.label}`"
                 >
-                  <div class="w-6 h-6" v-html="$icon('add')"></div>
+                  <div class="w-6 h-6 mr-3" v-html="$icon(preset.icon)"></div>
+                  <p class="leading-none text-left">{{ preset.label }}</p>
                 </button>
-                <p class="ml-3 leading-none">Add section</p>
               </div>
             </div>
             <p class="mt-6 border p-4 rounded border-gray-700 text-gray-400">
@@ -870,9 +873,11 @@ import type {
 import {
   abLabelFor,
   contactTypeFor,
+  FEATURED_PRESETS,
   hasCarouselContent,
   hasCoverFile,
   mediaFileName,
+  newSection,
   slideFileName,
 } from '~/types/card'
 import { MANIFEST_FILE, serialiseManifest } from '~/utils/manifest'
@@ -2212,6 +2217,9 @@ export default defineComponent({
     fontPresets() {
       return FONT_PRESETS
     },
+    featuredPresets() {
+      return FEATURED_PRESETS
+    },
     secondaryResultsLabel() {
       if (this.filterSecondary) return `Results for “${this.filterSecondary}”`
       return (
@@ -2451,11 +2459,8 @@ export default defineComponent({
     create() {
       this.$refs.create.scrollIntoView({ behavior: 'smooth' })
     },
-    addFeature() {
-      this.featured.push({
-        title: 'Section title',
-        content: [],
-      })
+    addFeature(preset) {
+      this.featured.push(newSection(preset))
     },
     hasLightBG(e) {
       let hex = this.colors[e].color
