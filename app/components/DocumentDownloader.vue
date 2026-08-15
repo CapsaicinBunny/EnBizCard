@@ -5,7 +5,7 @@
         :src="
           PreviewMode
             ? media.coverDataURI
-            : `./media/${getTitle(media.title)}.${media.coverExt}`
+            : `./media/${mediaFileName(media.title, media.coverExt)}`
         "
         :alt="media.title"
       />
@@ -23,7 +23,9 @@
             backgroundColor: `${colors.buttonBg.color}`,
           }"
           :href="
-            PreviewMode ? '' : `./media/${getTitle(media.title)}.${media.ext}`
+            PreviewMode
+              ? ''
+              : `./media/${mediaFileName(media.title, media.ext)}`
           "
           download
           target="_blank"
@@ -39,6 +41,7 @@
 import { defineComponent, type PropType } from 'vue'
 import { saveAs } from 'file-saver'
 import type { CardColours, MediaContent, MediaKind } from '~/types/card'
+import { mediaFileName } from '~/types/card'
 
 export default defineComponent({
   props: {
@@ -48,9 +51,8 @@ export default defineComponent({
     PreviewMode: { type: Boolean, default: true },
   },
   methods: {
-    getTitle(e: string): string {
-      return e.toLowerCase().split(' ').join('_')
-    },
+    /** Options API templates cannot see imports; re-expose it as a method. */
+    mediaFileName,
     downloadDocument(): void {
       saveAs(
         window.URL.createObjectURL(this.media.file),

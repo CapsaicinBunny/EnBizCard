@@ -499,8 +499,9 @@ export default defineComponent({
         return false
       }
       // id3-parser declares every frame optional, so a tagged MP3 with no TIT2
-      // still yields `undefined` here. getTitle() lowercases it on the export
-      // path, so fall back to the filename rather than crashing the download.
+      // still yields `undefined` here. The export path names the file after
+      // the title, so fall back to the filename rather than shipping `.mp3`
+      // with nothing in front of it.
       const tags = {
         title: tag.title || fileTitle(file),
         artist: tag.artist,

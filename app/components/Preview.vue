@@ -547,8 +547,8 @@ import {
   hasReviewContent,
   hasSlideContent,
   HEADING_SELECTORS,
-  mediaFileName,
   MAX_RATING,
+  mediaFileName,
   slideFileName,
   starCount,
 } from '~/types/card'
