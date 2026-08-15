@@ -33,7 +33,6 @@ export type ColourSlot = 'logoBg' | 'mainBg' | 'buttonBg' | 'cardBg'
 export interface Colour {
   /** Always a `#rgb`/`#rrggbb` string; Colour.vue validates before committing. */
   color: string
-  openPalette: boolean
 }
 
 export type CardColours = Record<ColourSlot, Colour>

@@ -1257,22 +1257,10 @@ export default defineComponent({
         },
       } as CardImages,
       colors: {
-        logoBg: {
-          color: `#059669`,
-          openPalette: false,
-        },
-        mainBg: {
-          color: `#ddd`,
-          openPalette: false,
-        },
-        buttonBg: {
-          color: `#059669`,
-          openPalette: false,
-        },
-        cardBg: {
-          color: `#fff`,
-          openPalette: false,
-        },
+        logoBg: { color: `#059669` },
+        mainBg: { color: `#ddd` },
+        buttonBg: { color: `#059669` },
+        cardBg: { color: `#fff` },
       } as CardColours,
       genInfo: {
         prefix: null,

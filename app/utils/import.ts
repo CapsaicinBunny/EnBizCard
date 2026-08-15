@@ -168,7 +168,6 @@ function restoreColours(
     const value = asString(source?.[slot])
     colors[slot] = {
       color: value && HEX.test(value) ? value : defaults[slot].color,
-      openPalette: false,
     }
   }
   return colors

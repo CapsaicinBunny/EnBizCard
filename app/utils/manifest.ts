@@ -268,8 +268,8 @@ export function buildManifest(input: ManifestInput): CardManifest {
     exportedAt: new Date().toISOString(),
     theme: input.theme,
     cardUid: input.cardUid,
-    // Only the colour survives; `openPalette` is editor state — whether a
-    // swatch was open when Download was pressed is not part of the card.
+    // Flattened to plain hex. The editor holds each colour in an object so the
+    // row can mutate it in place; a manifest has no use for the wrapper.
     colors: Object.fromEntries(
       (Object.keys(input.colors) as ColourSlot[]).map((slot) => [
         slot,
