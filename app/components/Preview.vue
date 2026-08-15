@@ -1218,9 +1218,6 @@ export default defineComponent({
     font-weight: bold;
     margin: 0;
   }
-  .prodInfo .sub {
-    margin: -1rem 0 0;
-  }
   .price {
     margin: 1rem 0 0;
     font-size: 1rem;
@@ -1675,9 +1672,6 @@ export default defineComponent({
     font-size: 1rem;
     font-weight: bold;
     margin: 0;
-  }
-  .prodInfo .sub {
-    margin: -1rem 0 0;
   }
   .price {
     margin: 1rem 0 0;
@@ -2134,9 +2128,6 @@ export default defineComponent({
     font-size: 1rem;
     font-weight: bold;
     margin: 0;
-  }
-  .prodInfo .sub {
-    margin: -1rem 0 0;
   }
   .price {
     margin: 1rem 0 0;
