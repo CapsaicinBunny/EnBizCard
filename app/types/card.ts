@@ -27,8 +27,18 @@ export interface CardImage {
 
 export type CardImages = Record<ImageSlot, CardImage>
 
-/** Which of the four themeable colours a `Colour` controls. */
-export type ColourSlot = 'logoBg' | 'mainBg' | 'buttonBg' | 'cardBg'
+/**
+ * Which themeable colour a `Colour` controls: four backgrounds, and headings
+ * and body text, split the same way the two font choices are. Icons stay
+ * auto-contrasted against whichever background they sit on.
+ */
+export type ColourSlot =
+  | 'logoBg'
+  | 'mainBg'
+  | 'buttonBg'
+  | 'cardBg'
+  | 'headingFg'
+  | 'bodyFg'
 
 export interface Colour {
   /** Always a `#rgb`/`#rrggbb` string; Colour.vue validates before committing. */
@@ -85,15 +95,22 @@ export interface GenInfo {
 export type FontRole = 'body' | 'heading'
 
 /**
- * Selectors the heading font claims.
+ * Selectors the heading font and the heading colour claim.
  *
  * `.name` is the person's name, `.section` a featured section's heading, and
  * `.title` the heading inside a media, product or carousel tile. The bare
  * element selectors catch the modal's own headings. Everything else inherits
- * the body font from `#body`, so this list is the whole definition of what
- * "heading" means on a card.
+ * the body font and colour from `#body`, so this list is the whole definition
+ * of what "heading" means on a card.
+ *
+ * Scoped to `#body` because Preview.vue's `<style>` blocks are live in the
+ * generator page — the preview is inline DOM, not an iframe — and unscoped
+ * `h1, h2, h3` would restyle the editor's own headings alongside the card's.
+ * `#body` rather than the `#Theme1` wrapper: the export serialises the `<html>`
+ * element, so the wrapper is not in the downloaded card but the body is.
  */
-export const HEADING_SELECTORS = '.name, .section, .title, h1, h2, h3'
+export const HEADING_SELECTORS =
+  '#body :is(.name, .section, .title, h1, h2, h3)'
 
 /**
  * `0 | 1` rather than boolean because these values are authored inline in the

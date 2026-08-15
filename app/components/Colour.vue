@@ -1,41 +1,38 @@
 <template>
-  <div class="mt-8">
-    <div class="flex items-center">
-      <input
-        :value="colors[name].color"
-        type="color"
-        class="swatch w-12 h-12 shrink-0 rounded cursor-pointer border-0 bg-transparent p-0 focus:outline-none focus:ring-3 ring-gray-100"
-        :aria-label="`${label} colour picker`"
-        @input="setColour($event.target.value)"
-      />
-      <div class="ml-3 min-w-0">
-        <p>{{ label }}</p>
+  <div class="mt-4 flex items-center">
+    <input
+      :value="colors[name].color"
+      type="color"
+      class="swatch w-9 h-9 shrink-0 rounded cursor-pointer border-0 bg-transparent p-0 focus:outline-none focus:ring-3 ring-gray-100"
+      :aria-label="`${label} colour picker`"
+      @input="setColour($event.target.value)"
+    />
+    <div class="ml-3 min-w-0">
+      <p class="text-sm leading-tight">{{ label }}</p>
+      <div class="mt-1 flex items-center">
         <input
           :value="colors[name].color"
           type="text"
           spellcheck="false"
           maxlength="7"
-          class="mt-1 w-24 px-2 py-1 rounded bg-black text-gray-100 text-sm focus:outline-none focus:ring-3 ring-gray-100"
+          class="w-20 px-1.5 py-0.5 rounded bg-black text-gray-100 text-xs focus:outline-none focus:ring-3 ring-gray-100"
           :aria-label="`${label} hex value`"
           @input="onHexInput($event.target.value)"
         />
+        <!-- Presets, inline rather than in a popover: five of these rows sit
+             in a column, and an overlay on one covers the next one's label. -->
+        <button
+          v-for="swatch in swatches"
+          :key="swatch"
+          type="button"
+          :style="{ backgroundColor: swatch }"
+          :title="swatch"
+          :aria-label="`${label}: ${swatch}`"
+          class="ml-1 w-4 h-4 shrink-0 rounded-full border focus:outline-none focus:ring-3 ring-gray-100"
+          :class="isCurrent(swatch) ? 'border-gray-100' : 'border-gray-600'"
+          @click="setColour(swatch)"
+        ></button>
       </div>
-    </div>
-
-    <!-- Presets. Inline rather than in a popover: four of these rows sit in a
-         column, and an overlay on one of them covers the next one's label. -->
-    <div class="mt-3 grid grid-cols-8 gap-2 w-fit">
-      <button
-        v-for="swatch in swatches"
-        :key="swatch"
-        type="button"
-        :style="{ backgroundColor: swatch }"
-        :title="swatch"
-        :aria-label="`${label}: ${swatch}`"
-        class="w-6 h-6 rounded-full border-2 focus:outline-none focus:ring-3 ring-gray-100"
-        :class="isCurrent(swatch) ? 'border-gray-100' : 'border-gray-600'"
-        @click="setColour(swatch)"
-      ></button>
     </div>
   </div>
 </template>

@@ -662,6 +662,8 @@
               label="Featured content background"
               :colors="colors"
             />
+            <Colour name="headingFg" label="Heading text" :colors="colors" />
+            <Colour name="bodyFg" label="Body text" :colors="colors" />
           </div>
         </div>
         <div id="step-9" class="mt-16">
@@ -1261,6 +1263,10 @@ export default defineComponent({
         mainBg: { color: `#ddd` },
         buttonBg: { color: `#059669` },
         cardBg: { color: `#fff` },
+        // Both match what the old auto-contrast rule produced for the default
+        // light backgrounds, so an existing card looks unchanged.
+        headingFg: { color: `#222222` },
+        bodyFg: { color: `#222222` },
       } as CardColours,
       genInfo: {
         prefix: null,

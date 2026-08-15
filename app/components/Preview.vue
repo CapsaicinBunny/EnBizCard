@@ -60,14 +60,7 @@
             .topAction { {{ hasLightBG('logoBg') ? 'filter:invert(1) ' : '' }}}
             .iconColor{ color:#eee;
             {{ hasLightBG('buttonBg') ? 'filter:invert(1)' : null }} }
-            .cardColor{ {{ hasLightBG('cardBg') && 'color:#222 !important' }} }
-            .textColor{
-            {{
-              hasLightBG('mainBg')
-                ? 'color:#222 !important'
-                : 'color:#eee !important'
-            }}
-            } .seekbarColor{
+            {{ getTextColourRules }} .seekbarColor{
             {{ `background:${colors.buttonBg.color}80 !important` }} }
           </component>
           <component :is="'style'" v-if="theme == 3">
@@ -683,6 +676,21 @@ export default defineComponent({
       // behaviour every card had before headings could differ.
       if (heading) rules.push(`${HEADING_SELECTORS}{${heading};}`)
       return rules.join('\n')
+    },
+    /**
+     * Text colour, split into headings and body over the same selectors the
+     * heading font claims — so the two settings can never disagree about what
+     * counts as a heading.
+     *
+     * The heading rule is emitted second because it has to win on equal
+     * specificity: `.section` and `.title` carry `.textColor`/`.cardColor` as
+     * well, and both rules are `!important`.
+     */
+    getTextColourRules(): string {
+      return [
+        `#body :is(.textColor, .cardColor){color:${this.colors.bodyFg.color} !important;}`,
+        `${HEADING_SELECTORS}{color:${this.colors.headingFg.color} !important;}`,
+      ].join('\n')
     },
   },
   methods: {
