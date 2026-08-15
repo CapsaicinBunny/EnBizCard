@@ -1,25 +1,66 @@
 # Privacy Policy
 
-I (Vishnu Raghav B) built the app EnBizCard as an open source app for use as is.
+EnBizCard is an open-source digital business card generator, provided as is. It
+is maintained at [CapsaicinBunny/EnBizCard](https://github.com/CapsaicinBunny/EnBizCard),
+a fork of the original by [Vishnu Raghav](https://www.vishnuraghav.com/).
 
-## Your Privacy
+This policy covers **the generator app**. It does not cover the cards you build
+with it — once you download a card, where it goes and what it collects is
+entirely up to you.
 
-As a privacy-conscious internet user, I respect your privacy; that's why this app has NO Ads, NO User Tracking and does NOT collect or share any personal information.
+## Your data stays on your device
 
-The app also does NOT use third-party services that collect information used to identify you.
+The generator has no backend and no database. Everything you type, every image
+you crop and every file you attach is processed in your browser and never leaves
+your device. There is nothing to send, because there is nowhere to send it.
 
-## Links To Third Party Websites
+Concretely, EnBizCard does **not**:
 
-The app may contain links to other sites. If you click on a third-party link, you will be directed to that site. Please be aware that I am not responsible for the privacy policies on these websites. These sites are not subject to this privacy policy, and you should check their individual privacy policies.
+- collect, store or transmit any of the information you put into a card
+- use analytics, telemetry, cookies or trackers of any kind
+- show ads
+- require an account, a login or any identifier
+- use third-party services that could identify you
 
-## Changes To This Privacy Policy
+The one thing you take away is the zip file you download, and your browser writes
+that straight to your own disk.
 
-I will occasionally update this Privacy Policy but only in a manner not affecting your privacy. Thus, you are advised to review this page periodically. I will notify you of any changes by posting the new privacy policy on this page. I will also change the "Last Updated" date at the end of this privacy policy. Any changes I make to the privacy policy are effective as of this Last Updated date and replace any prior privacy policies.
+## Hosting the app
 
-If I make any material changes to this privacy policy, I will notify you by placing a prominent notice on my app.
+The public instance is served as static files. Whichever host serves them — and
+any host you deploy your own copy to — can see ordinary web-server request data
+such as IP addresses and user agents, in the same way as any website you visit.
+That is the host's logging, not the app's, and it never includes your card's
+contents. Self-host it (see the README) if you would rather that not happen at
+all: the app runs fully offline once loaded.
 
-## Contact Information
+## Analytics in _your_ exported card
 
-For any questions, suggestions or concerns regarding my privacy policy, please send me an email to apps@vishnuraghav.com.
+The editor has an "analytics" field. Anything you paste there is embedded into
+the card **you** export and runs for **your** visitors, under whatever terms that
+provider sets. It sends nothing to this project, and it is empty unless you fill
+it in. If you use it, your published card may need its own privacy notice.
 
-Last Updated: 10 February 2021
+## Cards you publish
+
+An exported card is a folder of static files that you host yourself. Its privacy
+behaviour is yours to determine, and so is any obligation that comes with
+publishing the personal details you put on it.
+
+## Links to third-party websites
+
+Cards and this app can link to other sites. Those sites have their own privacy
+policies, which you should read; this one does not apply to them.
+
+## Changes to this policy
+
+This policy may be updated from time to time, with the "Last Updated" date below
+revised accordingly. The full history of changes is public in the repository's
+git log.
+
+## Contact
+
+Questions or concerns:
+[open an issue](https://github.com/CapsaicinBunny/EnBizCard/issues).
+
+Last Updated: 14 August 2026
