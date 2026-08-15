@@ -95,7 +95,50 @@
     </div>
     <div class="md:grid md:grid-cols-2">
       <div class="px-4 mt-32">
-        <div ref="create" id="step-1" class="pt-8">
+        <div ref="create" id="step-0" class="pt-8">
+          <h2 class="font-extrabold text-2xl">Open a saved card</h2>
+          <div class="stepC">
+            <p class="mb-4 text-gray-400">
+              Pick the .zip you downloaded, or the folder you unzipped it into,
+              to carry on editing it. Everything is read in your browser —
+              nothing is uploaded.
+            </p>
+            <div class="flex flex-wrap gap-3">
+              <label
+                class="flex items-center p-3 rounded cursor-pointer bg-gray-700 hover:bg-gray-600 focus-within:bg-gray-600 transition-colors duration-200"
+              >
+                <div class="w-6 h-6 mr-3" v-html="$icon('add')"></div>
+                <p class="leading-none">Open .zip</p>
+                <input
+                  type="file"
+                  class="hidden"
+                  accept=".zip,application/zip"
+                  @change="openZip($event)"
+                />
+              </label>
+              <label
+                class="flex items-center p-3 rounded cursor-pointer bg-gray-700 hover:bg-gray-600 focus-within:bg-gray-600 transition-colors duration-200"
+              >
+                <div class="w-6 h-6 mr-3" v-html="$icon('add')"></div>
+                <p class="leading-none">Open folder</p>
+                <!--
+                  webkitdirectory is not in the HTML spec but is implemented by
+                  every current browser; Vue needs it as an attribute because
+                  there is no matching DOM property to bind.
+                -->
+                <input
+                  type="file"
+                  class="hidden"
+                  webkitdirectory
+                  directory
+                  multiple
+                  @change="openFolder($event)"
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+        <div id="step-1" class="mt-16">
           <h2 class="font-extrabold text-2xl">Header attachments</h2>
           <div class="stepC">
             <Attachment
@@ -881,6 +924,13 @@ import {
   slideFileName,
 } from '~/types/card'
 import { MANIFEST_FILE, serialiseManifest } from '~/utils/manifest'
+import {
+  filesFromFolder,
+  filesFromZip,
+  parseManifest,
+  readManifestText,
+  restoreCard,
+} from '~/utils/import'
 import { buildVCard } from '~/utils/vcard'
 import { hasAddress } from '~/utils/address'
 import { errorText } from '~/utils/errors'
@@ -2478,6 +2528,85 @@ export default defineComponent({
     },
     showAlert(content) {
       this.content = content
+    },
+    openZip(event) {
+      const file = event.target.files?.[0]
+      // Reset the input so picking the same file twice still fires a change.
+      event.target.value = ''
+      if (file) this.importCard(() => filesFromZip(file))
+    },
+    openFolder(event) {
+      const files = [...(event.target.files ?? [])]
+      event.target.value = ''
+      if (files.length > 0) this.importCard(() => filesFromFolder(files))
+    },
+    /** Whether the editor holds anything an import would throw away. */
+    hasCardContent() {
+      return Boolean(
+        this.genInfo.fname ||
+        this.genInfo.lname ||
+        this.genInfo.desc ||
+        this.primaryActions.length > 0 ||
+        this.secondaryActions.length > 0 ||
+        this.featured.some((section) => section.content.length > 0) ||
+        Object.values(this.images).some((image) => image.url),
+      )
+    },
+    async importCard(readFiles) {
+      // Opening a card replaces everything in the editor. There is no undo and
+      // no autosave, so an in-progress card gets a chance to survive the click.
+      if (
+        this.hasCardContent() &&
+        !window.confirm(
+          'Opening a saved card replaces everything currently in the editor. Continue?',
+        )
+      )
+        return
+
+      try {
+        const files = await readFiles()
+        const card = restoreCard(
+          parseManifest(await readManifestText(files)),
+          files,
+          // The editor's own pristine state, for anything the manifest omits
+          // or gets wrong.
+          this.$options.data.call(this),
+        )
+
+        // Actions have to be replayed rather than assigned. addAction() takes
+        // a non-repeatable action *out* of the picker's pool, so restoring the
+        // chosen rows without rebuilding the pool would leave the picker still
+        // offering every profile the card already uses.
+        const fresh = this.$options.data.call(this)
+        this.actions = fresh.actions
+        this.rowSeq = 0
+        for (const type of ['primaryActions', 'secondaryActions']) {
+          this[type] = []
+          for (const action of card[type]) {
+            const pool = this.actions[type]
+            const index = pool.findIndex((e) => e.name === action.name)
+            // A custom profile is not in the pool at all, and a repeatable one
+            // never leaves it.
+            if (index !== -1 && !pool[index].repeatable) pool.splice(index, 1)
+            this[type].push({ ...action, rowId: ++this.rowSeq })
+          }
+        }
+
+        this.colors = card.colors
+        this.genInfo = card.genInfo
+        this.images = card.images
+        this.featured = card.featured
+        this.hostedURL = card.hostedURL
+        this.footerCredit = card.footerCredit
+        this.fontPreset = card.fontPreset
+        this.headingFontPreset = card.headingFontPreset
+        this.theme = card.theme
+        // Keeping the UID means a re-import updates the same address-book
+        // entry on the reader's phone instead of landing as a second contact.
+        if (card.cardUid) this.cardUid = card.cardUid
+      } catch (err) {
+        this.showAlert(`Could not open that card.\n\n${errorText(err)}`)
+      }
     },
     clearFilterActions() {
       this.filterPrimary = this.filterSecondary = ''
