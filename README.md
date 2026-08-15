@@ -41,19 +41,12 @@
 
 - Zero limitations
 - Your data belongs to you
-- Private by design
+- Private by design — nothing you type ever leaves your browser ([privacy policy](PRIVACY.md))
 
 ## Having issues, suggestions and feedback?
 
 - [Create an issue here](https://github.com/CapsaicinBunny/EnBizCard/issues) for anything specific to this fork.
 - For the original project, see [vishnuraghavb/EnBizCard](https://github.com/vishnuraghavb/EnBizCard).
-
-## Assets
-
-- [Boxicons](https://boxicons.com/)
-- [Feather icons](https://feathericons.com)
-- Logo and some icons by [Vishnu Raghav](https://www.vishnuraghav.com/)
-- [QRCode-SVG](https://github.com/papnkukn/qrcode-svg)
 
 ## Self-Hosting Guide - Docker
 
@@ -74,21 +67,28 @@ cp env.example .env
 3. Run `docker-compose up -d`
 4. Access the app at http://localhost:22212 (or a different port, in case you edited the .env file).
 
-## Icon credits
+## Credits
 
-The brand icons in `app/assets/icons/` come from the sources below, plus
-brand artwork supplied by contributors. They are inlined into generated cards,
-so these terms travel with anything you export.
+- [QRCode-SVG](https://github.com/papnkukn/qrcode-svg) (MIT) generates the QR code, in the app and inside exported cards.
+- Logo and original artwork by [Vishnu Raghav](https://www.vishnuraghav.com/).
 
-| Source                                    | Licence   | Attribution                  |
-| ----------------------------------------- | --------- | ---------------------------- |
-| [Simple Icons](https://simpleicons.org/)  | CC0 1.0   | not required                 |
-| [CoreUI Brands](https://icons.coreui.io/) | CC0 1.0   | not required                 |
-| [SVG Stack](https://svgstack.com)         | CC BY 4.0 | **required** — credited here |
+### Icons
 
-Currently only `amazon.svg` comes from <a href="https://svgstack.com" target="_blank">SVG Stack</a>;
-the file carries a comment saying so. Brand names and logos are trademarks of
-their respective owners, used here to identify the services they link to.
+The icons in `app/assets/icons/` are **inlined into generated cards**, so these
+terms travel with anything you export — not just with this repository.
+
+| Source                              | Used for                | Licence   | Attribution                  |
+| ----------------------------------- | ----------------------- | --------- | ---------------------------- |
+| [SVG Stack](https://svgstack.com)   | brand and service logos | CC BY 4.0 | **required** — credited here |
+| [Boxicons](https://boxicons.com/)   | interface icons         | MIT       | licence text                 |
+| [Feather](https://feathericons.com) | interface icons         | MIT       | licence text                 |
+
+Because the brand set is CC BY rather than public domain, **anyone publishing an
+exported card is redistributing CC BY artwork** and inherits the attribution
+requirement. Crediting SVG Stack somewhere on the hosting site satisfies it.
+
+Brand names and logos are trademarks of their respective owners, used here only
+to identify the services a card links to.
 
 ## License
 
