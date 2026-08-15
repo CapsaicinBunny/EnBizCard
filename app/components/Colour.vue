@@ -3,7 +3,7 @@
     <input
       :value="colors[name].color"
       type="color"
-      class="swatch w-9 h-9 shrink-0 rounded cursor-pointer border-0 bg-transparent p-0 focus:outline-none focus:ring-3 ring-gray-100"
+      class="swatch w-9 h-9 shrink-0 rounded cursor-pointer border border-gray-600 bg-transparent p-0 focus:outline-none focus:ring-3 ring-gray-100"
       :aria-label="`${label} colour picker`"
       @input="setColour($event.target.value)"
     />
@@ -19,7 +19,7 @@
           :aria-label="`${label} hex value`"
           @input="onHexInput($event.target.value)"
         />
-        <!-- Presets, inline rather than in a popover: five of these rows sit
+        <!-- Presets, inline rather than in a popover: six of these rows sit
              in a column, and an overlay on one covers the next one's label. -->
         <button
           v-for="swatch in swatches"
@@ -98,9 +98,12 @@ export default defineComponent({
   &::-webkit-color-swatch-wrapper {
     padding: 0;
   }
+  // The fill sits inside the 1px border, so its radius has to be the outer
+  // `rounded` (0.25rem) less that border — matching radii would leave the fill
+  // bulging into the corner of the stroke instead of nesting inside it.
   &::-webkit-color-swatch {
     border: none;
-    border-radius: 0.25rem;
+    border-radius: calc(0.25rem - 1px);
   }
 }
 </style>
