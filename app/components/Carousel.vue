@@ -178,6 +178,7 @@ import { VueDraggable } from 'vue-draggable-plus'
 import ProductCard from './ProductCard.vue'
 import Review from './Review.vue'
 import type { CarouselContent, ResizeImage } from '~/types/card'
+import { emptyProduct, emptyReview, emptyText } from '~/types/card'
 import { captureVideoEntry, readImageEntry } from '~/utils/media'
 import { errorText } from '~/utils/errors'
 
@@ -246,27 +247,11 @@ export default defineComponent({
     /** Append an empty slide of one of the non-file kinds. */
     addSlide(kind: 'text' | 'product' | 'review'): void {
       if (kind === 'text') {
-        this.item.slides.push({ contentType: 'text', value: null })
+        this.item.slides.push(emptyText())
       } else if (kind === 'product') {
-        this.item.slides.push({
-          contentType: 'product',
-          image: null,
-          title: null,
-          description: null,
-          price: null,
-          label: null,
-          link: null,
-        })
+        this.item.slides.push(emptyProduct())
       } else {
-        this.item.slides.push({
-          contentType: 'review',
-          author: null,
-          rating: null,
-          body: null,
-          source: null,
-          link: null,
-          date: null,
-        })
+        this.item.slides.push(emptyReview())
       }
     },
   },

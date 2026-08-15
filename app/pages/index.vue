@@ -95,7 +95,50 @@
     </div>
     <div class="md:grid md:grid-cols-2">
       <div class="px-4 mt-32">
-        <div ref="create" id="step-1" class="pt-8">
+        <div ref="create" id="step-0" class="pt-8">
+          <h2 class="font-extrabold text-2xl">Open a saved card</h2>
+          <div class="stepC">
+            <p class="mb-4 text-gray-400">
+              Pick the .zip you downloaded, or the folder you unzipped it into,
+              to carry on editing it. Everything is read in your browser —
+              nothing is uploaded.
+            </p>
+            <div class="flex flex-wrap gap-3">
+              <label
+                class="flex items-center p-3 rounded cursor-pointer bg-gray-700 hover:bg-gray-600 focus-within:bg-gray-600 transition-colors duration-200"
+              >
+                <div class="w-6 h-6 mr-3" v-html="$icon('add')"></div>
+                <p class="leading-none">Open .zip</p>
+                <input
+                  type="file"
+                  class="hidden"
+                  accept=".zip,application/zip"
+                  @change="openZip($event)"
+                />
+              </label>
+              <label
+                class="flex items-center p-3 rounded cursor-pointer bg-gray-700 hover:bg-gray-600 focus-within:bg-gray-600 transition-colors duration-200"
+              >
+                <div class="w-6 h-6 mr-3" v-html="$icon('add')"></div>
+                <p class="leading-none">Open folder</p>
+                <!--
+                  webkitdirectory is not in the HTML spec but is implemented by
+                  every current browser; Vue needs it as an attribute because
+                  there is no matching DOM property to bind.
+                -->
+                <input
+                  type="file"
+                  class="hidden"
+                  webkitdirectory
+                  directory
+                  multiple
+                  @change="openFolder($event)"
+                />
+              </label>
+            </div>
+          </div>
+        </div>
+        <div id="step-1" class="mt-16">
           <h2 class="font-extrabold text-2xl">Header attachments</h2>
           <div class="stepC">
             <Attachment
@@ -509,16 +552,19 @@
               </transition-group>
             </VueDraggable>
 
-            <div class="flex mt-6">
-              <div class="flex flex-wrap items-center">
+            <div class="mt-6">
+              <p class="mb-3 leading-none text-gray-400">Add a section</p>
+              <div class="flex flex-wrap gap-3">
                 <button
-                  class="p-3 rounded bg-gray-700 hover:bg-gray-600 focus:bg-gray-600 transition-colors duration-200 focus:outline-none"
-                  @click="addFeature()"
-                  aria-label="Add section"
+                  v-for="preset in featuredPresets"
+                  :key="preset.id"
+                  class="flex items-center p-3 rounded cursor-pointer bg-gray-700 hover:bg-gray-600 focus:bg-gray-600 transition-colors duration-200 focus:outline-none"
+                  @click="addFeature(preset)"
+                  :aria-label="`Add ${preset.label}`"
                 >
-                  <div class="w-6 h-6" v-html="$icon('add')"></div>
+                  <div class="w-6 h-6 mr-3" v-html="$icon(preset.icon)"></div>
+                  <p class="leading-none text-left">{{ preset.label }}</p>
                 </button>
-                <p class="ml-3 leading-none">Add section</p>
               </div>
             </div>
             <p class="mt-6 border p-4 rounded border-gray-700 text-gray-400">
@@ -616,6 +662,8 @@
               label="Featured content background"
               :colors="colors"
             />
+            <Colour name="headingFg" label="Heading text" :colors="colors" />
+            <Colour name="bodyFg" label="Body text" :colors="colors" />
           </div>
         </div>
         <div id="step-9" class="mt-16">
@@ -870,9 +918,21 @@ import type {
 import {
   abLabelFor,
   contactTypeFor,
+  FEATURED_PRESETS,
   hasCarouselContent,
+  hasCoverFile,
+  mediaFileName,
+  newSection,
   slideFileName,
 } from '~/types/card'
+import { MANIFEST_FILE, serialiseManifest } from '~/utils/manifest'
+import {
+  filesFromFolder,
+  filesFromZip,
+  parseManifest,
+  readManifestText,
+  restoreCard,
+} from '~/utils/import'
 import { buildVCard } from '~/utils/vcard'
 import { hasAddress } from '~/utils/address'
 import { errorText } from '~/utils/errors'
@@ -1199,22 +1259,14 @@ export default defineComponent({
         },
       } as CardImages,
       colors: {
-        logoBg: {
-          color: `#059669`,
-          openPalette: false,
-        },
-        mainBg: {
-          color: `#ddd`,
-          openPalette: false,
-        },
-        buttonBg: {
-          color: `#059669`,
-          openPalette: false,
-        },
-        cardBg: {
-          color: `#fff`,
-          openPalette: false,
-        },
+        logoBg: { color: `#059669` },
+        mainBg: { color: `#ddd` },
+        buttonBg: { color: `#059669` },
+        cardBg: { color: `#fff` },
+        // Both match what the old auto-contrast rule produced for the default
+        // light backgrounds, so an existing card looks unchanged.
+        headingFg: { color: `#222222` },
+        bodyFg: { color: `#222222` },
       } as CardColours,
       genInfo: {
         prefix: null,
@@ -2209,6 +2261,9 @@ export default defineComponent({
     fontPresets() {
       return FONT_PRESETS
     },
+    featuredPresets() {
+      return FEATURED_PRESETS
+    },
     secondaryResultsLabel() {
       if (this.filterSecondary) return `Results for “${this.filterSecondary}”`
       return (
@@ -2448,14 +2503,8 @@ export default defineComponent({
     create() {
       this.$refs.create.scrollIntoView({ behavior: 'smooth' })
     },
-    getTitle(e) {
-      return e.toLowerCase().split(' ').join('_')
-    },
-    addFeature() {
-      this.featured.push({
-        title: 'Section title',
-        content: [],
-      })
+    addFeature(preset) {
+      this.featured.push(newSection(preset))
     },
     hasLightBG(e) {
       let hex = this.colors[e].color
@@ -2473,6 +2522,85 @@ export default defineComponent({
     },
     showAlert(content) {
       this.content = content
+    },
+    openZip(event) {
+      const file = event.target.files?.[0]
+      // Reset the input so picking the same file twice still fires a change.
+      event.target.value = ''
+      if (file) this.importCard(() => filesFromZip(file))
+    },
+    openFolder(event) {
+      const files = [...(event.target.files ?? [])]
+      event.target.value = ''
+      if (files.length > 0) this.importCard(() => filesFromFolder(files))
+    },
+    /** Whether the editor holds anything an import would throw away. */
+    hasCardContent() {
+      return Boolean(
+        this.genInfo.fname ||
+        this.genInfo.lname ||
+        this.genInfo.desc ||
+        this.primaryActions.length > 0 ||
+        this.secondaryActions.length > 0 ||
+        this.featured.some((section) => section.content.length > 0) ||
+        Object.values(this.images).some((image) => image.url),
+      )
+    },
+    async importCard(readFiles) {
+      // Opening a card replaces everything in the editor. There is no undo and
+      // no autosave, so an in-progress card gets a chance to survive the click.
+      if (
+        this.hasCardContent() &&
+        !window.confirm(
+          'Opening a saved card replaces everything currently in the editor. Continue?',
+        )
+      )
+        return
+
+      try {
+        const files = await readFiles()
+        const card = restoreCard(
+          parseManifest(await readManifestText(files)),
+          files,
+          // The editor's own pristine state, for anything the manifest omits
+          // or gets wrong.
+          this.$options.data.call(this),
+        )
+
+        // Actions have to be replayed rather than assigned. addAction() takes
+        // a non-repeatable action *out* of the picker's pool, so restoring the
+        // chosen rows without rebuilding the pool would leave the picker still
+        // offering every profile the card already uses.
+        const fresh = this.$options.data.call(this)
+        this.actions = fresh.actions
+        this.rowSeq = 0
+        for (const type of ['primaryActions', 'secondaryActions']) {
+          this[type] = []
+          for (const action of card[type]) {
+            const pool = this.actions[type]
+            const index = pool.findIndex((e) => e.name === action.name)
+            // A custom profile is not in the pool at all, and a repeatable one
+            // never leaves it.
+            if (index !== -1 && !pool[index].repeatable) pool.splice(index, 1)
+            this[type].push({ ...action, rowId: ++this.rowSeq })
+          }
+        }
+
+        this.colors = card.colors
+        this.genInfo = card.genInfo
+        this.images = card.images
+        this.featured = card.featured
+        this.hostedURL = card.hostedURL
+        this.footerCredit = card.footerCredit
+        this.fontPreset = card.fontPreset
+        this.headingFontPreset = card.headingFontPreset
+        this.theme = card.theme
+        // Keeping the UID means a re-import updates the same address-book
+        // entry on the reader's phone instead of landing as a second contact.
+        if (card.cardUid) this.cardUid = card.cardUid
+      } catch (err) {
+        this.showAlert(`Could not open that card.\n\n${errorText(err)}`)
+      }
     },
     clearFilterActions() {
       this.filterPrimary = this.filterSecondary = ''
@@ -2825,24 +2953,19 @@ export default defineComponent({
               zip
                 .folder(username)
                 .folder('media')
-                .file(`${this.getTitle(item.title)}.${item.ext}`, item.file)
-              if (/music|document/gi.test(item.type)) {
-                if (!item.info) {
-                  zip
-                    .folder(username)
-                    .folder('media')
-                    .file(
-                      `${this.getTitle(item.title)}.${item.coverExt}`,
-                      item.cover,
-                    )
-                }
+                .file(mediaFileName(item.title, item.ext), item.file)
+              if (hasCoverFile(item) && item.coverExt) {
+                zip
+                  .folder(username)
+                  .folder('media')
+                  .file(mediaFileName(item.title, item.coverExt), item.cover)
               }
             } else if (item.contentType === 'product' && item.image) {
               zip
                 .folder(username)
                 .folder('media')
                 .file(
-                  `${this.getTitle(item.image.title)}.${item.image.ext}`,
+                  mediaFileName(item.image.title, item.image.ext),
                   item.image.file,
                 )
             }
@@ -2858,6 +2981,26 @@ export default defineComponent({
 
       // VCARD
       zip.folder(username).file(`${username}.vcf`, vCard)
+
+      // The machine-readable card. Written on every export, because a zip that
+      // leaves without one can never be re-imported — see manifest.ts.
+      zip.folder(username).file(
+        MANIFEST_FILE,
+        serialiseManifest({
+          theme: this.theme,
+          cardUid: this.cardUid,
+          colors: this.colors,
+          genInfo: this.genInfo,
+          fontPreset: this.fontPreset,
+          headingFontPreset: this.headingFontPreset,
+          images: this.images,
+          primaryActions: this.primaryActions,
+          secondaryActions: this.secondaryActions,
+          featured: this.featured,
+          hostedURL: this.hostedURL,
+          footerCredit: this.footerCredit,
+        }),
+      )
 
       // Final ZIP file. JSZip defers reading every file it was handed until
       // generateAsync(), so this is where an unreadable blob surfaces — and

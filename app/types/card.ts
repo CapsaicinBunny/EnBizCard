@@ -27,13 +27,22 @@ export interface CardImage {
 
 export type CardImages = Record<ImageSlot, CardImage>
 
-/** Which of the four themeable colours a `Colour` controls. */
-export type ColourSlot = 'logoBg' | 'mainBg' | 'buttonBg' | 'cardBg'
+/**
+ * Which themeable colour a `Colour` controls: four backgrounds, and headings
+ * and body text, split the same way the two font choices are. Icons stay
+ * auto-contrasted against whichever background they sit on.
+ */
+export type ColourSlot =
+  | 'logoBg'
+  | 'mainBg'
+  | 'buttonBg'
+  | 'cardBg'
+  | 'headingFg'
+  | 'bodyFg'
 
 export interface Colour {
   /** Always a `#rgb`/`#rrggbb` string; Colour.vue validates before committing. */
   color: string
-  openPalette: boolean
 }
 
 export type CardColours = Record<ColourSlot, Colour>
@@ -86,15 +95,22 @@ export interface GenInfo {
 export type FontRole = 'body' | 'heading'
 
 /**
- * Selectors the heading font claims.
+ * Selectors the heading font and the heading colour claim.
  *
  * `.name` is the person's name, `.section` a featured section's heading, and
  * `.title` the heading inside a media, product or carousel tile. The bare
  * element selectors catch the modal's own headings. Everything else inherits
- * the body font from `#body`, so this list is the whole definition of what
- * "heading" means on a card.
+ * the body font and colour from `#body`, so this list is the whole definition
+ * of what "heading" means on a card.
+ *
+ * Scoped to `#body` because Preview.vue's `<style>` blocks are live in the
+ * generator page — the preview is inline DOM, not an iframe — and unscoped
+ * `h1, h2, h3` would restyle the editor's own headings alongside the card's.
+ * `#body` rather than the `#Theme1` wrapper: the export serialises the `<html>`
+ * element, so the wrapper is not in the downloaded card but the body is.
  */
-export const HEADING_SELECTORS = '.name, .section, .title, h1, h2, h3'
+export const HEADING_SELECTORS =
+  '#body :is(.name, .section, .title, h1, h2, h3)'
 
 /**
  * `0 | 1` rather than boolean because these values are authored inline in the
@@ -538,6 +554,169 @@ export function slideFileName(
   ext: string,
 ): string {
   return `carousel_${section}_${item}_${slide}.${ext}`
+}
+
+/**
+ * The file name a non-carousel media entry or product image gets in media/.
+ *
+ * Title-derived, and kept that way: these names are visible in the exported
+ * folder and `song.mp3` is worth more to someone editing their own card by
+ * hand than `media_0_3.mp3`. Carousel slides are the exception — see
+ * `slideFileName()` for why they are positional instead.
+ *
+ * The rule itself was copied into four components and downloadPackage(), each
+ * as a private `getTitle()`; the manifest would have made six. They must all
+ * agree, because Preview.vue writes the `<img src>`, downloadPackage() writes
+ * the file and the manifest records the path. A null title is tolerated here
+ * rather than thrown on, which is what the inline copies in index.vue did.
+ */
+export function mediaFileName(
+  title: string | null | undefined,
+  ext: string,
+): string {
+  return `${(title ?? '').toLowerCase().split(' ').join('_')}.${ext}`
+}
+
+/**
+ * The empty items a section or carousel starts from.
+ *
+ * Factories rather than shared constants: every one of these is pushed into a
+ * reactive array and then edited in place, so handing out one frozen object
+ * would make every product on the card the same product — the bug the cloning
+ * note on `PrimaryAction.values` describes.
+ *
+ * There is deliberately no `emptyMedia()`. A `MediaContent` cannot exist
+ * without its `file`, so media arrives by attachment and never as a blank row.
+ */
+export function emptyProduct(): ProductContent {
+  return {
+    contentType: 'product',
+    image: null,
+    title: null,
+    description: null,
+    price: null,
+    label: null,
+    link: null,
+  }
+}
+
+export function emptyText(): TextContent {
+  return { contentType: 'text', value: null }
+}
+
+export function emptyReview(): ReviewContent {
+  return {
+    contentType: 'review',
+    author: null,
+    rating: null,
+    body: null,
+    source: null,
+    link: null,
+    date: null,
+  }
+}
+
+export function emptyCarousel(): CarouselContent {
+  return { contentType: 'carousel', slides: [] }
+}
+
+/** What a preset drops into a new section, if anything. */
+export type FeaturedSeed = 'product' | 'text' | 'review' | 'carousel' | null
+
+/**
+ * A starting point for a new section.
+ *
+ * The old flow gave every section the title 'Section title' and no content,
+ * which left the most common cases — a price list, a gallery, testimonials —
+ * as three or four clicks of setup that every user repeated identically. A
+ * preset is only that setup: a title and one empty item. Nothing here is
+ * locked afterwards, so a section started from `services` is an ordinary
+ * section that happens to already contain a product.
+ */
+export interface FeaturedPreset {
+  id: string
+  /** Button text in the editor. */
+  label: string
+  /** The section title the card starts with; the user renames it freely. */
+  title: string
+  seed: FeaturedSeed
+  /** An icon name from `app/assets/icons`. */
+  icon: string
+}
+
+export const FEATURED_PRESETS: readonly FeaturedPreset[] = [
+  {
+    id: 'blank',
+    label: 'Blank section',
+    title: 'Section title',
+    seed: null,
+    icon: 'add',
+  },
+  {
+    id: 'services',
+    label: 'Services & pricing',
+    title: 'Services',
+    seed: 'product',
+    icon: 'product',
+  },
+  {
+    id: 'gallery',
+    label: 'Photo gallery',
+    title: 'Gallery',
+    seed: 'carousel',
+    icon: 'carousel',
+  },
+  {
+    id: 'testimonials',
+    label: 'Testimonials',
+    title: 'What clients say',
+    seed: 'review',
+    icon: 'review',
+  },
+  { id: 'about', label: 'About', title: 'About', seed: 'text', icon: 'text' },
+  { id: 'faq', label: 'FAQ', title: 'FAQ', seed: 'text', icon: 'text' },
+]
+
+/** A new section built from a preset. */
+export function newSection(preset: FeaturedPreset): FeaturedSection {
+  const content: FeaturedContent[] = []
+  switch (preset.seed) {
+    case 'product':
+      content.push(emptyProduct())
+      break
+    case 'text':
+      content.push(emptyText())
+      break
+    case 'review':
+      content.push(emptyReview())
+      break
+    case 'carousel':
+      content.push(emptyCarousel())
+      break
+    case null:
+      break
+    default: {
+      // Same guard as hasSlideContent(): a new seed kind must be handled here
+      // or the build fails, rather than silently producing an empty section.
+      const exhaustive: never = preset.seed
+      return exhaustive
+    }
+  }
+  return { title: preset.title, content }
+}
+
+/**
+ * Whether a media entry ships a separate cover image in the export.
+ *
+ * Music and documents get one; video does not, because its poster frame is
+ * captured into the entry itself. `info` marks an entry whose cover could not
+ * be produced — 'No Thumb' or 'No ID3 Tag' — and those have no file to write.
+ *
+ * Shared so the manifest cannot claim a cover the zip never wrote: the two
+ * used to be one inline regex in downloadPackage() with no second reader.
+ */
+export function hasCoverFile(media: MediaContent): boolean {
+  return /music|document/i.test(media.type) && !media.info
 }
 
 /**

@@ -255,14 +255,17 @@
 <script lang="ts">
 import { defineComponent, type PropType } from 'vue'
 import type {
-  CarouselContent,
   FeaturedContent,
   FeaturedSection,
   MediaContent,
   MediaKind,
   ResizeImage,
-  ReviewContent,
-  TextContent,
+} from '~/types/card'
+import {
+  emptyCarousel,
+  emptyProduct,
+  emptyReview,
+  emptyText,
 } from '~/types/card'
 
 // id3-parser 3 dropped the `universal/` entry points and made `parse` the
@@ -381,19 +384,10 @@ export default defineComponent({
       )
     },
     addProduct(): void {
-      this.featured[this.index].content.push({
-        image: null,
-        title: null,
-        description: null,
-        price: null,
-        label: null,
-        link: null,
-        contentType: 'product',
-      })
+      this.featured[this.index].content.push(emptyProduct())
     },
     addText(): void {
-      const entry: TextContent = { contentType: 'text', value: null }
-      this.featured[this.index].content.push(entry)
+      this.featured[this.index].content.push(emptyText())
       const texts = this.featured[this.index].content.filter(
         (e) => typeof e !== 'string' && e.contentType === 'text',
       )
@@ -404,20 +398,10 @@ export default defineComponent({
       )
     },
     addCarousel(): void {
-      const entry: CarouselContent = { contentType: 'carousel', slides: [] }
-      this.featured[this.index].content.push(entry)
+      this.featured[this.index].content.push(emptyCarousel())
     },
     addReview(): void {
-      const entry: ReviewContent = {
-        contentType: 'review',
-        author: null,
-        rating: null,
-        body: null,
-        source: null,
-        link: null,
-        date: null,
-      }
-      this.featured[this.index].content.push(entry)
+      this.featured[this.index].content.push(emptyReview())
     },
     fileLoaded(e: Event, dropped: boolean): void {
       const dt = (e as DragEvent).dataTransfer
@@ -515,8 +499,9 @@ export default defineComponent({
         return false
       }
       // id3-parser declares every frame optional, so a tagged MP3 with no TIT2
-      // still yields `undefined` here. getTitle() lowercases it on the export
-      // path, so fall back to the filename rather than crashing the download.
+      // still yields `undefined` here. The export path names the file after
+      // the title, so fall back to the filename rather than shipping `.mp3`
+      // with nothing in front of it.
       const tags = {
         title: tag.title || fileTitle(file),
         artist: tag.artist,

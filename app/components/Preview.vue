@@ -60,14 +60,7 @@
             .topAction { {{ hasLightBG('logoBg') ? 'filter:invert(1) ' : '' }}}
             .iconColor{ color:#eee;
             {{ hasLightBG('buttonBg') ? 'filter:invert(1)' : null }} }
-            .cardColor{ {{ hasLightBG('cardBg') && 'color:#222 !important' }} }
-            .textColor{
-            {{
-              hasLightBG('mainBg')
-                ? 'color:#222 !important'
-                : 'color:#eee !important'
-            }}
-            } .seekbarColor{
+            {{ getTextColourRules }} .seekbarColor{
             {{ `background:${colors.buttonBg.color}80 !important` }} }
           </component>
           <component :is="'style'" v-if="theme == 3">
@@ -318,7 +311,7 @@
                       :src="
                         PreviewMode
                           ? item.dataURI
-                          : `./media/${getTitle(item.title)}.${item.ext}`
+                          : `./media/${mediaFileName(item.title, item.ext)}`
                       "
                       alt="Product image"
                     />
@@ -555,6 +548,7 @@ import {
   hasSlideContent,
   HEADING_SELECTORS,
   MAX_RATING,
+  mediaFileName,
   slideFileName,
   starCount,
 } from '~/types/card'
@@ -683,6 +677,21 @@ export default defineComponent({
       if (heading) rules.push(`${HEADING_SELECTORS}{${heading};}`)
       return rules.join('\n')
     },
+    /**
+     * Text colour, split into headings and body over the same selectors the
+     * heading font claims — so the two settings can never disagree about what
+     * counts as a heading.
+     *
+     * The heading rule is emitted second because it has to win on equal
+     * specificity: `.section` and `.title` carry `.textColor`/`.cardColor` as
+     * well, and both rules are `!important`.
+     */
+    getTextColourRules(): string {
+      return [
+        `#body :is(.textColor, .cardColor){color:${this.colors.bodyFg.color} !important;}`,
+        `${HEADING_SELECTORS}{color:${this.colors.headingFg.color} !important;}`,
+      ].join('\n')
+    },
   },
   methods: {
     getHref(e: PrimaryAction | SecondaryAction): string | null {
@@ -693,14 +702,12 @@ export default defineComponent({
         ? e.href + (value || e.value) + (e.hrefEnd ? e.hrefEnd : '')
         : value || e.value
     },
-    getTitle(e: string): string {
-      return e.toLowerCase().split(' ').join('_')
-    },
     /** Options API templates cannot see imports; re-expose them as methods. */
     hasCarouselContent,
     hasProductContent,
     hasReviewContent,
     hasSlideContent,
+    mediaFileName,
     slideFileName,
     starCount,
     /** The filled/empty star row for a rating, as text. */
@@ -1219,9 +1226,6 @@ export default defineComponent({
     font-weight: bold;
     margin: 0;
   }
-  .prodInfo .sub {
-    margin: -1rem 0 0;
-  }
   .price {
     margin: 1rem 0 0;
     font-size: 1rem;
@@ -1676,9 +1680,6 @@ export default defineComponent({
     font-size: 1rem;
     font-weight: bold;
     margin: 0;
-  }
-  .prodInfo .sub {
-    margin: -1rem 0 0;
   }
   .price {
     margin: 1rem 0 0;
@@ -2135,9 +2136,6 @@ export default defineComponent({
     font-size: 1rem;
     font-weight: bold;
     margin: 0;
-  }
-  .prodInfo .sub {
-    margin: -1rem 0 0;
   }
   .price {
     margin: 1rem 0 0;
